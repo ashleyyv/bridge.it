@@ -1,0 +1,23 @@
+{
+  "name": "bridge-it-server",
+  "version": "4.2.0",
+  "description": "Bridge.it API Server - Hospitality Vertical",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "node index.js",
+    "start": "node index.js"
+  },
+  "keywords": [
+    "bridge-it",
+    "pursuit",
+    "hospitality"
+  ],
+  "author": "Pursuit",
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "jspdf": "^4.1.0"
+  }
+}

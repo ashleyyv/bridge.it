@@ -1,0 +1,1361 @@
+{
+  "leads": [
+    {
+      "id": "lead_001",
+      "business_name": "Taco Libre Brooklyn",
+      "category": "Mexican Restaurant",
+      "location": {
+        "address": "456 Bedford Ave",
+        "neighborhood": "Williamsburg",
+        "zip": "11211",
+        "borough": "Brooklyn"
+      },
+      "contact": {
+        "phone": "(718) 555-2847",
+        "owner_name": "Maria Gonzalez"
+      },
+      "hfi_score": 78,
+      "friction_type": "Phone Intake",
+      "status": "qualified",
+      "review_count": 347,
+      "rating": 4.1,
+      "friction_clusters": [
+        {
+          "category": "intake",
+          "count": 23,
+          "recent_count": 15,
+          "sample_quotes": [
+            "Called 5 times during lunch—line always busy. Finally gave up and ordered elsewhere.",
+            "Phone system is a nightmare. Waited 10 min on hold just to place a pickup order.",
+            "No online ordering? It's 2026. I shouldn't have to call and wait forever."
+          ]
+        },
+        {
+          "category": "booking",
+          "count": 8,
+          "recent_count": 5,
+          "sample_quotes": [
+            "Tried to make a reservation but they said they don't take them. Showed up and had to wait 45 mins.",
+            "Reservation system is broken—they lost my booking twice this month."
+          ]
+        }
+      ],
+      "recency_data": {
+        "0_30_days": 20,
+        "31_90_days": 11,
+        "90_plus_days": 4
+      },
+      "time_on_task_estimate": "15-20 hours/week on manual phone intake",
+      "discovered_at": "2026-02-01T14:23:00Z",
+      "qualified_at": "2026-02-01T14:23:00Z"
+    },
+    {
+      "id": "lead_002",
+      "business_name": "Queens Corner Cafe",
+      "category": "Cafe",
+      "location": {
+        "address": "89-12 Roosevelt Ave",
+        "neighborhood": "Jackson Heights",
+        "zip": "11372",
+        "borough": "Queens"
+      },
+      "contact": {
+        "phone": "(718) 555-9034",
+        "owner_name": "David Kim"
+      },
+      "hfi_score": 65,
+      "friction_type": "Booking & Wait Times",
+      "status": "unqualified",
+      "review_count": 289,
+      "rating": 4.3,
+      "friction_clusters": [
+        {
+          "category": "booking",
+          "count": 18,
+          "recent_count": 12,
+          "sample_quotes": [
+            "Website says 15 min wait. Showed up and it was actually 50 minutes. Totally misleading.",
+            "Wait time estimates are always wrong. Makes planning impossible.",
+            "They need a proper queue system. Standing around for an hour with no updates is ridiculous."
+          ]
+        },
+        {
+          "category": "logistics",
+          "count": 9,
+          "recent_count": 6,
+          "sample_quotes": [
+            "Ordered for pickup at 2pm, didn't get my food until 2:45. No communication about the delay.",
+            "Pickup process is chaotic. No one knows where orders are."
+          ]
+        }
+      ],
+      "recency_data": {
+        "0_30_days": 18,
+        "31_90_days": 9,
+        "90_plus_days": 3
+      },
+      "time_on_task_estimate": "10-12 hours/week on manual wait management",
+      "discovered_at": "2026-02-01T16:45:00Z"
+    },
+    {
+      "id": "lead_003",
+      "business_name": "Sunset Park Fusion",
+      "category": "Asian Fusion Restaurant",
+      "location": {
+        "address": "4512 5th Ave",
+        "neighborhood": "Sunset Park",
+        "zip": "11220",
+        "borough": "Brooklyn"
+      },
+      "contact": {
+        "phone": "(718) 555-7234",
+        "owner_name": "Jenny Chen"
+      },
+      "hfi_score": 72,
+      "friction_type": "Order Tracking",
+      "status": "briefed",
+      "review_count": 398,
+      "rating": 4.3,
+      "friction_clusters": [
+        {
+          "category": "logistics",
+          "count": 24,
+          "recent_count": 17,
+          "sample_quotes": [
+            "Ordered delivery through their site but no way to track it. Called twice with no answer.",
+            "Said 30 minutes for pickup, waited over an hour. No system to check order status.",
+            "They need a real order management system. Everything is written on paper and gets lost.",
+            "Driver never showed up. No tracking, no updates. Had to reorder somewhere else."
+          ]
+        },
+        {
+          "category": "intake",
+          "count": 13,
+          "recent_count": 9,
+          "sample_quotes": [
+            "Website order form times out constantly. Ended up calling but line was busy for 20 minutes.",
+            "Online menu prices don't match what they charge. Very confusing checkout process."
+          ]
+        }
+      ],
+      "recency_data": {
+        "0_30_days": 26,
+        "31_90_days": 11,
+        "90_plus_days": 6
+      },
+      "time_on_task_estimate": "16-20 hours/week on manual order coordination",
+      "discovered_at": "2026-01-29T10:15:00Z",
+      "qualified_at": "2026-01-31T14:20:00Z",
+      "briefed_at": "2026-02-01T10:00:00Z"
+    },
+    {
+      "id": "lead_004",
+      "business_name": "Astoria Mediterranean Grill",
+      "category": "Mediterranean Restaurant",
+      "location": {
+        "address": "31-08 30th Ave",
+        "neighborhood": "Astoria",
+        "zip": "11102",
+        "borough": "Queens"
+      },
+      "contact": {
+        "phone": "(718) 555-4567",
+        "owner_name": "Dimitri Papadopoulos"
+      },
+      "hfi_score": 68,
+      "friction_type": "Reservation & Waitlist",
+      "status": "nurture",
+      "review_count": 356,
+      "rating": 4.4,
+      "friction_clusters": [
+        {
+          "category": "booking",
+          "count": 21,
+          "recent_count": 15,
+          "sample_quotes": [
+            "No way to join waitlist remotely. Have to physically go there and put your name down.",
+            "Called to make a reservation, they said they don't take them. Then I saw other people with reserved tables.",
+            "Waitlist system is completely manual. They lost our name twice and we waited an extra 40 minutes.",
+            "Weekend waits are 90+ minutes with no way to check your status or get updates."
+          ]
+        },
+        {
+          "category": "intake",
+          "count": 10,
+          "recent_count": 7,
+          "sample_quotes": [
+            "Phone rings forever during dinner rush. Gave up trying to call ahead.",
+            "They need online ordering for takeout. Phone system can't handle the volume."
+          ]
+        }
+      ],
+      "recency_data": {
+        "0_30_days": 22,
+        "31_90_days": 9,
+        "90_plus_days": 5
+      },
+      "time_on_task_estimate": "14-18 hours/week on manual waitlist management",
+      "discovered_at": "2026-02-01T13:45:00Z",
+      "qualified_at": "2026-02-01T15:00:00Z",
+      "briefed_at": "2026-02-02T09:00:00Z",
+      "engaged_at": "2026-02-02T11:00:00Z",
+      "nurture_at": "2026-02-02T14:00:00Z"
+    },
+    {
+      "id": "lead_005",
+      "business_name": "Red Hook Coffee & Bakery",
+      "category": "Cafe & Bakery",
+      "location": {
+        "address": "392 Van Brunt St",
+        "neighborhood": "Red Hook",
+        "zip": "11231",
+        "borough": "Brooklyn"
+      },
+      "contact": {
+        "phone": "(718) 555-8821",
+        "owner_name": "Sarah Mitchell"
+      },
+      "hfi_score": 61,
+      "friction_type": "Pre-Order System",
+      "status": "matched",
+      "review_count": 284,
+      "rating": 4.5,
+      "friction_clusters": [
+        {
+          "category": "intake",
+          "count": 17,
+          "recent_count": 12,
+          "sample_quotes": [
+            "They sell out of popular items by 9am but have no pre-order system. Very frustrating.",
+            "Called to reserve pastries for morning pickup—they don't take phone orders. Everything is walk-in only.",
+            "Instagram shows fresh croissants but they're gone before I can get there. Need online ordering.",
+            "No way to order ahead for catering. Lost a corporate order because of their manual system."
+          ]
+        },
+        {
+          "category": "logistics",
+          "count": 8,
+          "recent_count": 5,
+          "sample_quotes": [
+            "Wait times in the morning are 20+ minutes for a coffee. They need a mobile order system.",
+            "Line out the door every day. An app would solve this problem immediately."
+          ]
+        }
+      ],
+      "recency_data": {
+        "0_30_days": 17,
+        "31_90_days": 8,
+        "90_plus_days": 3
+      },
+      "time_on_task_estimate": "10-14 hours/week on manual order intake",
+      "discovered_at": "2026-02-02T09:30:00Z",
+      "qualified_at": "2026-01-28T10:00:00Z",
+      "briefed_at": "2026-01-30T14:00:00Z",
+      "engaged_at": "2026-02-01T10:00:00Z",
+      "matched_at": "2026-02-02T09:30:00Z"
+    },
+    {
+      "id": "lead_006",
+      "business_name": "Park Slope Pizza Co",
+      "category": "Pizzeria",
+      "location": {
+        "address": "782 5th Ave",
+        "neighborhood": "Park Slope",
+        "zip": "11215",
+        "borough": "Brooklyn"
+      },
+      "contact": {
+        "phone": "(718) 555-1928",
+        "owner_name": "Tony Russo"
+      },
+      "hfi_score": 75,
+      "friction_type": "Delivery Tracking",
+      "status": "in-build",
+      "review_count": 412,
+      "rating": 4.2,
+      "friction_clusters": [
+        {
+          "category": "logistics",
+          "count": 28,
+          "recent_count": 19,
+          "sample_quotes": [
+            "Ordered delivery, got a text saying 'on the way' but no tracking link. Driver got lost and took 90 minutes.",
+            "No way to see where my delivery is. Called the store and they said 'it's out there somewhere'.",
+            "Delivery tracking is non-existent. Ordered at 7pm, food arrived cold at 9pm with no updates.",
+            "They need real-time delivery tracking. I had to call three times just to find out if my order was coming."
+          ]
+        },
+        {
+          "category": "intake",
+          "count": 12,
+          "recent_count": 8,
+          "sample_quotes": [
+            "Online ordering system crashes during peak hours. Had to call but phone was busy.",
+            "Website doesn't show delivery times until after you order. Very frustrating."
+          ]
+        }
+      ],
+      "recency_data": {
+        "0_30_days": 27,
+        "31_90_days": 12,
+        "90_plus_days": 4
+      },
+      "time_on_task_estimate": "18-22 hours/week on manual delivery coordination",
+      "discovered_at": "2026-01-28T11:20:00Z",
+      "qualified_at": "2026-01-30T10:00:00Z",
+      "briefed_at": "2026-01-31T14:00:00Z",
+      "engaged_at": "2026-02-01T10:00:00Z",
+      "matched_at": "2026-02-01T15:30:00Z",
+      "in_build_at": "2026-02-02T09:00:00Z"
+    },
+    {
+      "id": "lead_007",
+      "business_name": "Flushing Noodle House",
+      "category": "Chinese Restaurant",
+      "location": {
+        "address": "136-20 38th Ave",
+        "neighborhood": "Flushing",
+        "zip": "11354",
+        "borough": "Queens"
+      },
+      "contact": {
+        "phone": "(718) 555-6742",
+        "owner_name": "Wei Zhang"
+      },
+      "hfi_score": 58,
+      "friction_type": "Online Ordering",
+      "status": "live",
+      "review_count": 523,
+      "rating": 4.0,
+      "friction_clusters": [
+        {
+          "category": "intake",
+          "count": 19,
+          "recent_count": 13,
+          "sample_quotes": [
+            "They don't have online ordering at all. Have to call and wait on hold for 15+ minutes.",
+            "Menu online is outdated. Prices and items don't match what they actually serve.",
+            "No way to order online. Called during dinner rush and phone was busy for 30 minutes straight.",
+            "Website is just a PDF menu. Can't place orders through it. Very inconvenient."
+          ]
+        },
+        {
+          "category": "logistics",
+          "count": 7,
+          "recent_count": 4,
+          "sample_quotes": [
+            "Pickup orders are always ready late. No system to coordinate timing.",
+            "They write orders on paper tickets that get lost. Need digital system."
+          ]
+        }
+      ],
+      "recency_data": {
+        "0_30_days": 17,
+        "31_90_days": 7,
+        "90_plus_days": 2
+      },
+      "time_on_task_estimate": "12-15 hours/week on manual phone order intake",
+      "discovered_at": "2026-01-15T10:00:00Z",
+      "qualified_at": "2026-01-20T14:00:00Z",
+      "briefed_at": "2026-01-22T10:00:00Z",
+      "engaged_at": "2026-01-25T10:00:00Z",
+      "matched_at": "2026-01-28T10:00:00Z",
+      "in_build_at": "2026-01-30T10:00:00Z",
+      "live_at": "2026-02-01T10:00:00Z"
+    },
+    {
+      "id": "lead_008",
+      "business_name": "DUMBO Bistro",
+      "category": "American Restaurant",
+      "location": {
+        "address": "55 Water St",
+        "neighborhood": "DUMBO",
+        "zip": "11201",
+        "borough": "Brooklyn"
+      },
+      "contact": {
+        "phone": "(718) 555-3391",
+        "owner_name": "James Thompson"
+      },
+      "hfi_score": 82,
+      "friction_type": "Reservation System",
+      "status": "briefed",
+      "review_count": 467,
+      "rating": 4.6,
+      "friction_clusters": [
+        {
+          "category": "booking",
+          "count": 31,
+          "recent_count": 24,
+          "sample_quotes": [
+            "Tried to make a reservation online but their system is broken. Shows availability but then says 'not available'.",
+            "Reservation system double-books tables constantly. Showed up and our table was already taken.",
+            "No way to modify or cancel reservations online. Have to call during business hours only.",
+            "Weekend reservations are impossible to get. System crashes when new slots open up.",
+            "Reservation confirmation emails never arrive. Had to call to verify our booking."
+          ]
+        },
+        {
+          "category": "intake",
+          "count": 11,
+          "recent_count": 8,
+          "sample_quotes": [
+            "Phone reservation line is always busy during peak hours. Can't get through.",
+            "Online reservation form requires too many steps. Very user-unfriendly."
+          ]
+        }
+      ],
+      "recency_data": {
+        "0_30_days": 32,
+        "31_90_days": 8,
+        "90_plus_days": 2
+      },
+      "time_on_task_estimate": "20-25 hours/week on manual reservation management",
+      "discovered_at": "2026-01-27T09:45:00Z",
+      "qualified_at": "2026-01-29T10:00:00Z",
+      "briefed_at": "2026-01-30T16:00:00Z"
+    },
+    {
+      "id": "lead_009",
+      "business_name": "LIC Thai Kitchen",
+      "category": "Thai Restaurant",
+      "location": {
+        "address": "47-20 Vernon Blvd",
+        "neighborhood": "Long Island City",
+        "zip": "11101",
+        "borough": "Queens"
+      },
+      "contact": {
+        "phone": "(718) 555-5284",
+        "owner_name": "Siriwan Wong"
+      },
+      "hfi_score": 70,
+      "friction_type": "Order Management",
+      "status": "engaged",
+      "review_count": 389,
+      "rating": 4.4,
+      "friction_clusters": [
+        {
+          "category": "logistics",
+          "count": 22,
+          "recent_count": 16,
+          "sample_quotes": [
+            "Orders get mixed up constantly. Received wrong food three times this month.",
+            "No order management system. Everything is handwritten and gets lost or confused.",
+            "Kitchen can't keep track of orders during rush. Wait times are unpredictable.",
+            "Pickup orders are never ready on time. They have no system to coordinate prep times."
+          ]
+        },
+        {
+          "category": "intake",
+          "count": 14,
+          "recent_count": 10,
+          "sample_quotes": [
+            "Online ordering doesn't sync with kitchen. Orders placed online don't show up.",
+            "Phone orders are taken on paper and often get lost. Need digital system."
+          ]
+        }
+      ],
+      "recency_data": {
+        "0_30_days": 26,
+        "31_90_days": 9,
+        "90_plus_days": 1
+      },
+      "time_on_task_estimate": "15-18 hours/week on manual order coordination",
+      "discovered_at": "2026-01-26T13:30:00Z",
+      "pitched_at": "2026-01-29T11:15:00Z",
+      "engaged_at": "2026-02-01T10:00:00Z"
+    },
+    {
+      "id": "lead_010",
+      "business_name": "Greenpoint Bagel Shop",
+      "category": "Bagel Shop",
+      "location": {
+        "address": "142 Nassau Ave",
+        "neighborhood": "Greenpoint",
+        "zip": "11222",
+        "borough": "Brooklyn"
+      },
+      "contact": {
+        "phone": "(718) 555-7462",
+        "owner_name": "Michael Kowalski"
+      },
+      "hfi_score": 63,
+      "friction_type": "Phone Intake",
+      "status": "unqualified",
+      "review_count": 312,
+      "rating": 4.3,
+      "friction_clusters": [
+        {
+          "category": "intake",
+          "count": 20,
+          "recent_count": 14,
+          "sample_quotes": [
+            "Phone line is always busy during morning rush. Can't place catering orders.",
+            "Called to order bagels for office meeting—waited 20 minutes on hold before giving up.",
+            "No online ordering for large orders. Have to call but phone system can't handle volume.",
+            "Phone orders take forever. They need a better system for handling calls."
+          ]
+        },
+        {
+          "category": "logistics",
+          "count": 9,
+          "recent_count": 6,
+          "sample_quotes": [
+            "Large orders are never ready when promised. No system to track prep time.",
+            "Catering orders get confused with regular orders. Need better organization."
+          ]
+        }
+      ],
+      "recency_data": {
+        "0_30_days": 20,
+        "31_90_days": 8,
+        "90_plus_days": 1
+      },
+      "time_on_task_estimate": "13-16 hours/week on manual phone order intake",
+      "discovered_at": "2026-02-02T08:15:00Z"
+    },
+    {
+      "id": "lead_011",
+      "business_name": "Forest Hills Diner",
+      "category": "Diner",
+      "location": {
+        "address": "108-18 Queens Blvd",
+        "neighborhood": "Forest Hills",
+        "zip": "11375",
+        "borough": "Queens"
+      },
+      "contact": {
+        "phone": "(718) 555-9153",
+        "owner_name": "Helen Stavros"
+      },
+      "hfi_score": 77,
+      "friction_type": "Wait Time Management",
+      "status": "matched",
+      "review_count": 445,
+      "rating": 4.2,
+      "friction_clusters": [
+        {
+          "category": "booking",
+          "count": 26,
+          "recent_count": 19,
+          "sample_quotes": [
+            "Weekend brunch wait times are 60+ minutes with no way to check status remotely.",
+            "Waitlist is completely manual. They call your name but you can't leave the area.",
+            "No system to join waitlist before arriving. Have to physically be there to put name down.",
+            "Wait time estimates are always wrong. Said 20 minutes, waited 50.",
+            "They need a digital waitlist system. Standing around for an hour is unacceptable."
+          ]
+        },
+        {
+          "category": "logistics",
+          "count": 10,
+          "recent_count": 7,
+          "sample_quotes": [
+            "Table turnover is slow because they don't track when tables are ready.",
+            "Host stand is chaotic. No system to manage the waitlist efficiently."
+          ]
+        }
+      ],
+      "recency_data": {
+        "0_30_days": 26,
+        "31_90_days": 9,
+        "90_plus_days": 1
+      },
+      "time_on_task_estimate": "16-20 hours/week on manual waitlist management",
+      "discovered_at": "2026-01-25T12:00:00Z",
+      "qualified_at": "2026-01-28T10:00:00Z",
+      "briefed_at": "2026-01-30T14:00:00Z",
+      "engaged_at": "2026-01-31T10:00:00Z",
+      "matched_at": "2026-01-31T14:45:00Z"
+    },
+    {
+      "id": "lead_012",
+      "business_name": "Williamsburg Taqueria",
+      "category": "Mexican Restaurant",
+      "location": {
+        "address": "234 Grand St",
+        "neighborhood": "Williamsburg",
+        "zip": "11211",
+        "borough": "Brooklyn"
+      },
+      "contact": {
+        "phone": "(718) 555-3921",
+        "owner_name": "Carlos Rodriguez"
+      },
+      "hfi_score": 64,
+      "friction_type": "Phone Intake",
+      "status": "qualified",
+      "review_count": 298,
+      "rating": 4.2,
+      "friction_clusters": [
+        {
+          "category": "intake",
+          "count": 19,
+          "recent_count": 13,
+          "sample_quotes": [
+            "Phone line is constantly busy during dinner hours. Can't place orders.",
+            "Called three times during lunch rush—always busy signal. Gave up.",
+            "No online ordering option. Have to call but phone system can't handle volume."
+          ]
+        },
+        {
+          "category": "logistics",
+          "count": 7,
+          "recent_count": 4,
+          "sample_quotes": [
+            "Orders placed over phone are often wrong. Need better order tracking system.",
+            "Pickup times are never accurate. No system to coordinate."
+          ]
+        }
+      ],
+      "recency_data": {
+        "0_30_days": 17,
+        "31_90_days": 7,
+        "90_plus_days": 2
+      },
+      "time_on_task_estimate": "12-15 hours/week on manual phone intake",
+      "discovered_at": "2026-02-02T11:30:00Z",
+      "qualified_at": "2026-02-02T11:30:00Z"
+    },
+    {
+      "id": "lead_013",
+      "business_name": "Astoria Seafood House",
+      "category": "Seafood Restaurant",
+      "location": {
+        "address": "28-18 31st St",
+        "neighborhood": "Astoria",
+        "zip": "11102",
+        "borough": "Queens"
+      },
+      "contact": {
+        "phone": "(718) 555-6483",
+        "owner_name": "Nikos Petrakis"
+      },
+      "hfi_score": 73,
+      "friction_type": "Waitlist System",
+      "status": "briefed",
+      "review_count": 421,
+      "rating": 4.5,
+      "friction_clusters": [
+        {
+          "category": "booking",
+          "count": 25,
+          "recent_count": 18,
+          "sample_quotes": [
+            "Weekend waitlist is completely manual. Have to physically be there to join.",
+            "No way to check waitlist status remotely. Can't leave the area or lose your spot.",
+            "Wait times are always underestimated. Said 30 minutes, waited over an hour.",
+            "They need a digital waitlist system. Standing around for 90 minutes is unacceptable."
+          ]
+        },
+        {
+          "category": "intake",
+          "count": 11,
+          "recent_count": 7,
+          "sample_quotes": [
+            "Phone reservations aren't accepted but they have a waitlist system that's broken.",
+            "Can't call ahead to check wait times. Have to show up and hope for the best."
+          ]
+        }
+      ],
+      "recency_data": {
+        "0_30_days": 25,
+        "31_90_days": 9,
+        "90_plus_days": 2
+      },
+      "time_on_task_estimate": "15-18 hours/week on manual waitlist management",
+      "discovered_at": "2026-01-30T14:20:00Z",
+      "qualified_at": "2026-02-01T10:00:00Z",
+      "briefed_at": "2026-02-02T09:15:00Z"
+    },
+    {
+      "id": "lead_014",
+      "business_name": "DUMBO Waterfront Grill",
+      "category": "American Restaurant",
+      "location": {
+        "address": "68 Front St",
+        "neighborhood": "DUMBO",
+        "zip": "11201",
+        "borough": "Brooklyn"
+      },
+      "contact": {
+        "phone": "(718) 555-2847",
+        "owner_name": "Robert Chen"
+      },
+      "hfi_score": 81,
+      "friction_type": "Reservation System",
+      "status": "engaged",
+      "review_count": 512,
+      "rating": 4.7,
+      "friction_clusters": [
+        {
+          "category": "booking",
+          "count": 34,
+          "recent_count": 27,
+          "sample_quotes": [
+            "Reservation system crashes constantly during peak booking times.",
+            "Double-booked our table twice this month. System is unreliable.",
+            "Can't modify reservations online. Have to call during business hours only.",
+            "Reservation confirmations never arrive via email. System is broken.",
+            "Weekend slots disappear instantly. System can't handle the demand."
+          ]
+        },
+        {
+          "category": "intake",
+          "count": 12,
+          "recent_count": 9,
+          "sample_quotes": [
+            "Phone reservation line is always busy. Can't get through during peak hours.",
+            "Online reservation form is confusing and requires too many steps."
+          ]
+        }
+      ],
+      "recency_data": {
+        "0_30_days": 36,
+        "31_90_days": 8,
+        "90_plus_days": 2
+      },
+      "time_on_task_estimate": "22-26 hours/week on manual reservation management",
+      "discovered_at": "2026-01-28T10:00:00Z",
+      "qualified_at": "2026-01-30T14:00:00Z",
+      "briefed_at": "2026-02-01T10:00:00Z",
+      "engaged_at": "2026-02-02T11:00:00Z"
+    },
+    {
+      "id": "lead_015",
+      "business_name": "Sunset Park Ramen Bar",
+      "category": "Japanese Restaurant",
+      "location": {
+        "address": "4801 4th Ave",
+        "neighborhood": "Sunset Park",
+        "zip": "11220",
+        "borough": "Brooklyn"
+      },
+      "contact": {
+        "phone": "(718) 555-7392",
+        "owner_name": "Kenji Tanaka"
+      },
+      "hfi_score": 67,
+      "friction_type": "Booking",
+      "status": "nurture",
+      "review_count": 367,
+      "rating": 4.3,
+      "friction_clusters": [
+        {
+          "category": "booking",
+          "count": 20,
+          "recent_count": 14,
+          "sample_quotes": [
+            "No reservation system. Have to wait in line for 45+ minutes on weekends.",
+            "Can't book tables in advance. First-come-first-served only.",
+            "Wait times are unpredictable. No way to check before arriving.",
+            "They need a booking system. Standing in line in the cold is not acceptable."
+          ]
+        },
+        {
+          "category": "logistics",
+          "count": 9,
+          "recent_count": 6,
+          "sample_quotes": [
+            "Table turnover is slow because they don't track when tables are ready.",
+            "No system to manage the queue efficiently. Very disorganized."
+          ]
+        }
+      ],
+      "recency_data": {
+        "0_30_days": 20,
+        "31_90_days": 7,
+        "90_plus_days": 2
+      },
+      "time_on_task_estimate": "13-16 hours/week on manual queue management",
+      "discovered_at": "2026-02-01T15:30:00Z",
+      "qualified_at": "2026-02-01T16:00:00Z",
+      "briefed_at": "2026-02-02T10:00:00Z",
+      "engaged_at": "2026-02-02T12:00:00Z",
+      "nurture_at": "2026-02-02T15:00:00Z"
+    },
+    {
+      "id": "lead_016",
+      "business_name": "Red Hook Market & Deli",
+      "category": "Deli",
+      "location": {
+        "address": "451 Van Brunt St",
+        "neighborhood": "Red Hook",
+        "zip": "11231",
+        "borough": "Brooklyn"
+      },
+      "contact": {
+        "phone": "(718) 555-9201",
+        "owner_name": "Patricia O'Brien"
+      },
+      "hfi_score": 79,
+      "friction_type": "Logistics",
+      "status": "matched",
+      "review_count": 334,
+      "rating": 4.4,
+      "friction_clusters": [
+        {
+          "category": "logistics",
+          "count": 29,
+          "recent_count": 21,
+          "sample_quotes": [
+            "Catering orders are always late. No system to track prep times.",
+            "Large orders get mixed up with regular orders constantly.",
+            "No order management system. Everything is written on paper and gets lost.",
+            "Delivery coordination is chaotic. No tracking system for drivers.",
+            "Pickup orders are never ready when promised. No time management system."
+          ]
+        },
+        {
+          "category": "intake",
+          "count": 13,
+          "recent_count": 9,
+          "sample_quotes": [
+            "Phone orders for catering are taken on paper and often get lost.",
+            "Online ordering doesn't sync with kitchen. Orders don't show up."
+          ]
+        }
+      ],
+      "recency_data": {
+        "0_30_days": 30,
+        "31_90_days": 10,
+        "90_plus_days": 2
+      },
+      "time_on_task_estimate": "18-22 hours/week on manual order coordination",
+      "discovered_at": "2026-01-29T11:00:00Z",
+      "qualified_at": "2026-01-31T10:00:00Z",
+      "briefed_at": "2026-02-01T10:00:00Z",
+      "engaged_at": "2026-02-01T14:00:00Z",
+      "matched_at": "2026-02-02T10:30:00Z"
+    },
+    {
+      "id": "lead_017",
+      "business_name": "Williamsburg Pizza Express",
+      "category": "Pizzeria",
+      "location": {
+        "address": "567 Metropolitan Ave",
+        "neighborhood": "Williamsburg",
+        "zip": "11211",
+        "borough": "Brooklyn"
+      },
+      "contact": {
+        "phone": "(718) 555-4852",
+        "owner_name": "Giuseppe Romano"
+      },
+      "hfi_score": 62,
+      "friction_type": "Phone Intake",
+      "status": "unqualified",
+      "review_count": 276,
+      "rating": 4.1,
+      "friction_clusters": [
+        {
+          "category": "intake",
+          "count": 18,
+          "recent_count": 12,
+          "sample_quotes": [
+            "Phone line is always busy during dinner rush. Can't place orders.",
+            "Called multiple times during lunch—always busy signal.",
+            "No online ordering. Have to call but system can't handle volume."
+          ]
+        },
+        {
+          "category": "logistics",
+          "count": 6,
+          "recent_count": 4,
+          "sample_quotes": [
+            "Phone orders are often incorrect. Need better order management.",
+            "Delivery times are never accurate. No tracking system."
+          ]
+        }
+      ],
+      "recency_data": {
+        "0_30_days": 16,
+        "31_90_days": 6,
+        "90_plus_days": 2
+      },
+      "time_on_task_estimate": "11-14 hours/week on manual phone intake",
+      "discovered_at": "2026-02-02T13:45:00Z"
+    },
+    {
+      "id": "lead_018",
+      "business_name": "Astoria Greek Taverna",
+      "category": "Greek Restaurant",
+      "location": {
+        "address": "33-16 Broadway",
+        "neighborhood": "Astoria",
+        "zip": "11106",
+        "borough": "Queens"
+      },
+      "contact": {
+        "phone": "(718) 555-5729",
+        "owner_name": "Yannis Kostas"
+      },
+      "hfi_score": 76,
+      "friction_type": "Reservation System",
+      "status": "in-build",
+      "review_count": 489,
+      "rating": 4.6,
+      "friction_clusters": [
+        {
+          "category": "booking",
+          "count": 28,
+          "recent_count": 21,
+          "sample_quotes": [
+            "Reservation system double-books tables frequently. Very unreliable.",
+            "Can't cancel or modify reservations online. Have to call during hours.",
+            "Weekend reservations are impossible to get. System crashes when slots open.",
+            "Reservation confirmations don't arrive. Had to call to verify booking.",
+            "Online reservation form is broken. Shows availability but then errors out."
+          ]
+        },
+        {
+          "category": "intake",
+          "count": 10,
+          "recent_count": 7,
+          "sample_quotes": [
+            "Phone reservation line is always busy during peak hours.",
+            "Online system is confusing and requires too many verification steps."
+          ]
+        }
+      ],
+      "recency_data": {
+        "0_30_days": 31,
+        "31_90_days": 6,
+        "90_plus_days": 1
+      },
+      "time_on_task_estimate": "19-23 hours/week on manual reservation management",
+      "discovered_at": "2026-01-27T09:00:00Z",
+      "qualified_at": "2026-01-29T10:00:00Z",
+      "briefed_at": "2026-01-30T14:00:00Z",
+      "engaged_at": "2026-02-01T10:00:00Z",
+      "matched_at": "2026-02-01T15:00:00Z",
+      "in_build_at": "2026-02-02T09:00:00Z"
+    },
+    {
+      "id": "lead_019",
+      "business_name": "DUMBO Cafe & Bakery",
+      "category": "Cafe & Bakery",
+      "location": {
+        "address": "72 Water St",
+        "neighborhood": "DUMBO",
+        "zip": "11201",
+        "borough": "Brooklyn"
+      },
+      "contact": {
+        "phone": "(718) 555-3847",
+        "owner_name": "Emma Wilson"
+      },
+      "hfi_score": 69,
+      "friction_type": "Order Management",
+      "status": "qualified",
+      "review_count": 352,
+      "rating": 4.4,
+      "friction_clusters": [
+        {
+          "category": "logistics",
+          "count": 21,
+          "recent_count": 15,
+          "sample_quotes": [
+            "Orders get mixed up constantly. Received wrong items multiple times.",
+            "No order management system. Everything is handwritten and gets confused.",
+            "Kitchen can't track orders during rush. Wait times are unpredictable.",
+            "Pickup orders are never ready on time. No coordination system."
+          ]
+        },
+        {
+          "category": "intake",
+          "count": 12,
+          "recent_count": 8,
+          "sample_quotes": [
+            "Online orders don't sync with kitchen display. Orders get lost.",
+            "Phone orders are taken on paper and often get misplaced."
+          ]
+        }
+      ],
+      "recency_data": {
+        "0_30_days": 23,
+        "31_90_days": 8,
+        "90_plus_days": 2
+      },
+      "time_on_task_estimate": "14-17 hours/week on manual order coordination",
+      "discovered_at": "2026-02-01T16:20:00Z",
+      "qualified_at": "2026-02-01T16:20:00Z"
+    },
+    {
+      "id": "lead_020",
+      "business_name": "Sunset Park BBQ House",
+      "category": "BBQ Restaurant",
+      "location": {
+        "address": "5001 5th Ave",
+        "neighborhood": "Sunset Park",
+        "zip": "11220",
+        "borough": "Brooklyn"
+      },
+      "contact": {
+        "phone": "(718) 555-8264",
+        "owner_name": "Marcus Johnson"
+      },
+      "hfi_score": 84,
+      "friction_type": "Waitlist",
+      "status": "briefed",
+      "review_count": 556,
+      "rating": 4.8,
+      "friction_clusters": [
+        {
+          "category": "booking",
+          "count": 38,
+          "recent_count": 30,
+          "sample_quotes": [
+            "Weekend waitlist is 2+ hours with no way to join remotely.",
+            "Have to physically be there to put your name down. Can't leave the area.",
+            "Wait time estimates are always wrong. Said 45 minutes, waited 90.",
+            "No digital waitlist system. Standing around for hours is unacceptable.",
+            "Can't check waitlist status remotely. Have to stay nearby or lose your spot.",
+            "They need a proper waitlist app. This manual system is broken."
+          ]
+        },
+        {
+          "category": "intake",
+          "count": 13,
+          "recent_count": 10,
+          "sample_quotes": [
+            "Phone line is always busy. Can't call ahead to check wait times.",
+            "No online system to join waitlist before arriving."
+          ]
+        }
+      ],
+      "recency_data": {
+        "0_30_days": 43,
+        "31_90_days": 6,
+        "90_plus_days": 2
+      },
+      "time_on_task_estimate": "24-28 hours/week on manual waitlist management",
+      "discovered_at": "2026-01-26T10:00:00Z",
+      "qualified_at": "2026-01-28T14:00:00Z",
+      "briefed_at": "2026-02-01T11:00:00Z"
+    },
+    {
+      "id": "lead_021",
+      "business_name": "Red Hook Italian Bistro",
+      "category": "Italian Restaurant",
+      "location": {
+        "address": "128 Van Brunt St",
+        "neighborhood": "Red Hook",
+        "zip": "11231",
+        "borough": "Brooklyn"
+      },
+      "contact": {
+        "phone": "(718) 555-7193",
+        "owner_name": "Antonio Rossi"
+      },
+      "hfi_score": 66,
+      "friction_type": "Pre-Order System",
+      "status": "nurture",
+      "review_count": 318,
+      "rating": 4.3,
+      "friction_clusters": [
+        {
+          "category": "intake",
+          "count": 18,
+          "recent_count": 13,
+          "sample_quotes": [
+            "Popular dishes sell out by 7pm but no pre-order system available.",
+            "Can't reserve dishes in advance. Everything is first-come-first-served.",
+            "Called to pre-order for dinner party—they don't take phone reservations.",
+            "No way to order ahead for special occasions. Very inconvenient."
+          ]
+        },
+        {
+          "category": "logistics",
+          "count": 8,
+          "recent_count": 5,
+          "sample_quotes": [
+            "Wait times are unpredictable. No system to coordinate prep times.",
+            "Large party orders are never ready when promised. Need better planning."
+          ]
+        }
+      ],
+      "recency_data": {
+        "0_30_days": 18,
+        "31_90_days": 7,
+        "90_plus_days": 1
+      },
+      "time_on_task_estimate": "12-15 hours/week on manual order intake",
+      "discovered_at": "2026-02-01T14:00:00Z",
+      "qualified_at": "2026-02-01T15:00:00Z",
+      "briefed_at": "2026-02-02T09:00:00Z",
+      "engaged_at": "2026-02-02T11:00:00Z",
+      "nurture_at": "2026-02-02T14:30:00Z"
+    },
+    {
+      "id": "lead_022",
+      "business_name": "Williamsburg Sushi Bar",
+      "category": "Japanese Restaurant",
+      "location": {
+        "address": "189 Bedford Ave",
+        "neighborhood": "Williamsburg",
+        "zip": "11211",
+        "borough": "Brooklyn"
+      },
+      "contact": {
+        "phone": "(718) 555-6294",
+        "owner_name": "Hiroshi Yamamoto"
+      },
+      "hfi_score": 71,
+      "friction_type": "Booking",
+      "status": "engaged",
+      "review_count": 403,
+      "rating": 4.5,
+      "friction_clusters": [
+        {
+          "category": "booking",
+          "count": 23,
+          "recent_count": 17,
+          "sample_quotes": [
+            "No reservation system. Have to wait 60+ minutes on weekends.",
+            "Can't book tables in advance. Walk-ins only.",
+            "Wait times are completely unpredictable. No way to check before arriving.",
+            "They need a booking system. Standing in line for an hour is not acceptable."
+          ]
+        },
+        {
+          "category": "logistics",
+          "count": 10,
+          "recent_count": 7,
+          "sample_quotes": [
+            "Table management is chaotic. No system to track availability.",
+            "Host stand is disorganized. Can't manage the queue efficiently."
+          ]
+        }
+      ],
+      "recency_data": {
+        "0_30_days": 24,
+        "31_90_days": 7,
+        "90_plus_days": 2
+      },
+      "time_on_task_estimate": "15-18 hours/week on manual queue management",
+      "discovered_at": "2026-01-29T12:00:00Z",
+      "qualified_at": "2026-01-31T10:00:00Z",
+      "briefed_at": "2026-02-01T10:00:00Z",
+      "engaged_at": "2026-02-02T10:00:00Z"
+    },
+    {
+      "id": "lead_023",
+      "business_name": "Astoria Steakhouse",
+      "category": "Steakhouse",
+      "location": {
+        "address": "35-20 30th Ave",
+        "neighborhood": "Astoria",
+        "zip": "11102",
+        "borough": "Queens"
+      },
+      "contact": {
+        "phone": "(718) 555-4857",
+        "owner_name": "Michael Stavros"
+      },
+      "hfi_score": 80,
+      "friction_type": "Reservation System",
+      "status": "matched",
+      "review_count": 534,
+      "rating": 4.7,
+      "friction_clusters": [
+        {
+          "category": "booking",
+          "count": 33,
+          "recent_count": 26,
+          "sample_quotes": [
+            "Reservation system crashes during peak booking times constantly.",
+            "Double-booked our table three times this month. System is broken.",
+            "Can't modify or cancel reservations online. Must call during business hours.",
+            "Reservation confirmations never arrive. System doesn't send emails.",
+            "Weekend slots disappear instantly. System can't handle demand.",
+            "Online reservation form errors out after filling everything in."
+          ]
+        },
+        {
+          "category": "intake",
+          "count": 11,
+          "recent_count": 8,
+          "sample_quotes": [
+            "Phone reservation line is always busy. Can't get through.",
+            "Online system requires too many verification steps. Very frustrating."
+          ]
+        }
+      ],
+      "recency_data": {
+        "0_30_days": 37,
+        "31_90_days": 6,
+        "90_plus_days": 1
+      },
+      "time_on_task_estimate": "21-25 hours/week on manual reservation management",
+      "discovered_at": "2026-01-28T11:00:00Z",
+      "qualified_at": "2026-01-30T10:00:00Z",
+      "briefed_at": "2026-01-31T14:00:00Z",
+      "engaged_at": "2026-02-01T10:00:00Z",
+      "matched_at": "2026-02-02T09:45:00Z"
+    },
+    {
+      "id": "lead_024",
+      "business_name": "DUMBO Burger Joint",
+      "category": "Burger Restaurant",
+      "location": {
+        "address": "45 Main St",
+        "neighborhood": "DUMBO",
+        "zip": "11201",
+        "borough": "Brooklyn"
+      },
+      "contact": {
+        "phone": "(718) 555-3728",
+        "owner_name": "David Martinez"
+      },
+      "hfi_score": 65,
+      "friction_type": "Phone Intake",
+      "status": "qualified",
+      "review_count": 291,
+      "rating": 4.2,
+      "friction_clusters": [
+        {
+          "category": "intake",
+          "count": 20,
+          "recent_count": 14,
+          "sample_quotes": [
+            "Phone line is always busy during lunch and dinner rush.",
+            "Called multiple times—always busy signal. Can't place orders.",
+            "No online ordering option. Have to call but system can't handle volume.",
+            "Phone orders take forever. They need a better intake system."
+          ]
+        },
+        {
+          "category": "logistics",
+          "count": 7,
+          "recent_count": 5,
+          "sample_quotes": [
+            "Phone orders are often incorrect. Need better order management.",
+            "Pickup times are never accurate. No coordination system."
+          ]
+        }
+      ],
+      "recency_data": {
+        "0_30_days": 19,
+        "31_90_days": 7,
+        "90_plus_days": 1
+      },
+      "time_on_task_estimate": "13-16 hours/week on manual phone intake",
+      "discovered_at": "2026-02-02T10:15:00Z",
+      "qualified_at": "2026-02-02T10:15:00Z"
+    },
+    {
+      "id": "lead_025",
+      "business_name": "Sunset Park Mexican Grill",
+      "category": "Mexican Restaurant",
+      "location": {
+        "address": "5202 4th Ave",
+        "neighborhood": "Sunset Park",
+        "zip": "11220",
+        "borough": "Brooklyn"
+      },
+      "contact": {
+        "phone": "(718) 555-8472",
+        "owner_name": "Rosa Hernandez"
+      },
+      "hfi_score": 74,
+      "friction_type": "Logistics",
+      "status": "briefed",
+      "review_count": 438,
+      "rating": 4.4,
+      "friction_clusters": [
+        {
+          "category": "logistics",
+          "count": 27,
+          "recent_count": 20,
+          "sample_quotes": [
+            "Delivery orders are always late. No tracking system for drivers.",
+            "Catering orders get mixed up with regular orders constantly.",
+            "No order management system. Everything is written on paper and gets lost.",
+            "Pickup orders are never ready when promised. No time coordination.",
+            "Kitchen can't track orders during rush. Everything gets confused."
+          ]
+        },
+        {
+          "category": "intake",
+          "count": 12,
+          "recent_count": 9,
+          "sample_quotes": [
+            "Online orders don't sync with kitchen. Orders placed online don't show up.",
+            "Phone orders are taken on paper and often get misplaced."
+          ]
+        }
+      ],
+      "recency_data": {
+        "0_30_days": 29,
+        "31_90_days": 8,
+        "90_plus_days": 2
+      },
+      "time_on_task_estimate": "17-21 hours/week on manual order coordination",
+      "discovered_at": "2026-01-30T13:00:00Z",
+      "qualified_at": "2026-02-01T10:00:00Z",
+      "briefed_at": "2026-02-02T10:30:00Z"
+    },
+    {
+      "id": "lead_026",
+      "business_name": "Red Hook Brewery & Kitchen",
+      "category": "Brewery & Restaurant",
+      "location": {
+        "address": "201 Van Brunt St",
+        "neighborhood": "Red Hook",
+        "zip": "11231",
+        "borough": "Brooklyn"
+      },
+      "contact": {
+        "phone": "(718) 555-5928",
+        "owner_name": "Jennifer Walsh"
+      },
+      "hfi_score": 72,
+      "friction_type": "Order Tracking",
+      "status": "engaged",
+      "review_count": 475,
+      "rating": 4.6,
+      "friction_clusters": [
+        {
+          "category": "logistics",
+          "count": 25,
+          "recent_count": 18,
+          "sample_quotes": [
+            "Ordered delivery but no way to track it. Called twice with no answer.",
+            "Said 35 minutes for pickup, waited over an hour. No status updates.",
+            "They need a real order tracking system. Everything is guesswork.",
+            "Driver never showed up. No tracking, no updates. Had to reorder.",
+            "Can't check order status online or by phone. Very frustrating."
+          ]
+        },
+        {
+          "category": "intake",
+          "count": 14,
+          "recent_count": 10,
+          "sample_quotes": [
+            "Website order form times out constantly. Ended up calling but busy.",
+            "Online menu prices don't match what they charge. Confusing checkout."
+          ]
+        }
+      ],
+      "recency_data": {
+        "0_30_days": 28,
+        "31_90_days": 9,
+        "90_plus_days": 1
+      },
+      "time_on_task_estimate": "16-19 hours/week on manual order coordination",
+      "discovered_at": "2026-01-29T15:00:00Z",
+      "qualified_at": "2026-01-31T14:00:00Z",
+      "briefed_at": "2026-02-01T10:00:00Z",
+      "engaged_at": "2026-02-02T11:30:00Z"
+    }
+  ],
+  "metadata": {
+    "total_leads": 26,
+    "high_priority_count": 9,
+    "avg_hfi_score": 73.2,
+    "last_updated": "2026-02-03T00:00:00Z",
+    "demo_version": "4.2"
+  }
+}

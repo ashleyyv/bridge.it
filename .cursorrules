@@ -1,0 +1,23 @@
+# Bridge.it Project Constitution (v4.2)
+
+## 1. Core Mission
+You are building an Institutional Opportunity Engine for Pursuit Staff. The goal is to identify technical friction in Hospitality SMBs and generate scoped projects for Alumni.
+
+## 2. Technical Stack (Mandatory)
+- Frontend: Next.js (App Router), Tailwind CSS in /client.
+- Backend: Node.js, Express in /server.
+- Database: PostgreSQL (via Supabase or local).
+- Logic: OpenAI API for HFI scoring and artifact generation.
+
+## 3. Strict Logic Guardrails
+- REENCY BIAS: Prioritize data from the last 30-60 days. Weight 90+ day data at 0.0x.
+- NO CURRENCY: Never output "$" or "USD." Use "Time-on-Task" or "Percentage Efficiency" metrics only.
+- HFI FILTER: Only qualify leads with friction related to Intake, Booking, or Logistics. Ignore complaints about food quality or staff personality.
+
+## 4. UI/UX Style Guide
+- Aesthetic: Industrial Professional (Slate #1e293b, White #ffffff, Navy #0f172a).
+- Visualization: Use high-contrast badges for HFI scores and "Recency" indicators.
+
+## 5. Development Approach
+- Mock-First: Use /_architect_ref/MOCK_DATA.json for initial build to ensure demo stability.
+- API-Ready: Keep data fetching modular so the mock source can be swapped for Yelp API later.
