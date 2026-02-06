@@ -859,6 +859,82 @@ app.patch('/api/leads/:id/checkpoint', async (req, res) => {
   }
 });
 
+// PATCH /api/leads/:id/submit-checkpoint - Submit checkpoint proof with status tracking
+app.patch('/api/leads/:id/submit-checkpoint', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { userId, milestoneId, proofLink } = req.body;
+    
+    if (!userId || milestoneId === undefined || !proofLink) {
+      return res.status(400).json({ error: 'userId, milestoneId, and proofLink are required' });
+    }
+    
+    const data = await loadData();
+    const leadIndex = data.leads.findIndex(l => l.id === id);
+    
+    if (leadIndex === -1) {
+      return res.status(404).json({ error: 'Lead not found' });
+    }
+    
+    const lead = data.leads[leadIndex];
+    
+    if (!lead.activeBuilders) {
+      return res.status(400).json({ error: 'No active builders for this lead' });
+    }
+    
+    const builderIndex = lead.activeBuilders.findIndex(b => b.userId === userId);
+    
+    if (builderIndex === -1) {
+      return res.status(404).json({ error: 'Builder not found in this sprint' });
+    }
+    
+    const builder = lead.activeBuilders[builderIndex];
+    
+    // Initialize checkpointStatuses if it doesn't exist
+    if (!builder.checkpointStatuses) {
+      builder.checkpointStatuses = {};
+    }
+    
+    // Update checkpoint status to 'submitted' (awaiting Scout review)
+    builder.checkpointStatuses[milestoneId] = {
+      status: 'submitted',
+      proofLink: proofLink,
+      submittedAt: new Date().toISOString()
+    };
+    
+    // Count verified checkpoints
+    const verifiedCount = Object.values(builder.checkpointStatuses).filter(
+      cp => cp.status === 'verified'
+    ).length;
+    
+    builder.checkpointsCompleted = verifiedCount;
+    
+    // Update last_checkpoint_update timestamp
+    builder.last_checkpoint_update = new Date().toISOString();
+    
+    // Initialize proofLinks array if needed and add proof
+    if (!builder.proofLinks) {
+      builder.proofLinks = [];
+    }
+    if (!builder.proofLinks.includes(proofLink)) {
+      builder.proofLinks.push(proofLink);
+    }
+    
+    await saveData(data);
+    
+    const weightedLead = applyRecencyWeights(lead);
+    const populatedLead = await populateActiveBuilders(weightedLead);
+    res.json(populatedLead);
+    
+  } catch (error) {
+    console.error('Error submitting checkpoint:', error);
+    res.status(500).json({ 
+      error: 'Failed to submit checkpoint',
+      message: error.message 
+    });
+  }
+});
+
 // POST /api/leads/:id/scout-review - Scout assigns quality scores to builders
 app.post('/api/leads/:id/scout-review', async (req, res) => {
   try {

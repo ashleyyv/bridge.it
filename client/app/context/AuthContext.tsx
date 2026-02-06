@@ -6,6 +6,7 @@ import React, { createContext, useContext, useState, useEffect, ReactNode } from
 export type Role = 'scout' | 'alumni';
 
 export interface User {
+  id?: string;
   email: string;
   role: Role;
   name: string;

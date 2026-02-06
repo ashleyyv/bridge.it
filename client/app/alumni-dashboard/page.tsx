@@ -851,6 +851,17 @@ export default function AlumniDashboard() {
   const [teamSize, setTeamSize] = useState(1);
   // Per-card team sprint state
   const [cardTeamSprint, setCardTeamSprint] = useState<Record<string, { isTeam: boolean; teamSize: number }>>({});
+  // Demo tier toggle
+  const [demoTier, setDemoTier] = useState(2);
+  // Stealth Flare trigger states
+  const [showFrictionFlare, setShowFrictionFlare] = useState(false);
+  const [logoHolding, setLogoHolding] = useState(false);
+  const [logoHoldProgress, setLogoHoldProgress] = useState(0);
+  // Builder checkpoint submission
+  const [showCheckpointModal, setShowCheckpointModal] = useState(false);
+  const [selectedSprintForCheckpoint, setSelectedSprintForCheckpoint] = useState<Lead | null>(null);
+  const [checkpointProofs, setCheckpointProofs] = useState<Record<number, string>>({});
+  const [submittingProof, setSubmittingProof] = useState(false);
 
   // Route protection - redirect if not authenticated or not alumni
   useEffect(() => {
@@ -858,6 +869,31 @@ export default function AlumniDashboard() {
       router.push('/');
     }
   }, [isAuthenticated, user, router]);
+
+  // Stealth Flare: 3-second logo hold timer
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (logoHolding) {
+      const startTime = Date.now();
+      timer = setInterval(() => {
+        const elapsed = Date.now() - startTime;
+        const progress = Math.min(elapsed / 3000, 1);
+        setLogoHoldProgress(progress);
+        
+        if (progress >= 1) {
+          setShowFrictionFlare(true);
+          setLogoHolding(false);
+          setLogoHoldProgress(0);
+        }
+      }, 50);
+    } else {
+      setLogoHoldProgress(0);
+    }
+    
+    return () => {
+      if (timer) clearInterval(timer);
+    };
+  }, [logoHolding]);
 
   useEffect(() => {
     fetch("http://localhost:3001/api/leads")
@@ -888,14 +924,107 @@ export default function AlumniDashboard() {
     return () => clearInterval(interval);
   }, []);
 
+  // Filter projects based on tier
+  const getTierFilteredLeads = (leads: Lead[], tier: number): Lead[] => {
+    if (tier === 1) {
+      // Tier 1: Only 5 simplest projects (basic CRUD, simpler integrations)
+      return leads
+        .filter(lead => {
+          const delivText = JSON.stringify(lead.bespoke_deliverable || lead.friction_type || '').toLowerCase();
+          const isSimple = (
+            !delivText.includes('multi-api') &&
+            !delivText.includes('aggregator') &&
+            !delivText.includes('consolidation') &&
+            !delivText.includes('webhook') &&
+            !delivText.includes('analytics dashboard') &&
+            (lead.complexity_score || 5) <= 3
+          );
+          return isSimple;
+        })
+        .slice(0, 5);
+    }
+    return leads; // Tier 2+ sees all projects
+  };
+
   // Filter leads for qualified or briefed status
-  const availableProjects = data?.leads.filter(lead => 
+  const baseProjects = data?.leads.filter(lead => 
     lead.status.toLowerCase() === 'qualified' || 
     lead.status.toLowerCase() === 'briefed'
   ) || [];
+  
+  const availableProjects = getTierFilteredLeads(baseProjects, demoTier);
 
   const handleCardClick = (lead: Lead) => {
     setSelectedLead(lead);
+  };
+
+  // Stealth Flare: Logo press handlers
+  const handleLogoMouseDown = () => {
+    setLogoHolding(true);
+  };
+
+  const handleLogoMouseUp = () => {
+    setLogoHolding(false);
+  };
+
+  const handleFlareClose = () => {
+    setShowFrictionFlare(false);
+  };
+
+  const handleClaimMission = () => {
+    // Only Tier 2 can claim emergency missions
+    if (demoTier >= 2) {
+      alert('🚨 Mission Claimed! DUMBO Bistro webhook patch assigned to Ashley Vigo.');
+      setShowFrictionFlare(false);
+    }
+  };
+
+  const handleOpenCheckpointModal = (lead: Lead) => {
+    setSelectedSprintForCheckpoint(lead);
+    setCheckpointProofs({});
+    setShowCheckpointModal(true);
+  };
+
+  const handleSubmitCheckpoint = async (milestoneId: number) => {
+    if (!selectedSprintForCheckpoint || !checkpointProofs[milestoneId]) {
+      alert('Please provide a proof link (GitHub, Loom, etc.)');
+      return;
+    }
+
+    const proofUrl = checkpointProofs[milestoneId].trim();
+    if (!proofUrl.startsWith('http://') && !proofUrl.startsWith('https://')) {
+      alert('Please enter a valid URL starting with http:// or https://');
+      return;
+    }
+
+    setSubmittingProof(true);
+
+    try {
+      const response = await fetch(`http://localhost:3001/api/leads/${selectedSprintForCheckpoint.id}/submit-checkpoint`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: getCurrentUserId(),
+          milestoneId,
+          proofLink: proofUrl
+        })
+      });
+
+      if (response.ok) {
+        alert('✅ Checkpoint submitted for Scout review!');
+        // Refresh data
+        const updatedData = await fetch("http://localhost:3001/api/leads").then(res => res.json());
+        setData(updatedData);
+        setCheckpointProofs(prev => ({ ...prev, [milestoneId]: '' }));
+      } else {
+        alert('Failed to submit checkpoint. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error submitting checkpoint:', error);
+      alert('Error submitting checkpoint. Please try again.');
+    } finally {
+      setSubmittingProof(false);
+    }
   };
 
   const handleClaimProject = (leadId: string) => {
@@ -911,13 +1040,16 @@ export default function AlumniDashboard() {
   };
 
   const handleJoinSprint = (leadId: string, isTeam: boolean, teamSizeValue: number) => {
-    // Check if user is already active on another project
+    // Ashley Vigo (Tier 2) can join multiple sprints
+    // Tier 1 builders are limited to one project at a time
     const userId = getCurrentUserId();
-    const activeProject = getBuilderActiveProject(userId, data?.leads || []);
     
-    if (activeProject && activeProject.id !== leadId) {
-      alert(`You are already actively building ${activeProject.business_name}. Complete or leave that project before joining another.`);
-      return;
+    if (demoTier < 2) {
+      const activeProject = getBuilderActiveProject(userId, data?.leads || []);
+      if (activeProject && activeProject.id !== leadId) {
+        alert(`Tier 1 builders can only work on one project at a time. Complete ${activeProject.business_name} first or upgrade to Tier 2.`);
+        return;
+      }
     }
     
     // Show deliverable selection modal
@@ -1060,9 +1192,15 @@ export default function AlumniDashboard() {
     lead.activeBuilders.some(b => b.userId === getCurrentUserId())
   ) || [];
 
-  // Get user tier info
-  const userTier = 2; // Ashley Vigo is Tier 2
+  // Get user tier info - now controlled by demoTier toggle
+  const userTier = demoTier;
   const maxTeamSize = userTier >= 2 ? 3 : 1;
+
+  // Get projects Ashley is actively building
+  const myActiveSprints = data?.leads.filter(lead => 
+    lead.activeBuilders && 
+    lead.activeBuilders.some(b => b.userId === getCurrentUserId())
+  ) || [];
 
   // Check if current user is winner
   const isCurrentUserWinner = (lead: Lead): boolean => {
@@ -1208,6 +1346,106 @@ export default function AlumniDashboard() {
       {/* Winners Circle */}
       <WinnersCircle />
 
+      {/* Friction Flare - Emergency Mission */}
+      {showFrictionFlare && (
+        <div 
+          className="fixed top-20 right-6 z-[100] w-96 animate-bounce-in"
+          style={{
+            animation: 'slideInBounce 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55)'
+          }}
+        >
+          <div 
+            className="bg-gradient-to-br from-orange-50 to-red-50 rounded-lg shadow-2xl overflow-hidden"
+            style={{
+              border: '3px solid',
+              borderColor: '#f97316',
+              boxShadow: '0 0 20px rgba(249, 115, 22, 0.6), 0 0 40px rgba(249, 115, 22, 0.4)',
+              animation: 'pulseBorder 2s ease-in-out infinite'
+            }}
+          >
+            {/* Header */}
+            <div className="bg-gradient-to-r from-orange-600 to-red-600 px-4 py-3 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <svg className="w-6 h-6 text-white animate-pulse" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+                <span className="text-white font-bold text-sm">🚨 CRITICAL HOTFIX</span>
+              </div>
+              <button
+                onClick={handleFlareClose}
+                className="text-white hover:text-orange-200 transition-colors"
+              >
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="p-4 space-y-3">
+              <div>
+                <div className="text-lg font-bold text-orange-900 mb-1">DUMBO Bistro</div>
+                <div className="text-sm text-orange-800 font-semibold">Reservation Webhook Failure</div>
+              </div>
+
+              <div className="bg-white rounded-lg p-3 border-2 border-orange-200">
+                <div className="flex items-center gap-2 mb-2">
+                  <svg className="w-4 h-4 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                  </svg>
+                  <span className="text-xs font-bold text-red-700">Impact: ~12 hours revenue loss if not patched</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <svg className="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+                  </svg>
+                  <span className="text-xs font-semibold text-blue-700">Time to Resolve: 2 Hours</span>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between pt-2">
+                <div className="flex items-center gap-2">
+                  <span className="px-2 py-1 bg-purple-100 text-purple-800 rounded text-xs font-bold">TIER 2 ONLY</span>
+                  <span className="px-2 py-1 bg-orange-100 text-orange-800 rounded text-xs font-bold">URGENT</span>
+                </div>
+              </div>
+
+              <button
+                onClick={handleClaimMission}
+                disabled={demoTier < 2}
+                className={`w-full py-3 rounded-lg font-bold text-white transition-all ${
+                  demoTier >= 2
+                    ? 'bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 shadow-lg hover:shadow-xl'
+                    : 'bg-gray-400 cursor-not-allowed opacity-60'
+                }`}
+              >
+                {demoTier >= 2 ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                    Claim Mission
+                  </span>
+                ) : (
+                  <span className="flex items-center justify-center gap-2">
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                    </svg>
+                    Tier 2 Required
+                  </span>
+                )}
+              </button>
+
+              {demoTier < 2 && (
+                <div className="text-xs text-center text-gray-600 italic">
+                  Complete 3 builds to unlock emergency missions
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Success Toast */}
       {showSuccess && claimedProjectId && (
         <div className="fixed top-6 right-[340px] z-50 bg-green-500 text-white px-6 py-4 rounded-lg shadow-lg flex items-center gap-3 transform transition-all duration-300 ease-in-out">
@@ -1227,12 +1465,32 @@ export default function AlumniDashboard() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-1">
-                <img 
-                  src="/bridge-b-arch.png" 
-                  alt="Bridge B" 
-                  className="h-28 w-auto logo-glow"
-                  style={{ backgroundColor: '#000000', padding: '8px', borderRadius: '8px' }}
-                />
+                <div 
+                  className="relative cursor-pointer"
+                  onMouseDown={handleLogoMouseDown}
+                  onMouseUp={handleLogoMouseUp}
+                  onMouseLeave={handleLogoMouseUp}
+                  onTouchStart={handleLogoMouseDown}
+                  onTouchEnd={handleLogoMouseUp}
+                  style={{
+                    transition: 'all 0.3s ease',
+                    boxShadow: logoHolding 
+                      ? `0 0 ${20 + logoHoldProgress * 40}px rgba(16, 185, 129, ${0.3 + logoHoldProgress * 0.7})`
+                      : 'none'
+                  }}
+                >
+                  <img 
+                    src="/bridge-b-arch.png" 
+                    alt="Bridge B" 
+                    className="h-28 w-auto logo-glow"
+                    style={{ 
+                      backgroundColor: '#000000', 
+                      padding: '8px', 
+                      borderRadius: '8px',
+                      pointerEvents: 'none'
+                    }}
+                  />
+                </div>
                 <h1 className="text-6xl font-bold tracking-tight text-textPrimary">
                   ridge<span className="text-green-600">.IT</span>
                 </h1>
@@ -1247,18 +1505,60 @@ export default function AlumniDashboard() {
               </div>
             </div>
             <div className="flex items-center gap-4">
+              {/* Tier Toggle for Demo */}
+              <div className="flex items-center gap-2 px-3 py-2 bg-slate-100 rounded-lg border border-slate-300">
+                <span className="text-xs font-medium text-slate-600">Demo:</span>
+                <button
+                  onClick={() => setDemoTier(1)}
+                  className={`px-3 py-1 rounded text-xs font-semibold transition-colors ${
+                    demoTier === 1 ? 'bg-slate-600 text-white' : 'bg-white text-slate-600 border border-slate-300 hover:bg-slate-50'
+                  }`}
+                >
+                  Tier 1
+                </button>
+                <button
+                  onClick={() => setDemoTier(2)}
+                  className={`px-3 py-1 rounded text-xs font-semibold transition-colors ${
+                    demoTier === 2 ? 'bg-emerald-600 text-white' : 'bg-white text-slate-600 border border-slate-300 hover:bg-slate-50'
+                  }`}
+                >
+                  Tier 2
+                </button>
+              </div>
+              
               <button
-                onClick={() => router.push("/library")}
-                className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium flex items-center gap-2"
+                onClick={() => demoTier === 1 ? null : router.push("/library")}
+                disabled={demoTier === 1}
+                className={`px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-colors ${
+                  demoTier === 1
+                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed opacity-60'
+                    : 'bg-emerald-600 text-white hover:bg-emerald-700'
+                }`}
+                title={demoTier === 1 ? 'Unlock at Tier 2 (3 builds required)' : 'Blueprint Library'}
               >
+                {demoTier === 1 && (
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                  </svg>
+                )}
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                 </svg>
                 Blueprint Library
+                {demoTier === 1 && <span className="text-xs">(Tier 2)</span>}
               </button>
               <div className="text-right">
-                <div className="text-base font-semibold text-textPrimary">{user?.name}</div>
-                <div className="text-sm text-textSecondary">Alumni Portal</div>
+                <div className="flex items-center gap-2 justify-end">
+                  <div className="text-base font-semibold text-textPrimary">{user?.name}</div>
+                  <span className={`px-2 py-0.5 text-xs font-bold rounded-full ${
+                    demoTier === 1 ? 'bg-slate-200 text-slate-700' : 'bg-emerald-600 text-white'
+                  }`}>
+                    Tier {demoTier}
+                  </span>
+                </div>
+                <div className="text-sm text-textSecondary">
+                  {demoTier === 1 ? 'Emerging Builder' : 'Advanced Builder'}
+                </div>
               </div>
               <button
                 onClick={() => {
@@ -1273,6 +1573,91 @@ export default function AlumniDashboard() {
           </div>
         </div>
       </header>
+
+      {/* Tier 1 Progression Banner */}
+      {demoTier === 1 && (
+        <div className="max-w-7xl mx-auto px-6 pt-6">
+          <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-4">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-xl">
+                🎯
+              </div>
+              <div>
+                <div className="font-semibold text-blue-900">Complete 3 builds to reach Tier 2</div>
+                <div className="text-xs text-blue-700">Unlock: Team Sprints • Match Scores • Blueprint Library • Advanced Features</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* My Active Sprints */}
+      {myActiveSprints.length > 0 && (
+        <div className="max-w-7xl mx-auto px-6 pt-8">
+          <div className="mb-6">
+            <h2 className="text-2xl font-bold text-textPrimary flex items-center gap-2">
+              <svg className="w-6 h-6 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
+              </svg>
+              My Active Sprints
+              <span className="px-2 py-1 bg-emerald-600 text-white text-sm rounded-full">{myActiveSprints.length}</span>
+            </h2>
+            <p className="text-sm text-textSecondary mt-1">Submit your checkpoint proofs and track your progress</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            {myActiveSprints.map(sprint => {
+              const myBuilder = sprint.activeBuilders?.find(b => b.userId === getCurrentUserId());
+              const completedCheckpoints = myBuilder?.checkpointsCompleted || 0;
+              const totalCheckpoints = sprint.milestones?.length || 4;
+              const progress = (completedCheckpoints / totalCheckpoints) * 100;
+
+              return (
+                <div
+                  key={sprint.id}
+                  className="bg-white rounded-lg shadow-lg border-2 border-emerald-300 p-6 hover:shadow-xl transition-all"
+                >
+                  <div className="flex items-start justify-between mb-3">
+                    <div>
+                      <h3 className="text-lg font-bold text-textPrimary">{sprint.business_name}</h3>
+                      <p className="text-sm text-textSecondary">{sprint.location.neighborhood}</p>
+                    </div>
+                    <span className="px-2 py-1 bg-emerald-100 text-emerald-800 text-xs font-bold rounded">
+                      ACTIVE
+                    </span>
+                  </div>
+
+                  {/* Progress Bar */}
+                  <div className="mb-4">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-xs font-semibold text-gray-700">Progress</span>
+                      <span className="text-xs font-bold text-emerald-600">{completedCheckpoints}/{totalCheckpoints}</span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-3">
+                      <div
+                        className="bg-gradient-to-r from-emerald-500 to-green-600 h-3 rounded-full transition-all"
+                        style={{ width: `${progress}%` }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Submit Proof Button */}
+                  <button
+                    onClick={() => handleOpenCheckpointModal(sprint)}
+                    className="w-full px-4 py-2 bg-emerald-600 text-white rounded-lg font-semibold hover:bg-emerald-700 transition-colors flex items-center justify-center gap-2"
+                  >
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                      <path d="M4 3a2 2 0 100 4h12a2 2 0 100-4H4z" />
+                      <path fillRule="evenodd" d="M3 8h14v7a2 2 0 01-2 2H5a2 2 0 01-2-2V8zm5 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" clipRule="evenodd" />
+                    </svg>
+                    Submit Checkpoint
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Stats Cards */}
       <div className="max-w-7xl mx-auto px-6 py-8">
@@ -1318,16 +1703,27 @@ export default function AlumniDashboard() {
                   } ${lead.isPaused ? 'sprint-paused' : ''}`}
                   onClick={() => handleCardClick(lead)}
                 >
-                  {/* Strategic Match Badge */}
+                  {/* Strategic Match Badge - locked for Tier 1 */}
                   {matchData.score >= 90 && (
-                    <div className="absolute top-3 right-3 z-10">
-                      <div className="px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5 bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-lg animate-pulse">
-                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                        </svg>
-                        {matchData.score}% Strategic Match
+                    demoTier === 1 ? (
+                      <div className="absolute top-3 right-3 z-10 opacity-50 cursor-not-allowed" title="Unlock at Tier 2">
+                        <div className="px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5 bg-gray-300 text-gray-500">
+                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                          </svg>
+                          Match Score Locked
+                        </div>
                       </div>
-                    </div>
+                    ) : (
+                      <div className="absolute top-3 right-3 z-10">
+                        <div className="px-3 py-1.5 rounded-full text-xs font-bold flex items-center gap-1.5 bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-lg animate-pulse">
+                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                          </svg>
+                          {matchData.score}% Strategic Match
+                        </div>
+                      </div>
+                    )
                   )}
                   {/* Header */}
                   <div className="mb-4">
@@ -1421,79 +1817,105 @@ export default function AlumniDashboard() {
                     </ul>
                   </div>
 
-                  {/* Squad Radar - replace Potential Impact section */}
-                  <div className="mt-4 p-3 bg-gradient-to-r from-slate-50 to-emerald-50 rounded-lg border border-emerald-200">
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-2">
-                        <svg className="w-4 h-4 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
-                          <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z" />
+                  {/* Squad Radar - show solo-only for Tier 1 */}
+                  {demoTier === 1 ? (
+                    <div className="mt-4 p-3 bg-gray-100 rounded-lg border border-gray-300 opacity-60">
+                      <div className="flex items-center gap-2 mb-2">
+                        <svg className="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
                         </svg>
-                        <span className="text-xs font-semibold text-emerald-800">Squad Composition</span>
+                        <span className="text-xs font-semibold text-gray-500">Squad Mode - Unlock at Tier 2</span>
                       </div>
-                      <span className="text-xs text-emerald-600 font-medium">
-                        {lead.activeBuilders?.length || 0}/3 Filled
-                      </span>
+                      <div className="text-xs text-gray-500">Complete 3 builds to unlock team features</div>
                     </div>
-                    
-                    {/* Trio Slots */}
-                    <div className="flex items-center gap-3">
-                      {getSquadSlots(lead).map((slot, idx) => (
-                        <div key={idx} className="flex-1">
-                          {slot.filled && slot.builder ? (
-                            <div className="relative group">
-                              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center text-white font-bold text-sm shadow-lg">
-                                {getInitials(slot.builder.name || 'UN')}
-                              </div>
-                              {/* Tooltip */}
-                              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-slate-800 text-white text-xs rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                                {slot.builder.name}
-                              </div>
-                            </div>
-                          ) : (
-                            <div className="w-12 h-12 rounded-full border-2 border-dashed border-slate-300 flex items-center justify-center">
-                              <svg className="w-6 h-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                              </svg>
-                            </div>
-                          )}
+                  ) : (
+                    <div className="mt-4 p-3 bg-gradient-to-r from-slate-50 to-emerald-50 rounded-lg border border-emerald-200">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-2">
+                          <svg className="w-4 h-4 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z" />
+                          </svg>
+                          <span className="text-xs font-semibold text-emerald-800">Squad Composition</span>
                         </div>
-                      ))}
+                        <span className="text-xs text-emerald-600 font-medium">
+                          {lead.activeBuilders?.length || 0}/3 Filled
+                        </span>
+                      </div>
+                      
+                      {/* Trio Slots */}
+                      <div className="flex items-center gap-3">
+                        {getSquadSlots(lead).map((slot, idx) => (
+                          <div key={idx} className="flex-1">
+                            {slot.filled && slot.builder ? (
+                              <div className="relative group">
+                                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-emerald-500 to-green-600 flex items-center justify-center text-white font-bold text-sm shadow-lg">
+                                  {getInitials(slot.builder.name || 'UN')}
+                                </div>
+                                {/* Tooltip */}
+                                <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-slate-800 text-white text-xs rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                                  {slot.builder.name}
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="w-12 h-12 rounded-full border-2 border-dashed border-slate-300 flex items-center justify-center">
+                                <svg className="w-6 h-6 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                                </svg>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                  </div>
+                  )}
 
-                  {/* Blueprint Synergy Link */}
+                  {/* Blueprint Synergy Link - locked for Tier 1 */}
                   {(() => {
                     const similarProject = hasSimilarBlueprintProject(lead);
                     
                     return similarProject.exists ? (
-                      <div className="mt-3 p-2 bg-blue-50 rounded border border-blue-200 flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <svg className="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z" />
-                          </svg>
-                          <div>
-                            <div className="text-xs font-semibold text-blue-800">Blueprint Available</div>
-                            <div className="text-xs text-blue-600">Based on {similarProject.projectName}</div>
+                      demoTier === 1 ? (
+                        <div className="mt-3 p-2 bg-gray-100 rounded border border-gray-300 flex items-center justify-between opacity-60">
+                          <div className="flex items-center gap-2">
+                            <svg className="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                              <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                            </svg>
+                            <div>
+                              <div className="text-xs font-semibold text-gray-500">Blueprint Library - Locked</div>
+                              <div className="text-xs text-gray-400">Unlock at Tier 2</div>
+                            </div>
                           </div>
                         </div>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            router.push(`/library?project=${similarProject.projectId}`);
-                          }}
-                          className="px-3 py-1 bg-blue-600 text-white rounded text-xs font-medium hover:bg-blue-700 transition-colors flex items-center gap-1"
-                        >
-                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                          </svg>
-                          View Base Logic
-                        </button>
-                      </div>
+                      ) : (
+                        <div className="mt-3 p-2 bg-blue-50 rounded border border-blue-200 flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <svg className="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                              <path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z" />
+                            </svg>
+                            <div>
+                              <div className="text-xs font-semibold text-blue-800">Blueprint Available</div>
+                              <div className="text-xs text-blue-600">Based on {similarProject.projectName}</div>
+                            </div>
+                          </div>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              router.push(`/library?project=${similarProject.projectId}`);
+                            }}
+                            className="px-3 py-1 bg-blue-600 text-white rounded text-xs font-medium hover:bg-blue-700 transition-colors flex items-center gap-1"
+                          >
+                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                            </svg>
+                            View Base Logic
+                          </button>
+                        </div>
+                      )
                     ) : null;
                   })()}
 
-                  {/* Seeking Label */}
-                  {(() => {
+                  {/* Seeking Label - hidden for Tier 1 (advanced feature) */}
+                  {demoTier >= 2 && (() => {
                     const seekingRole = getSeekingLabel(lead);
                     const hasOpenSlots = (lead.activeBuilders?.length || 0) < 3;
                     
@@ -1595,8 +2017,8 @@ export default function AlumniDashboard() {
                       return (
                         !isUserInSprint && availableSlots > 0 ? (
                           <div className="flex-1 space-y-3">
-                            {/* Team Selection UI */}
-                            {userTier >= 2 && (
+                            {/* Team Selection UI - locked for Tier 1 */}
+                            {userTier >= 2 ? (
                               <div className="p-3 bg-emerald-50 rounded-lg border border-emerald-200">
                                 <div className="flex items-center justify-between mb-2">
                                   <label className="flex items-center gap-2 cursor-pointer">
@@ -1654,6 +2076,16 @@ export default function AlumniDashboard() {
                                     </div>
                                   </div>
                                 )}
+                              </div>
+                            ) : (
+                              <div className="p-3 bg-gray-100 rounded-lg border border-gray-300 opacity-60">
+                                <div className="flex items-center gap-2">
+                                  <svg className="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                                  </svg>
+                                  <span className="text-xs font-semibold text-gray-500">Team Sprints - Unlock at Tier 2</span>
+                                </div>
+                                <div className="text-xs text-gray-400 mt-1">Complete 3 builds to unlock team features</div>
                               </div>
                             )}
                             
@@ -2317,6 +2749,141 @@ export default function AlumniDashboard() {
         isOpen={showRulesModal}
         onClose={() => setShowRulesModal(false)}
       />
+
+      {/* Checkpoint Submission Modal */}
+      {showCheckpointModal && selectedSprintForCheckpoint && (() => {
+        const myBuilder = selectedSprintForCheckpoint.activeBuilders?.find(b => b.userId === getCurrentUserId());
+        const milestones = selectedSprintForCheckpoint.milestones || [
+          { id: 1, name: 'Architecture & Schema Design' },
+          { id: 2, name: 'Core Logic Implementation' },
+          { id: 3, name: 'API Integration' },
+          { id: 4, name: 'Demo Ready & Testing' }
+        ];
+
+        return (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60] p-4">
+            <div className="bg-white rounded-lg shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              {/* Header */}
+              <div className="bg-gradient-to-r from-emerald-600 to-green-600 px-6 py-4 flex items-center justify-between sticky top-0 z-10">
+                <div>
+                  <h2 className="text-xl font-bold text-white">{selectedSprintForCheckpoint.business_name}</h2>
+                  <p className="text-sm text-emerald-100">Submit Checkpoint Proofs</p>
+                </div>
+                <button
+                  onClick={() => setShowCheckpointModal(false)}
+                  className="text-white hover:text-emerald-200 transition-colors"
+                >
+                  <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                  </svg>
+                </button>
+              </div>
+
+              {/* Milestones */}
+              <div className="p-6 space-y-4">
+                {milestones.map((milestone, index) => {
+                  const checkpointStatus = myBuilder?.checkpointStatuses?.[milestone.id];
+                  const isCompleted = checkpointStatus?.status === 'verified';
+                  const isPending = checkpointStatus?.status === 'submitted';
+                  const canSubmit = !isCompleted && !isPending;
+
+                  return (
+                    <div
+                      key={milestone.id}
+                      className={`border-2 rounded-lg p-4 ${
+                        isCompleted
+                          ? 'border-green-500 bg-green-50'
+                          : isPending
+                          ? 'border-yellow-500 bg-yellow-50'
+                          : 'border-gray-300'
+                      }`}
+                    >
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex items-start gap-3 flex-1">
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
+                            isCompleted
+                              ? 'bg-green-500 text-white'
+                              : isPending
+                              ? 'bg-yellow-500 text-white'
+                              : 'bg-gray-300 text-gray-700'
+                          }`}>
+                            {isCompleted ? '✓' : index + 1}
+                          </div>
+                          <div className="flex-1">
+                            <h3 className="font-semibold text-textPrimary mb-1">{milestone.name}</h3>
+                            {isCompleted && (
+                              <div className="flex items-center gap-2 text-sm text-green-700 mb-2">
+                                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                </svg>
+                                Verified by Scout
+                              </div>
+                            )}
+                            {isPending && (
+                              <div className="flex items-center gap-2 text-sm text-yellow-700 mb-2">
+                                <svg className="w-4 h-4 animate-spin" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd" />
+                                </svg>
+                                Awaiting Scout Review
+                              </div>
+                            )}
+                            {checkpointStatus?.proofLink && (
+                              <a
+                                href={checkpointStatus.proofLink}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-xs text-blue-600 hover:text-blue-800 underline break-all"
+                              >
+                                {checkpointStatus.proofLink}
+                              </a>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      {canSubmit && (
+                        <div className="space-y-2 mt-3 pt-3 border-t border-gray-200">
+                          <label className="block">
+                            <span className="text-sm font-medium text-gray-700">Proof Link (GitHub, Loom, etc.)</span>
+                            <input
+                              type="url"
+                              placeholder="https://github.com/... or https://loom.com/..."
+                              value={checkpointProofs[milestone.id] || ''}
+                              onChange={(e) => setCheckpointProofs(prev => ({ ...prev, [milestone.id]: e.target.value }))}
+                              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-emerald-500 focus:border-emerald-500 text-sm"
+                            />
+                          </label>
+                          <button
+                            onClick={() => handleSubmitCheckpoint(milestone.id)}
+                            disabled={!checkpointProofs[milestone.id] || submittingProof}
+                            className={`w-full px-4 py-2 rounded-lg font-semibold text-white transition-all ${
+                              checkpointProofs[milestone.id] && !submittingProof
+                                ? 'bg-emerald-600 hover:bg-emerald-700'
+                                : 'bg-gray-400 cursor-not-allowed'
+                            }`}
+                          >
+                            {submittingProof ? 'Submitting...' : 'Submit for Review'}
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Footer */}
+              <div className="px-6 py-4 bg-gray-50 border-t border-gray-200">
+                <button
+                  onClick={() => setShowCheckpointModal(false)}
+                  className="w-full px-4 py-2 bg-gray-600 text-white rounded-lg font-semibold hover:bg-gray-700 transition-colors"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }
