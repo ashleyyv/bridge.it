@@ -1,0 +1,28 @@
+{
+  "tiers": [
+    {
+      "level": 1,
+      "name": "Emerging Builder",
+      "minBuilds": 0,
+      "maxBuilds": 2,
+      "maxTeamSize": 1,
+      "features": ["solo_sprints", "basic_library_access"]
+    },
+    {
+      "level": 2,
+      "name": "Advanced Builder",
+      "minBuilds": 3,
+      "maxBuilds": 7,
+      "maxTeamSize": 3,
+      "features": ["solo_sprints", "team_sprints", "full_library_access", "fork_repos"]
+    },
+    {
+      "level": 3,
+      "name": "Elite Builder",
+      "minBuilds": 8,
+      "maxBuilds": 999,
+      "maxTeamSize": 5,
+      "features": ["solo_sprints", "team_sprints", "full_library_access", "fork_repos", "mentor_access", "priority_matching"]
+    }
+  ]
+}

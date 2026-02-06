@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "install-all": "npm install --prefix client && npm install --prefix server",
+    "clean": "taskkill /F /IM node.exe 2>nul || (exit 0)",
     "dev": "concurrently \"npm run dev --prefix server\" \"npm run dev --prefix client\"",
     "dev:server": "npm run dev --prefix server",
     "dev:client": "npm run dev --prefix client",

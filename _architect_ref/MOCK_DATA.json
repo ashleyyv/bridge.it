@@ -46,8 +46,192 @@
         "90_plus_days": 4
       },
       "time_on_task_estimate": "15-20 hours/week on manual phone intake",
+      "complexity_score": 3,
+      "estimated_build_time": "3-4 weeks",
       "discovered_at": "2026-02-01T14:23:00Z",
-      "qualified_at": "2026-02-01T14:23:00Z"
+      "qualified_at": "2026-02-01T14:23:00Z",
+      "bespoke_deliverable": "Williamsburg Taco Rush Hour Auto-Queue System",
+      "maxSlots": 4,
+      "activeBuilders": [
+        {
+          "userId": "alumni_001",
+          "joinedAt": "2026-02-01T09:00:00Z",
+          "checkpointsCompleted": 4,
+          "proofLinks": [
+            "https://github.com/alexchen/taco-queue-arch",
+            "https://loom.com/share/taco-queue-core-demo",
+            "https://github.com/alexchen/taco-queue-api",
+            "https://loom.com/share/taco-queue-final-demo"
+          ],
+          "checkpointStatuses": {
+            "1": {
+              "status": "approved",
+              "proofLink": "https://github.com/alexchen/taco-queue-arch",
+              "submittedAt": "2026-02-01T12:00:00Z",
+              "verifiedAt": "2026-02-01T14:00:00Z",
+              "notes": "Architecture looks solid, well-structured database schema"
+            },
+            "2": {
+              "status": "approved",
+              "proofLink": "https://loom.com/share/taco-queue-core-demo",
+              "submittedAt": "2026-02-02T15:30:00Z",
+              "verifiedAt": "2026-02-02T17:00:00Z",
+              "notes": "Core logic implemented correctly, handles rush hour scenarios"
+            },
+            "3": {
+              "status": "approved",
+              "proofLink": "https://github.com/alexchen/taco-queue-api",
+              "submittedAt": "2026-02-03T11:00:00Z",
+              "verifiedAt": "2026-02-03T13:00:00Z",
+              "notes": "API integration complete, all endpoints functional"
+            },
+            "4": {
+              "status": "approved",
+              "proofLink": "https://loom.com/share/taco-queue-final-demo",
+              "submittedAt": "2026-02-03T18:00:00Z",
+              "verifiedAt": "2026-02-03T20:00:00Z",
+              "notes": "Demo ready, polished UI, deployed successfully"
+            }
+          },
+          "last_nudged_at": null,
+          "last_checkpoint_update": "2026-02-03T20:00:00.000Z"
+        },
+        {
+          "userId": "alumni_002",
+          "joinedAt": "2026-02-01T10:30:00Z",
+          "checkpointsCompleted": 4,
+          "proofLinks": [
+            "https://github.com/jmartinez/phone-intake-system",
+            "https://loom.com/share/phone-intake-core",
+            "https://github.com/jmartinez/phone-intake-integration",
+            "https://loom.com/share/phone-intake-final"
+          ],
+          "checkpointStatuses": {
+            "1": {
+              "status": "approved",
+              "proofLink": "https://github.com/jmartinez/phone-intake-system",
+              "submittedAt": "2026-02-01T14:00:00Z",
+              "verifiedAt": "2026-02-01T16:00:00Z",
+              "notes": "Clean architecture, scalable design"
+            },
+            "2": {
+              "status": "approved",
+              "proofLink": "https://loom.com/share/phone-intake-core",
+              "submittedAt": "2026-02-02T16:00:00Z",
+              "verifiedAt": "2026-02-02T18:00:00Z",
+              "notes": "Business logic handles edge cases well"
+            },
+            "3": {
+              "status": "approved",
+              "proofLink": "https://github.com/jmartinez/phone-intake-integration",
+              "submittedAt": "2026-02-03T12:30:00Z",
+              "verifiedAt": "2026-02-03T14:30:00Z",
+              "notes": "External services integrated properly"
+            },
+            "4": {
+              "status": "approved",
+              "proofLink": "https://loom.com/share/phone-intake-final",
+              "submittedAt": "2026-02-03T19:30:00Z",
+              "verifiedAt": "2026-02-03T21:00:00Z",
+              "notes": "Production-ready, excellent UX"
+            }
+          },
+          "last_nudged_at": null,
+          "last_checkpoint_update": "2026-02-03T21:00:00.000Z"
+        },
+        {
+          "userId": "alumni_003",
+          "joinedAt": "2026-02-02T08:00:00Z",
+          "checkpointsCompleted": 3,
+          "proofLinks": [
+            "https://github.com/priya/auto-queue-arch",
+            "https://loom.com/share/auto-queue-core",
+            "https://github.com/priya/auto-queue-api"
+          ],
+          "checkpointStatuses": {
+            "1": {
+              "status": "approved",
+              "proofLink": "https://github.com/priya/auto-queue-arch",
+              "submittedAt": "2026-02-02T11:00:00Z",
+              "verifiedAt": "2026-02-02T13:00:00Z",
+              "notes": "Good system design"
+            },
+            "2": {
+              "status": "approved",
+              "proofLink": "https://loom.com/share/auto-queue-core",
+              "submittedAt": "2026-02-03T10:00:00Z",
+              "verifiedAt": "2026-02-03T12:00:00Z",
+              "notes": "Core functionality working"
+            },
+            "3": {
+              "status": "submitted",
+              "proofLink": "https://github.com/priya/auto-queue-api",
+              "submittedAt": "2026-02-04T09:00:00Z"
+            }
+          },
+          "last_nudged_at": null,
+          "last_checkpoint_update": "2026-02-04T09:00:00.000Z"
+        },
+        {
+          "userId": "alumni_ashley",
+          "joinedAt": "2026-02-02T14:00:00Z",
+          "checkpointsCompleted": 2,
+          "proofLinks": [
+            "https://github.com/ashleyvigo/taco-queue-arch",
+            "https://loom.com/share/ashley-taco-queue-core"
+          ],
+          "checkpointStatuses": {
+            "1": {
+              "status": "approved",
+              "proofLink": "https://github.com/ashleyvigo/taco-queue-arch",
+              "submittedAt": "2026-02-02T17:00:00Z",
+              "verifiedAt": "2026-02-02T19:00:00Z",
+              "notes": "Excellent architecture, well-thought-out system design"
+            },
+            "2": {
+              "status": "approved",
+              "proofLink": "https://loom.com/share/ashley-taco-queue-core",
+              "submittedAt": "2026-02-03T16:00:00Z",
+              "verifiedAt": "2026-02-03T18:00:00Z",
+              "notes": "Core logic implemented with great attention to edge cases"
+            }
+          },
+          "last_nudged_at": null,
+          "last_checkpoint_update": "2026-02-03T18:00:00.000Z"
+        }
+      ],
+      "milestones": [
+        {
+          "id": 1,
+          "name": "Architecture",
+          "description": "System design & database schema",
+          "completionWeight": 0.25
+        },
+        {
+          "id": 2,
+          "name": "Core Logic",
+          "description": "Business logic implementation",
+          "completionWeight": 0.25
+        },
+        {
+          "id": 3,
+          "name": "API Integration",
+          "description": "External services & endpoints",
+          "completionWeight": 0.25
+        },
+        {
+          "id": 4,
+          "name": "Demo Ready",
+          "description": "UI polish & deployment",
+          "completionWeight": 0.25
+        }
+      ],
+      "submissionWindowOpen": false,
+      "firstCompletionAt": "2026-02-05T10:00:00Z",
+      "winnerUserId": null,
+      "sprintDeadline": "2026-02-19T16:58:47.582Z",
+      "isPaused": false,
+      "auditLog": []
     },
     {
       "id": "lead_002",
@@ -95,7 +279,42 @@
         "90_plus_days": 3
       },
       "time_on_task_estimate": "10-12 hours/week on manual wait management",
-      "discovered_at": "2026-02-01T16:45:00Z"
+      "discovered_at": "2026-02-01T16:45:00Z",
+      "bespoke_deliverable": "Jackson Heights Multi-Language Wait Time Estimator",
+      "maxSlots": 4,
+      "activeBuilders": [],
+      "milestones": [
+        {
+          "id": 1,
+          "name": "Architecture",
+          "description": "System design & database schema",
+          "completionWeight": 0.25
+        },
+        {
+          "id": 2,
+          "name": "Core Logic",
+          "description": "Business logic implementation",
+          "completionWeight": 0.25
+        },
+        {
+          "id": 3,
+          "name": "API Integration",
+          "description": "External services & endpoints",
+          "completionWeight": 0.25
+        },
+        {
+          "id": 4,
+          "name": "Demo Ready",
+          "description": "UI polish & deployment",
+          "completionWeight": 0.25
+        }
+      ],
+      "submissionWindowOpen": false,
+      "firstCompletionAt": null,
+      "winnerUserId": null,
+      "sprintDeadline": "2026-02-19T16:58:47.584Z",
+      "isPaused": false,
+      "auditLog": []
     },
     {
       "id": "lead_003",
@@ -144,9 +363,15 @@
         "90_plus_days": 6
       },
       "time_on_task_estimate": "16-20 hours/week on manual order coordination",
+      "complexity_score": 4,
+      "estimated_build_time": "4-5 weeks",
       "discovered_at": "2026-01-29T10:15:00Z",
       "qualified_at": "2026-01-31T14:20:00Z",
-      "briefed_at": "2026-02-01T10:00:00Z"
+      "briefed_at": "2026-02-01T10:00:00Z",
+      "bespoke_deliverable": "Sunset Park Fusion Multi-Cuisine Order Status Dashboard",
+      "sprintDeadline": "2026-02-19T16:58:47.584Z",
+      "isPaused": false,
+      "auditLog": []
     },
     {
       "id": "lead_004",
@@ -164,7 +389,7 @@
       },
       "hfi_score": 68,
       "friction_type": "Reservation & Waitlist",
-      "status": "nurture",
+      "status": "awarded",
       "review_count": 356,
       "rating": 4.4,
       "friction_clusters": [
@@ -195,11 +420,172 @@
         "90_plus_days": 5
       },
       "time_on_task_estimate": "14-18 hours/week on manual waitlist management",
+      "complexity_score": 4,
+      "estimated_build_time": "4-5 weeks",
       "discovered_at": "2026-02-01T13:45:00Z",
       "qualified_at": "2026-02-01T15:00:00Z",
       "briefed_at": "2026-02-02T09:00:00Z",
       "engaged_at": "2026-02-02T11:00:00Z",
-      "nurture_at": "2026-02-02T14:00:00Z"
+      "nurture_at": "2026-02-02T14:00:00Z",
+      "bespoke_deliverable": "Astoria Multi-Language Waitlist Notification System",
+      "maxSlots": 4,
+      "activeBuilders": [
+        {
+          "userId": "alumni_003",
+          "joinedAt": "2026-01-30T09:00:00Z",
+          "checkpointsCompleted": 4,
+          "proofLinks": [
+            "https://github.com/priya/waitlist-architecture",
+            "https://loom.com/share/waitlist-core-logic",
+            "https://github.com/priya/waitlist-api-integration",
+            "https://loom.com/share/waitlist-final-demo"
+          ],
+          "checkpointStatuses": {
+            "1": {
+              "status": "approved",
+              "proofLink": "https://github.com/priya/waitlist-architecture",
+              "submittedAt": "2026-01-30T14:00:00Z",
+              "verifiedAt": "2026-01-30T16:00:00Z",
+              "notes": "Excellent database design, handles multi-language requirements"
+            },
+            "2": {
+              "status": "approved",
+              "proofLink": "https://loom.com/share/waitlist-core-logic",
+              "submittedAt": "2026-01-31T15:00:00Z",
+              "verifiedAt": "2026-01-31T17:00:00Z",
+              "notes": "Core logic robust, handles priority queue correctly"
+            },
+            "3": {
+              "status": "approved",
+              "proofLink": "https://github.com/priya/waitlist-api-integration",
+              "submittedAt": "2026-02-01T13:00:00Z",
+              "verifiedAt": "2026-02-01T15:00:00Z",
+              "notes": "SMS and email integrations working perfectly"
+            },
+            "4": {
+              "status": "approved",
+              "proofLink": "https://loom.com/share/waitlist-final-demo",
+              "submittedAt": "2026-02-02T16:00:00Z",
+              "verifiedAt": "2026-02-02T18:00:00Z",
+              "notes": "Beautiful UI, fully deployed and tested"
+            }
+          },
+          "scoutReview": {
+            "qualityScore": 0,
+            "scoutReviewScore": 0,
+            "reviewNotes": "",
+            "reviewedAt": "2026-02-05T15:45:02.342Z"
+          },
+          "last_nudged_at": null,
+          "last_checkpoint_update": "2026-02-02T18:00:00.000Z"
+        },
+        {
+          "userId": "alumni_004",
+          "joinedAt": "2026-01-30T11:00:00Z",
+          "checkpointsCompleted": 4,
+          "proofLinks": [
+            "https://github.com/dkim/waitlist-system-arch",
+            "https://loom.com/share/waitlist-core-implementation",
+            "https://github.com/dkim/waitlist-external-apis",
+            "https://loom.com/share/waitlist-production-demo"
+          ],
+          "checkpointStatuses": {
+            "1": {
+              "status": "approved",
+              "proofLink": "https://github.com/dkim/waitlist-system-arch",
+              "submittedAt": "2026-01-30T15:30:00Z",
+              "verifiedAt": "2026-01-30T17:30:00Z",
+              "notes": "Solid architecture, well-documented schema"
+            },
+            "2": {
+              "status": "approved",
+              "proofLink": "https://loom.com/share/waitlist-core-implementation",
+              "submittedAt": "2026-01-31T16:30:00Z",
+              "verifiedAt": "2026-01-31T18:30:00Z",
+              "notes": "Business logic handles all edge cases"
+            },
+            "3": {
+              "status": "approved",
+              "proofLink": "https://github.com/dkim/waitlist-external-apis",
+              "submittedAt": "2026-02-01T14:30:00Z",
+              "verifiedAt": "2026-02-01T16:30:00Z",
+              "notes": "All external services integrated seamlessly"
+            },
+            "4": {
+              "status": "approved",
+              "proofLink": "https://loom.com/share/waitlist-production-demo",
+              "submittedAt": "2026-02-02T17:30:00Z",
+              "verifiedAt": "2026-02-02T19:30:00Z",
+              "notes": "Production-ready, excellent performance"
+            }
+          },
+          "scoutReview": {
+            "qualityScore": 0,
+            "scoutReviewScore": 0,
+            "reviewNotes": "",
+            "reviewedAt": "2026-02-05T15:45:02.513Z"
+          },
+          "last_nudged_at": null,
+          "last_checkpoint_update": "2026-02-02T19:30:00.000Z"
+        },
+        {
+          "userId": "alumni_007",
+          "joinedAt": "2026-02-01T14:00:00Z",
+          "checkpointsCompleted": 2,
+          "proofLinks": [
+            "https://github.com/sam/waitlist-design",
+            "https://loom.com/share/waitlist-logic-preview"
+          ],
+          "checkpointStatuses": {
+            "1": {
+              "status": "approved",
+              "proofLink": "https://github.com/sam/waitlist-design",
+              "submittedAt": "2026-02-01T18:00:00Z",
+              "verifiedAt": "2026-02-01T20:00:00Z",
+              "notes": "Good initial design"
+            },
+            "2": {
+              "status": "submitted",
+              "proofLink": "https://loom.com/share/waitlist-logic-preview",
+              "submittedAt": "2026-02-03T10:00:00Z"
+            }
+          },
+          "last_nudged_at": null,
+          "last_checkpoint_update": "2026-02-01T16:17:00.370Z"
+        }
+      ],
+      "milestones": [
+        {
+          "id": 1,
+          "name": "Architecture",
+          "description": "System design & database schema",
+          "completionWeight": 0.25
+        },
+        {
+          "id": 2,
+          "name": "Core Logic",
+          "description": "Business logic implementation",
+          "completionWeight": 0.25
+        },
+        {
+          "id": 3,
+          "name": "API Integration",
+          "description": "External services & endpoints",
+          "completionWeight": 0.25
+        },
+        {
+          "id": 4,
+          "name": "Demo Ready",
+          "description": "UI polish & deployment",
+          "completionWeight": 0.25
+        }
+      ],
+      "submissionWindowOpen": false,
+      "firstCompletionAt": "2026-02-04T10:00:00Z",
+      "winnerUserId": null,
+      "sprintDeadline": "2026-02-19T16:58:47.584Z",
+      "isPaused": false,
+      "auditLog": []
     },
     {
       "id": "lead_005",
@@ -252,7 +638,11 @@
       "qualified_at": "2026-01-28T10:00:00Z",
       "briefed_at": "2026-01-30T14:00:00Z",
       "engaged_at": "2026-02-01T10:00:00Z",
-      "matched_at": "2026-02-02T09:30:00Z"
+      "matched_at": "2026-02-02T09:30:00Z",
+      "bespoke_deliverable": "Red Hook Bakery Pre-Dawn Pastry Reservation Portal",
+      "sprintDeadline": "2026-02-19T16:58:47.584Z",
+      "isPaused": false,
+      "auditLog": []
     },
     {
       "id": "lead_006",
@@ -306,7 +696,111 @@
       "briefed_at": "2026-01-31T14:00:00Z",
       "engaged_at": "2026-02-01T10:00:00Z",
       "matched_at": "2026-02-01T15:30:00Z",
-      "in_build_at": "2026-02-02T09:00:00Z"
+      "in_build_at": "2026-02-02T09:00:00Z",
+      "bespoke_deliverable": "Park Slope Pizza Delivery Zone Heat Map",
+      "maxSlots": 4,
+      "activeBuilders": [
+        {
+          "userId": "alumni_005",
+          "joinedAt": "2026-02-01T16:00:00Z",
+          "checkpointsCompleted": 2,
+          "proofLinks": [
+            "https://github.com/jamie/delivery-tracker",
+            "https://loom.com/share/delivery-demo"
+          ],
+          "checkpointStatuses": {
+            "1": {
+              "status": "approved",
+              "proofLink": "https://github.com/jamie/delivery-tracker",
+              "submittedAt": "2026-02-02T10:00:00Z",
+              "verifiedAt": "2026-02-02T12:00:00Z"
+            },
+            "2": {
+              "status": "submitted",
+              "proofLink": "https://loom.com/share/jkl012-delivery-demo",
+              "submittedAt": "2026-02-04T09:15:00Z"
+            }
+          },
+          "last_nudged_at": null,
+          "last_checkpoint_update": "2026-01-31T16:17:00.370Z"
+        },
+        {
+          "userId": "alumni_006",
+          "joinedAt": "2026-02-02T09:00:00Z",
+          "checkpointsCompleted": 1,
+          "proofLinks": [
+            "https://github.com/casey/pizza-api"
+          ],
+          "checkpointStatuses": {
+            "1": {
+              "status": "submitted",
+              "proofLink": "https://loom.com/share/mno345-pizza-api-proof",
+              "submittedAt": "2026-02-04T13:30:00Z"
+            }
+          },
+          "last_nudged_at": null,
+          "last_checkpoint_update": "2026-02-04T13:30:00.000Z"
+        },
+        {
+          "userId": "alumni_008",
+          "joinedAt": "2026-02-02T11:00:00Z",
+          "checkpointsCompleted": 0,
+          "proofLinks": [],
+          "last_nudged_at": null,
+          "last_checkpoint_update": "2026-02-02T11:00:00Z"
+        },
+        {
+          "userId": "alumni_ashley",
+          "joinedAt": "2026-02-03T10:00:00Z",
+          "checkpointsCompleted": 1,
+          "proofLinks": [
+            "https://github.com/ashleyvigo/pizza-delivery-arch"
+          ],
+          "checkpointStatuses": {
+            "1": {
+              "status": "approved",
+              "proofLink": "https://github.com/ashleyvigo/pizza-delivery-arch",
+              "submittedAt": "2026-02-03T14:00:00Z",
+              "verifiedAt": "2026-02-03T16:00:00Z",
+              "notes": "Solid architecture for delivery tracking system"
+            }
+          },
+          "last_nudged_at": null,
+          "last_checkpoint_update": "2026-02-03T16:00:00.000Z"
+        }
+      ],
+      "milestones": [
+        {
+          "id": 1,
+          "name": "Architecture",
+          "description": "System design & database schema",
+          "completionWeight": 0.25
+        },
+        {
+          "id": 2,
+          "name": "Core Logic",
+          "description": "Business logic implementation",
+          "completionWeight": 0.25
+        },
+        {
+          "id": 3,
+          "name": "API Integration",
+          "description": "External services & endpoints",
+          "completionWeight": 0.25
+        },
+        {
+          "id": 4,
+          "name": "Demo Ready",
+          "description": "UI polish & deployment",
+          "completionWeight": 0.25
+        }
+      ],
+      "submissionWindowOpen": false,
+      "firstCompletionAt": null,
+      "winnerUserId": null,
+      "sprintDeadline": "2026-02-19T16:58:47.584Z",
+      "isPaused": false,
+      "auditLog": []
     },
     {
       "id": "lead_007",
@@ -326,7 +820,7 @@
       "friction_type": "Online Ordering",
       "status": "live",
       "review_count": 523,
-      "rating": 4.0,
+      "rating": 4,
       "friction_clusters": [
         {
           "category": "intake",
@@ -355,13 +849,19 @@
         "90_plus_days": 2
       },
       "time_on_task_estimate": "12-15 hours/week on manual phone order intake",
+      "complexity_score": 3,
+      "estimated_build_time": "3-4 weeks",
       "discovered_at": "2026-01-15T10:00:00Z",
       "qualified_at": "2026-01-20T14:00:00Z",
       "briefed_at": "2026-01-22T10:00:00Z",
       "engaged_at": "2026-01-25T10:00:00Z",
       "matched_at": "2026-01-28T10:00:00Z",
       "in_build_at": "2026-01-30T10:00:00Z",
-      "live_at": "2026-02-01T10:00:00Z"
+      "live_at": "2026-02-01T10:00:00Z",
+      "bespoke_deliverable": "Flushing Bilingual Menu Ordering Interface",
+      "sprintDeadline": "2026-02-19T16:58:47.584Z",
+      "isPaused": false,
+      "auditLog": []
     },
     {
       "id": "lead_008",
@@ -411,9 +911,100 @@
         "90_plus_days": 2
       },
       "time_on_task_estimate": "20-25 hours/week on manual reservation management",
+      "complexity_score": 4,
+      "estimated_build_time": "4-5 weeks",
       "discovered_at": "2026-01-27T09:45:00Z",
       "qualified_at": "2026-01-29T10:00:00Z",
-      "briefed_at": "2026-01-30T16:00:00Z"
+      "briefed_at": "2026-01-30T16:00:00Z",
+      "bespoke_deliverable": "DUMBO Waterfront Table Reservation Engine",
+      "maxSlots": 4,
+      "activeBuilders": [
+        {
+          "userId": "alumni_009",
+          "joinedAt": "2026-01-31T10:00:00Z",
+          "checkpointsCompleted": 3,
+          "proofLinks": [
+            "https://github.com/riley/reservation-engine",
+            "https://loom.com/share/reservation-demo"
+          ],
+          "checkpointStatuses": {
+            "1": {
+              "status": "approved",
+              "proofLink": "https://github.com/riley/reservation-engine",
+              "submittedAt": "2026-02-01T11:00:00Z",
+              "verifiedAt": "2026-02-01T13:00:00Z"
+            },
+            "2": {
+              "status": "approved",
+              "proofLink": "https://loom.com/share/reservation-demo",
+              "submittedAt": "2026-02-02T14:00:00Z",
+              "verifiedAt": "2026-02-02T16:00:00Z"
+            },
+            "3": {
+              "status": "submitted",
+              "proofLink": "https://loom.com/share/pqr678-api-integration",
+              "submittedAt": "2026-02-04T10:00:00Z"
+            }
+          },
+          "last_nudged_at": null,
+          "last_checkpoint_update": "2026-02-04T10:00:00.000Z"
+        },
+        {
+          "userId": "alumni_010",
+          "joinedAt": "2026-02-01T14:00:00Z",
+          "checkpointsCompleted": 2,
+          "proofLinks": [
+            "https://github.com/avery/table-manager"
+          ],
+          "checkpointStatuses": {
+            "1": {
+              "status": "approved",
+              "proofLink": "https://github.com/avery/table-manager",
+              "submittedAt": "2026-02-02T09:00:00Z",
+              "verifiedAt": "2026-02-02T11:00:00Z"
+            },
+            "2": {
+              "status": "submitted",
+              "proofLink": "https://loom.com/share/stu901-core-logic-checkpoint",
+              "submittedAt": "2026-02-04T16:45:00Z"
+            }
+          },
+          "last_nudged_at": null,
+          "last_checkpoint_update": "2026-02-04T16:45:00.000Z"
+        }
+      ],
+      "milestones": [
+        {
+          "id": 1,
+          "name": "Architecture",
+          "description": "System design & database schema",
+          "completionWeight": 0.25
+        },
+        {
+          "id": 2,
+          "name": "Core Logic",
+          "description": "Business logic implementation",
+          "completionWeight": 0.25
+        },
+        {
+          "id": 3,
+          "name": "API Integration",
+          "description": "External services & endpoints",
+          "completionWeight": 0.25
+        },
+        {
+          "id": 4,
+          "name": "Demo Ready",
+          "description": "UI polish & deployment",
+          "completionWeight": 0.25
+        }
+      ],
+      "submissionWindowOpen": false,
+      "firstCompletionAt": null,
+      "winnerUserId": null,
+      "sprintDeadline": "2026-02-19T16:58:47.584Z",
+      "isPaused": false,
+      "auditLog": []
     },
     {
       "id": "lead_009",
@@ -464,7 +1055,11 @@
       "time_on_task_estimate": "15-18 hours/week on manual order coordination",
       "discovered_at": "2026-01-26T13:30:00Z",
       "pitched_at": "2026-01-29T11:15:00Z",
-      "engaged_at": "2026-02-01T10:00:00Z"
+      "engaged_at": "2026-02-01T10:00:00Z",
+      "bespoke_deliverable": "LIC Thai Spice Level Preference Tracker",
+      "sprintDeadline": "2026-02-19T16:58:47.584Z",
+      "isPaused": false,
+      "auditLog": []
     },
     {
       "id": "lead_010",
@@ -513,7 +1108,44 @@
         "90_plus_days": 1
       },
       "time_on_task_estimate": "13-16 hours/week on manual phone order intake",
-      "discovered_at": "2026-02-02T08:15:00Z"
+      "complexity_score": 3,
+      "estimated_build_time": "3-5 weeks",
+      "discovered_at": "2026-02-02T08:15:00Z",
+      "bespoke_deliverable": "Greenpoint Bagel Bulk Order Automation System",
+      "maxSlots": 4,
+      "activeBuilders": [],
+      "milestones": [
+        {
+          "id": 1,
+          "name": "Architecture",
+          "description": "System design & database schema",
+          "completionWeight": 0.25
+        },
+        {
+          "id": 2,
+          "name": "Core Logic",
+          "description": "Business logic implementation",
+          "completionWeight": 0.25
+        },
+        {
+          "id": 3,
+          "name": "API Integration",
+          "description": "External services & endpoints",
+          "completionWeight": 0.25
+        },
+        {
+          "id": 4,
+          "name": "Demo Ready",
+          "description": "UI polish & deployment",
+          "completionWeight": 0.25
+        }
+      ],
+      "submissionWindowOpen": false,
+      "firstCompletionAt": null,
+      "winnerUserId": null,
+      "sprintDeadline": "2026-02-19T16:58:47.584Z",
+      "isPaused": false,
+      "auditLog": []
     },
     {
       "id": "lead_011",
@@ -563,11 +1195,17 @@
         "90_plus_days": 1
       },
       "time_on_task_estimate": "16-20 hours/week on manual waitlist management",
+      "complexity_score": 3,
+      "estimated_build_time": "3-4 weeks",
       "discovered_at": "2026-01-25T12:00:00Z",
       "qualified_at": "2026-01-28T10:00:00Z",
       "briefed_at": "2026-01-30T14:00:00Z",
       "engaged_at": "2026-01-31T10:00:00Z",
-      "matched_at": "2026-01-31T14:45:00Z"
+      "matched_at": "2026-01-31T14:45:00Z",
+      "bespoke_deliverable": "Forest Hills Diner Brunch Queue Predictor",
+      "sprintDeadline": "2026-02-19T16:58:47.584Z",
+      "isPaused": false,
+      "auditLog": []
     },
     {
       "id": "lead_012",
@@ -615,8 +1253,56 @@
         "90_plus_days": 2
       },
       "time_on_task_estimate": "12-15 hours/week on manual phone intake",
+      "complexity_score": 4,
+      "estimated_build_time": "4-5 weeks",
       "discovered_at": "2026-02-02T11:30:00Z",
-      "qualified_at": "2026-02-02T11:30:00Z"
+      "qualified_at": "2026-02-02T11:30:00Z",
+      "bespoke_deliverable": "Taco Shell Inventory Waste Predictor",
+      "maxSlots": 4,
+      "activeBuilders": [
+        {
+          "userId": "alumni_004",
+          "joinedAt": "2026-02-02T12:00:00Z",
+          "checkpointsCompleted": 1,
+          "proofLinks": [
+            "https://github.com/jkim/inventory-tracker"
+          ],
+          "last_nudged_at": null,
+          "last_checkpoint_update": "2026-01-31T16:17:00.370Z"
+        }
+      ],
+      "milestones": [
+        {
+          "id": 1,
+          "name": "Architecture",
+          "description": "System design & database schema",
+          "completionWeight": 0.25
+        },
+        {
+          "id": 2,
+          "name": "Core Logic",
+          "description": "Business logic implementation",
+          "completionWeight": 0.25
+        },
+        {
+          "id": 3,
+          "name": "API Integration",
+          "description": "External services & endpoints",
+          "completionWeight": 0.25
+        },
+        {
+          "id": 4,
+          "name": "Demo Ready",
+          "description": "UI polish & deployment",
+          "completionWeight": 0.25
+        }
+      ],
+      "submissionWindowOpen": false,
+      "firstCompletionAt": null,
+      "winnerUserId": null,
+      "sprintDeadline": "2026-02-19T16:58:47.584Z",
+      "isPaused": false,
+      "auditLog": []
     },
     {
       "id": "lead_013",
@@ -665,9 +1351,15 @@
         "90_plus_days": 2
       },
       "time_on_task_estimate": "15-18 hours/week on manual waitlist management",
+      "complexity_score": 4,
+      "estimated_build_time": "4-5 weeks",
       "discovered_at": "2026-01-30T14:20:00Z",
       "qualified_at": "2026-02-01T10:00:00Z",
-      "briefed_at": "2026-02-02T09:15:00Z"
+      "briefed_at": "2026-02-02T09:15:00Z",
+      "bespoke_deliverable": "Astoria Fresh Catch Waitlist Priority Queue",
+      "sprintDeadline": "2026-02-19T16:58:47.584Z",
+      "isPaused": false,
+      "auditLog": []
     },
     {
       "id": "lead_014",
@@ -717,10 +1409,103 @@
         "90_plus_days": 2
       },
       "time_on_task_estimate": "22-26 hours/week on manual reservation management",
+      "complexity_score": 4,
+      "estimated_build_time": "4-5 weeks",
       "discovered_at": "2026-01-28T10:00:00Z",
       "qualified_at": "2026-01-30T14:00:00Z",
       "briefed_at": "2026-02-01T10:00:00Z",
-      "engaged_at": "2026-02-02T11:00:00Z"
+      "engaged_at": "2026-02-02T11:00:00Z",
+      "bespoke_deliverable": "DUMBO Waterfront Customer Pickup Geofencing",
+      "maxSlots": 4,
+      "activeBuilders": [
+        {
+          "userId": "alumni_010",
+          "joinedAt": "2026-02-01T15:00:00Z",
+          "checkpointsCompleted": 3,
+          "proofLinks": [
+            "https://github.com/cameron/geofencing",
+            "https://loom.com/share/geofence-demo"
+          ],
+          "checkpointStatuses": {
+            "1": {
+              "status": "approved",
+              "proofLink": "https://github.com/cameron/geofencing",
+              "submittedAt": "2026-02-02T10:00:00Z",
+              "verifiedAt": "2026-02-02T12:00:00Z"
+            },
+            "2": {
+              "status": "approved",
+              "proofLink": "https://loom.com/share/geofence-demo",
+              "submittedAt": "2026-02-03T14:00:00Z",
+              "verifiedAt": "2026-02-03T16:00:00Z"
+            },
+            "3": {
+              "status": "submitted",
+              "proofLink": "https://loom.com/share/vwx234-api-checkpoint",
+              "submittedAt": "2026-02-04T08:30:00Z"
+            }
+          },
+          "last_nudged_at": null,
+          "last_checkpoint_update": "2026-02-04T08:30:00.000Z"
+        },
+        {
+          "userId": "alumni_001",
+          "joinedAt": "2026-02-02T10:00:00Z",
+          "checkpointsCompleted": 1,
+          "proofLinks": [
+            "https://github.com/dakota/pickup-tracker"
+          ],
+          "checkpointStatuses": {
+            "1": {
+              "status": "submitted",
+              "proofLink": "https://loom.com/share/yza567-pickup-architecture",
+              "submittedAt": "2026-02-04T12:20:00Z"
+            }
+          },
+          "last_nudged_at": null,
+          "last_checkpoint_update": "2026-02-04T12:20:00.000Z"
+        },
+        {
+          "userId": "alumni_002",
+          "joinedAt": "2026-02-02T12:00:00Z",
+          "checkpointsCompleted": 0,
+          "proofLinks": [],
+          "last_nudged_at": null,
+          "last_checkpoint_update": "2026-02-02T12:00:00Z"
+        }
+      ],
+      "milestones": [
+        {
+          "id": 1,
+          "name": "Architecture",
+          "description": "System design & database schema",
+          "completionWeight": 0.25
+        },
+        {
+          "id": 2,
+          "name": "Core Logic",
+          "description": "Business logic implementation",
+          "completionWeight": 0.25
+        },
+        {
+          "id": 3,
+          "name": "API Integration",
+          "description": "External services & endpoints",
+          "completionWeight": 0.25
+        },
+        {
+          "id": 4,
+          "name": "Demo Ready",
+          "description": "UI polish & deployment",
+          "completionWeight": 0.25
+        }
+      ],
+      "submissionWindowOpen": false,
+      "firstCompletionAt": null,
+      "winnerUserId": null,
+      "sprintDeadline": "2026-02-19T16:58:47.584Z",
+      "isPaused": false,
+      "auditLog": []
     },
     {
       "id": "lead_015",
@@ -773,7 +1558,11 @@
       "qualified_at": "2026-02-01T16:00:00Z",
       "briefed_at": "2026-02-02T10:00:00Z",
       "engaged_at": "2026-02-02T12:00:00Z",
-      "nurture_at": "2026-02-02T15:00:00Z"
+      "nurture_at": "2026-02-02T15:00:00Z",
+      "bespoke_deliverable": "Sunset Park Ramen Slurp Time Slot Optimizer",
+      "sprintDeadline": "2026-02-19T16:58:47.584Z",
+      "isPaused": false,
+      "auditLog": []
     },
     {
       "id": "lead_016",
@@ -823,11 +1612,90 @@
         "90_plus_days": 2
       },
       "time_on_task_estimate": "18-22 hours/week on manual order coordination",
+      "complexity_score": 3,
+      "estimated_build_time": "3-4 weeks",
       "discovered_at": "2026-01-29T11:00:00Z",
       "qualified_at": "2026-01-31T10:00:00Z",
       "briefed_at": "2026-02-01T10:00:00Z",
       "engaged_at": "2026-02-01T14:00:00Z",
-      "matched_at": "2026-02-02T10:30:00Z"
+      "matched_at": "2026-02-02T10:30:00Z",
+      "bespoke_deliverable": "Red Hook Deli Catering Order Assembly Tracker",
+      "maxSlots": 4,
+      "activeBuilders": [
+        {
+          "userId": "alumni_003",
+          "joinedAt": "2026-02-01T16:00:00Z",
+          "checkpointsCompleted": 2,
+          "proofLinks": [
+            "https://github.com/finley/catering-tracker",
+            "https://loom.com/share/catering-demo"
+          ],
+          "checkpointStatuses": {
+            "1": {
+              "status": "approved",
+              "proofLink": "https://github.com/finley/catering-tracker",
+              "submittedAt": "2026-02-02T11:00:00Z",
+              "verifiedAt": "2026-02-02T13:00:00Z"
+            },
+            "2": {
+              "status": "submitted",
+              "proofLink": "https://loom.com/share/bcd890-catering-logic",
+              "submittedAt": "2026-02-04T11:00:00Z"
+            }
+          },
+          "last_nudged_at": null,
+          "last_checkpoint_update": "2026-02-04T11:00:00.000Z"
+        },
+        {
+          "userId": "alumni_007",
+          "joinedAt": "2026-02-02T09:00:00Z",
+          "checkpointsCompleted": 1,
+          "proofLinks": [
+            "https://github.com/rowan/order-assembly"
+          ],
+          "checkpointStatuses": {
+            "1": {
+              "status": "submitted",
+              "proofLink": "https://loom.com/share/efg123-order-assembly-proof",
+              "submittedAt": "2026-02-04T14:50:00Z"
+            }
+          },
+          "last_nudged_at": null,
+          "last_checkpoint_update": "2026-01-31T16:17:00.370Z"
+        }
+      ],
+      "milestones": [
+        {
+          "id": 1,
+          "name": "Architecture",
+          "description": "System design & database schema",
+          "completionWeight": 0.25
+        },
+        {
+          "id": 2,
+          "name": "Core Logic",
+          "description": "Business logic implementation",
+          "completionWeight": 0.25
+        },
+        {
+          "id": 3,
+          "name": "API Integration",
+          "description": "External services & endpoints",
+          "completionWeight": 0.25
+        },
+        {
+          "id": 4,
+          "name": "Demo Ready",
+          "description": "UI polish & deployment",
+          "completionWeight": 0.25
+        }
+      ],
+      "submissionWindowOpen": false,
+      "firstCompletionAt": null,
+      "winnerUserId": null,
+      "sprintDeadline": "2026-02-19T16:58:47.584Z",
+      "isPaused": false,
+      "auditLog": []
     },
     {
       "id": "lead_017",
@@ -875,7 +1743,11 @@
         "90_plus_days": 2
       },
       "time_on_task_estimate": "11-14 hours/week on manual phone intake",
-      "discovered_at": "2026-02-02T13:45:00Z"
+      "discovered_at": "2026-02-02T13:45:00Z",
+      "bespoke_deliverable": "Williamsburg Pizza Slice Counter Real-Time Inventory",
+      "sprintDeadline": "2026-02-19T16:58:47.584Z",
+      "isPaused": false,
+      "auditLog": []
     },
     {
       "id": "lead_018",
@@ -925,12 +1797,128 @@
         "90_plus_days": 1
       },
       "time_on_task_estimate": "19-23 hours/week on manual reservation management",
+      "complexity_score": 4,
+      "estimated_build_time": "4-5 weeks",
       "discovered_at": "2026-01-27T09:00:00Z",
       "qualified_at": "2026-01-29T10:00:00Z",
       "briefed_at": "2026-01-30T14:00:00Z",
       "engaged_at": "2026-02-01T10:00:00Z",
       "matched_at": "2026-02-01T15:00:00Z",
-      "in_build_at": "2026-02-02T09:00:00Z"
+      "in_build_at": "2026-02-02T09:00:00Z",
+      "bespoke_deliverable": "Astoria Greek Family Style Table Configurator",
+      "maxSlots": 4,
+      "activeBuilders": [
+        {
+          "userId": "alumni_004",
+          "joinedAt": "2026-02-01T10:00:00Z",
+          "checkpointsCompleted": 3,
+          "proofLinks": [
+            "https://github.com/hayden/table-config",
+            "https://loom.com/share/table-demo"
+          ],
+          "checkpointStatuses": {
+            "1": {
+              "status": "approved",
+              "proofLink": "https://github.com/hayden/table-config",
+              "submittedAt": "2026-02-01T15:00:00Z",
+              "verifiedAt": "2026-02-01T17:00:00Z"
+            },
+            "2": {
+              "status": "approved",
+              "proofLink": "https://loom.com/share/table-demo",
+              "submittedAt": "2026-02-02T16:00:00Z",
+              "verifiedAt": "2026-02-02T18:00:00Z"
+            },
+            "3": {
+              "status": "submitted",
+              "proofLink": "https://loom.com/share/hij456-api-integration-checkpoint",
+              "submittedAt": "2026-02-04T09:00:00Z"
+            }
+          },
+          "last_nudged_at": null,
+          "last_checkpoint_update": "2026-01-31T16:17:00.370Z"
+        },
+        {
+          "userId": "alumni_005",
+          "joinedAt": "2026-02-01T14:00:00Z",
+          "checkpointsCompleted": 2,
+          "proofLinks": [
+            "https://github.com/reese/reservation-api"
+          ],
+          "checkpointStatuses": {
+            "1": {
+              "status": "approved",
+              "proofLink": "https://github.com/reese/reservation-api",
+              "submittedAt": "2026-02-02T10:00:00Z",
+              "verifiedAt": "2026-02-02T12:00:00Z"
+            },
+            "2": {
+              "status": "submitted",
+              "proofLink": "https://loom.com/share/klm789-reservation-logic",
+              "submittedAt": "2026-02-04T15:10:00Z"
+            }
+          },
+          "last_nudged_at": null,
+          "last_checkpoint_update": "2026-01-31T16:17:00.370Z"
+        },
+        {
+          "userId": "alumni_006",
+          "joinedAt": "2026-02-02T08:00:00Z",
+          "checkpointsCompleted": 1,
+          "proofLinks": [
+            "https://github.com/parker/greek-ui"
+          ],
+          "checkpointStatuses": {
+            "1": {
+              "status": "submitted",
+              "proofLink": "https://loom.com/share/nop012-greek-ui-architecture",
+              "submittedAt": "2026-02-04T10:40:00Z"
+            }
+          },
+          "last_nudged_at": null,
+          "last_checkpoint_update": "2026-02-04T10:40:00.000Z"
+        },
+        {
+          "userId": "alumni_008",
+          "joinedAt": "2026-02-02T10:00:00Z",
+          "checkpointsCompleted": 0,
+          "proofLinks": [],
+          "last_nudged_at": null,
+          "last_checkpoint_update": "2026-02-02T10:00:00Z"
+        }
+      ],
+      "milestones": [
+        {
+          "id": 1,
+          "name": "Architecture",
+          "description": "System design & database schema",
+          "completionWeight": 0.25
+        },
+        {
+          "id": 2,
+          "name": "Core Logic",
+          "description": "Business logic implementation",
+          "completionWeight": 0.25
+        },
+        {
+          "id": 3,
+          "name": "API Integration",
+          "description": "External services & endpoints",
+          "completionWeight": 0.25
+        },
+        {
+          "id": 4,
+          "name": "Demo Ready",
+          "description": "UI polish & deployment",
+          "completionWeight": 0.25
+        }
+      ],
+      "submissionWindowOpen": false,
+      "firstCompletionAt": null,
+      "winnerUserId": null,
+      "sprintDeadline": "2026-02-19T16:58:47.584Z",
+      "isPaused": false,
+      "auditLog": []
     },
     {
       "id": "lead_019",
@@ -979,8 +1967,14 @@
         "90_plus_days": 2
       },
       "time_on_task_estimate": "14-17 hours/week on manual order coordination",
+      "complexity_score": 3,
+      "estimated_build_time": "3-4 weeks",
       "discovered_at": "2026-02-01T16:20:00Z",
-      "qualified_at": "2026-02-01T16:20:00Z"
+      "qualified_at": "2026-02-01T16:20:00Z",
+      "bespoke_deliverable": "DUMBO Bakery Batch Tracking Module",
+      "sprintDeadline": "2026-02-19T16:58:47.584Z",
+      "isPaused": false,
+      "auditLog": []
     },
     {
       "id": "lead_020",
@@ -1033,7 +2027,92 @@
       "time_on_task_estimate": "24-28 hours/week on manual waitlist management",
       "discovered_at": "2026-01-26T10:00:00Z",
       "qualified_at": "2026-01-28T14:00:00Z",
-      "briefed_at": "2026-02-01T11:00:00Z"
+      "briefed_at": "2026-02-01T11:00:00Z",
+      "bespoke_deliverable": "Sunset Park BBQ Smoke Time Waitlist Estimator",
+      "maxSlots": 4,
+      "activeBuilders": [
+        {
+          "userId": "alumni_009",
+          "joinedAt": "2026-02-01T11:00:00Z",
+          "checkpointsCompleted": 2,
+          "proofLinks": [
+            "https://github.com/indigo/waitlist-estimator",
+            "https://loom.com/share/bbq-demo"
+          ],
+          "checkpointStatuses": {
+            "1": {
+              "status": "approved",
+              "proofLink": "https://github.com/indigo/waitlist-estimator",
+              "submittedAt": "2026-02-02T09:00:00Z",
+              "verifiedAt": "2026-02-02T11:00:00Z"
+            },
+            "2": {
+              "status": "submitted",
+              "proofLink": "https://loom.com/share/qrs345-bbq-core-logic",
+              "submittedAt": "2026-02-04T13:00:00Z"
+            }
+          },
+          "last_nudged_at": null,
+          "last_checkpoint_update": "2026-02-04T13:00:00.000Z"
+        },
+        {
+          "userId": "alumni_010",
+          "joinedAt": "2026-02-01T15:00:00Z",
+          "checkpointsCompleted": 1,
+          "proofLinks": [
+            "https://github.com/kai/smoke-time-api"
+          ],
+          "checkpointStatuses": {
+            "1": {
+              "status": "submitted",
+              "proofLink": "https://loom.com/share/tuv678-smoke-api-proof",
+              "submittedAt": "2026-02-04T17:25:00Z"
+            }
+          },
+          "last_nudged_at": null,
+          "last_checkpoint_update": "2026-02-04T17:25:00.000Z"
+        },
+        {
+          "userId": "alumni_001",
+          "joinedAt": "2026-02-05T14:40:08.604Z",
+          "checkpointsCompleted": 0,
+          "proofLinks": [],
+          "last_nudged_at": null,
+          "last_checkpoint_update": "2026-02-05T14:40:08.604Z"
+        }
+      ],
+      "milestones": [
+        {
+          "id": 1,
+          "name": "Architecture",
+          "description": "System design & database schema",
+          "completionWeight": 0.25
+        },
+        {
+          "id": 2,
+          "name": "Core Logic",
+          "description": "Business logic implementation",
+          "completionWeight": 0.25
+        },
+        {
+          "id": 3,
+          "name": "API Integration",
+          "description": "External services & endpoints",
+          "completionWeight": 0.25
+        },
+        {
+          "id": 4,
+          "name": "Demo Ready",
+          "description": "UI polish & deployment",
+          "completionWeight": 0.25
+        }
+      ],
+      "submissionWindowOpen": false,
+      "firstCompletionAt": null,
+      "winnerUserId": null,
+      "sprintDeadline": "2026-02-19T16:58:47.584Z",
+      "isPaused": false,
+      "auditLog": []
     },
     {
       "id": "lead_021",
@@ -1086,7 +2165,11 @@
       "qualified_at": "2026-02-01T15:00:00Z",
       "briefed_at": "2026-02-02T09:00:00Z",
       "engaged_at": "2026-02-02T11:00:00Z",
-      "nurture_at": "2026-02-02T14:30:00Z"
+      "nurture_at": "2026-02-02T14:30:00Z",
+      "bespoke_deliverable": "Red Hook Italian Family Feast Pre-Order Portal",
+      "sprintDeadline": "2026-02-19T16:58:47.584Z",
+      "isPaused": false,
+      "auditLog": []
     },
     {
       "id": "lead_022",
@@ -1135,10 +2218,97 @@
         "90_plus_days": 2
       },
       "time_on_task_estimate": "15-18 hours/week on manual queue management",
+      "complexity_score": 3,
+      "estimated_build_time": "3-4 weeks",
       "discovered_at": "2026-01-29T12:00:00Z",
       "qualified_at": "2026-01-31T10:00:00Z",
       "briefed_at": "2026-02-01T10:00:00Z",
-      "engaged_at": "2026-02-02T10:00:00Z"
+      "engaged_at": "2026-02-02T10:00:00Z",
+      "bespoke_deliverable": "Williamsburg Sushi Omakase Reservation System",
+      "maxSlots": 4,
+      "activeBuilders": [
+        {
+          "userId": "alumni_001",
+          "joinedAt": "2026-02-01T12:00:00Z",
+          "checkpointsCompleted": 2,
+          "proofLinks": [
+            "https://github.com/river/omakase-reservations",
+            "https://loom.com/share/sushi-demo"
+          ],
+          "checkpointStatuses": {
+            "1": {
+              "status": "approved",
+              "proofLink": "https://github.com/river/omakase-reservations",
+              "submittedAt": "2026-02-02T10:00:00Z",
+              "verifiedAt": "2026-02-02T12:00:00Z"
+            },
+            "2": {
+              "status": "submitted",
+              "proofLink": "https://loom.com/share/wxy901-sushi-demo-checkpoint",
+              "submittedAt": "2026-02-04T11:15:00Z"
+            }
+          },
+          "last_nudged_at": null,
+          "last_checkpoint_update": "2026-02-04T11:15:00.000Z"
+        },
+        {
+          "userId": "alumni_002",
+          "joinedAt": "2026-02-02T09:00:00Z",
+          "checkpointsCompleted": 1,
+          "proofLinks": [
+            "https://github.com/phoenix/booking-api"
+          ],
+          "checkpointStatuses": {
+            "1": {
+              "status": "submitted",
+              "proofLink": "https://loom.com/share/zab234-booking-architecture",
+              "submittedAt": "2026-02-04T16:00:00Z"
+            }
+          },
+          "last_nudged_at": null,
+          "last_checkpoint_update": "2026-02-04T16:00:00.000Z"
+        },
+        {
+          "userId": "alumni_003",
+          "joinedAt": "2026-02-02T11:00:00Z",
+          "checkpointsCompleted": 0,
+          "proofLinks": [],
+          "last_nudged_at": null,
+          "last_checkpoint_update": "2026-02-02T11:00:00Z"
+        }
+      ],
+      "milestones": [
+        {
+          "id": 1,
+          "name": "Architecture",
+          "description": "System design & database schema",
+          "completionWeight": 0.25
+        },
+        {
+          "id": 2,
+          "name": "Core Logic",
+          "description": "Business logic implementation",
+          "completionWeight": 0.25
+        },
+        {
+          "id": 3,
+          "name": "API Integration",
+          "description": "External services & endpoints",
+          "completionWeight": 0.25
+        },
+        {
+          "id": 4,
+          "name": "Demo Ready",
+          "description": "UI polish & deployment",
+          "completionWeight": 0.25
+        }
+      ],
+      "submissionWindowOpen": false,
+      "firstCompletionAt": null,
+      "winnerUserId": null,
+      "sprintDeadline": "2026-02-19T16:58:47.584Z",
+      "isPaused": false,
+      "auditLog": []
     },
     {
       "id": "lead_023",
@@ -1193,7 +2363,11 @@
       "qualified_at": "2026-01-30T10:00:00Z",
       "briefed_at": "2026-01-31T14:00:00Z",
       "engaged_at": "2026-02-01T10:00:00Z",
-      "matched_at": "2026-02-02T09:45:00Z"
+      "matched_at": "2026-02-02T09:45:00Z",
+      "bespoke_deliverable": "Astoria Steakhouse Wine Pairing Recommendation Engine",
+      "sprintDeadline": "2026-02-19T16:58:47.584Z",
+      "isPaused": false,
+      "auditLog": []
     },
     {
       "id": "lead_024",
@@ -1242,8 +2416,63 @@
         "90_plus_days": 1
       },
       "time_on_task_estimate": "13-16 hours/week on manual phone intake",
+      "complexity_score": 4,
+      "estimated_build_time": "4-5 weeks",
       "discovered_at": "2026-02-02T10:15:00Z",
-      "qualified_at": "2026-02-02T10:15:00Z"
+      "qualified_at": "2026-02-02T10:15:00Z",
+      "bespoke_deliverable": "DUMBO Burger Build Customization Queue",
+      "maxSlots": 4,
+      "activeBuilders": [
+        {
+          "userId": "alumni_007",
+          "joinedAt": "2026-02-02T10:15:00Z",
+          "checkpointsCompleted": 1,
+          "proofLinks": [
+            "https://github.com/riley/burger-customizer"
+          ],
+          "checkpointStatuses": {
+            "1": {
+              "status": "submitted",
+              "proofLink": "https://loom.com/share/uvw345-burger-architecture-proof",
+              "submittedAt": "2026-02-04T08:45:00Z"
+            }
+          },
+          "last_nudged_at": null,
+          "last_checkpoint_update": "2026-01-31T16:17:00.370Z"
+        }
+      ],
+      "milestones": [
+        {
+          "id": 1,
+          "name": "Architecture",
+          "description": "System design & database schema",
+          "completionWeight": 0.25
+        },
+        {
+          "id": 2,
+          "name": "Core Logic",
+          "description": "Business logic implementation",
+          "completionWeight": 0.25
+        },
+        {
+          "id": 3,
+          "name": "API Integration",
+          "description": "External services & endpoints",
+          "completionWeight": 0.25
+        },
+        {
+          "id": 4,
+          "name": "Demo Ready",
+          "description": "UI polish & deployment",
+          "completionWeight": 0.25
+        }
+      ],
+      "submissionWindowOpen": false,
+      "firstCompletionAt": null,
+      "winnerUserId": null,
+      "sprintDeadline": "2026-02-19T16:58:47.584Z",
+      "isPaused": false,
+      "auditLog": []
     },
     {
       "id": "lead_025",
@@ -1295,7 +2524,11 @@
       "time_on_task_estimate": "17-21 hours/week on manual order coordination",
       "discovered_at": "2026-01-30T13:00:00Z",
       "qualified_at": "2026-02-01T10:00:00Z",
-      "briefed_at": "2026-02-02T10:30:00Z"
+      "briefed_at": "2026-02-02T10:30:00Z",
+      "bespoke_deliverable": "Sunset Park Taco Truck Route Optimizer",
+      "sprintDeadline": "2026-02-19T16:58:47.584Z",
+      "isPaused": false,
+      "auditLog": []
     },
     {
       "id": "lead_026",
@@ -1348,14 +2581,786 @@
       "discovered_at": "2026-01-29T15:00:00Z",
       "qualified_at": "2026-01-31T14:00:00Z",
       "briefed_at": "2026-02-01T10:00:00Z",
-      "engaged_at": "2026-02-02T11:30:00Z"
+      "engaged_at": "2026-02-02T11:30:00Z",
+      "bespoke_deliverable": "Red Hook Brewery Tap List Integration Tracker",
+      "maxSlots": 4,
+      "activeBuilders": [
+        {
+          "userId": "alumni_001",
+          "joinedAt": "2026-02-01T15:00:00Z",
+          "checkpointsCompleted": 2,
+          "proofLinks": [
+            "https://github.com/quinn/tap-list",
+            "https://loom.com/share/brewery-demo"
+          ],
+          "checkpointStatuses": {
+            "1": {
+              "status": "approved",
+              "proofLink": "https://github.com/quinn/tap-list",
+              "submittedAt": "2026-02-02T10:00:00Z",
+              "verifiedAt": "2026-02-02T12:00:00Z"
+            },
+            "2": {
+              "status": "submitted",
+              "proofLink": "https://loom.com/share/cde567-brewery-logic-demo",
+              "submittedAt": "2026-02-04T14:00:00Z"
+            }
+          },
+          "last_nudged_at": null,
+          "last_checkpoint_update": "2026-02-04T14:00:00.000Z"
+        }
+      ],
+      "milestones": [
+        {
+          "id": 1,
+          "name": "Architecture",
+          "description": "System design & database schema",
+          "completionWeight": 0.25
+        },
+        {
+          "id": 2,
+          "name": "Core Logic",
+          "description": "Business logic implementation",
+          "completionWeight": 0.25
+        },
+        {
+          "id": 3,
+          "name": "API Integration",
+          "description": "External services & endpoints",
+          "completionWeight": 0.25
+        },
+        {
+          "id": 4,
+          "name": "Demo Ready",
+          "description": "UI polish & deployment",
+          "completionWeight": 0.25
+        }
+      ],
+      "submissionWindowOpen": false,
+      "firstCompletionAt": null,
+      "winnerUserId": null,
+      "sprintDeadline": "2026-02-19T16:58:47.584Z",
+      "isPaused": false,
+      "auditLog": []
+    },
+    {
+      "id": "lead_027",
+      "business_name": "Queens Greenery",
+      "category": "Vegetarian Restaurant",
+      "location": {
+        "address": "32-15 30th Ave",
+        "neighborhood": "Astoria",
+        "zip": "11102",
+        "borough": "Queens"
+      },
+      "contact": {
+        "phone": "(718) 555-3849",
+        "owner_name": "Lisa Chen"
+      },
+      "hfi_score": 80,
+      "friction_type": "Inventory Management",
+      "status": "qualified",
+      "review_count": 412,
+      "rating": 4.3,
+      "friction_clusters": [
+        {
+          "category": "logistics",
+          "count": 28,
+          "recent_count": 21,
+          "sample_quotes": [
+            "Popular items are always sold out by dinner time. No inventory tracking system.",
+            "Went three times this week and they were sold out of the daily special. Very frustrating.",
+            "Menu says items available but they're out of stock when ordering. No real-time inventory.",
+            "Can't plan ahead because they don't track what's in stock. Always running out.",
+            "Sold out of half the menu items during lunch rush. Need better inventory management."
+          ]
+        },
+        {
+          "category": "intake",
+          "count": 12,
+          "recent_count": 9,
+          "sample_quotes": [
+            "Online ordering doesn't show what's actually available. Orders get cancelled.",
+            "Phone orders are taken for items that are already sold out. Waste of time."
+          ]
+        }
+      ],
+      "recency_data": {
+        "0_30_days": 30,
+        "31_90_days": 8,
+        "90_plus_days": 2
+      },
+      "time_on_task_estimate": "18-22 hours/week on manual inventory tracking",
+      "discovered_at": "2026-02-03T10:00:00Z",
+      "qualified_at": "2026-02-03T10:00:00Z",
+      "bespoke_deliverable": "Astoria Plant-Based Ingredient Availability Alert",
+      "sprintDeadline": "2026-02-19T16:58:47.584Z",
+      "isPaused": false,
+      "auditLog": []
+    },
+    {
+      "id": "lead_028",
+      "business_name": "DUMBO Pasta Lab",
+      "category": "Italian Restaurant",
+      "location": {
+        "address": "62 Front St",
+        "neighborhood": "DUMBO",
+        "zip": "11201",
+        "borough": "Brooklyn"
+      },
+      "contact": {
+        "phone": "(718) 555-2846",
+        "owner_name": "Marco Bianchi"
+      },
+      "hfi_score": 75,
+      "friction_type": "Delivery Logistics",
+      "status": "briefed",
+      "review_count": 389,
+      "rating": 4.4,
+      "friction_clusters": [
+        {
+          "category": "logistics",
+          "count": 26,
+          "recent_count": 19,
+          "sample_quotes": [
+            "Delivery delay of over an hour. No tracking system to see where driver is.",
+            "Ordered delivery but driver got lost. No way to contact or track them.",
+            "Delivery times are never accurate. Said 40 minutes, took 90 minutes.",
+            "Multiple delivery services but orders get mixed up. Need consolidation.",
+            "Delivery delay notification came after food was already cold. Too late.",
+            "No real-time delivery tracking. Had to call three times to check status."
+          ]
+        },
+        {
+          "category": "intake",
+          "count": 11,
+          "recent_count": 8,
+          "sample_quotes": [
+            "Online ordering doesn't show delivery time until after checkout.",
+            "Can't choose delivery service. They use multiple platforms inconsistently."
+          ]
+        }
+      ],
+      "recency_data": {
+        "0_30_days": 27,
+        "31_90_days": 8,
+        "90_plus_days": 2
+      },
+      "time_on_task_estimate": "16-20 hours/week on manual delivery coordination",
+      "discovered_at": "2026-02-02T14:00:00Z",
+      "qualified_at": "2026-02-03T09:00:00Z",
+      "briefed_at": "2026-02-03T14:00:00Z",
+      "bespoke_deliverable": "DUMBO Pasta Freshness Timer Delivery Tracker",
+      "maxSlots": 4,
+      "activeBuilders": [
+        {
+          "userId": "alumni_002",
+          "joinedAt": "2026-02-03T09:00:00Z",
+          "checkpointsCompleted": 1,
+          "proofLinks": [
+            "https://github.com/avery/delivery-tracker"
+          ],
+          "checkpointStatuses": {
+            "1": {
+              "status": "submitted",
+              "proofLink": "https://loom.com/share/fgh890-delivery-architecture",
+              "submittedAt": "2026-02-04T09:50:00Z"
+            }
+          },
+          "last_nudged_at": null,
+          "last_checkpoint_update": "2026-02-04T09:50:00.000Z"
+        },
+        {
+          "userId": "alumni_003",
+          "joinedAt": "2026-02-03T11:00:00Z",
+          "checkpointsCompleted": 0,
+          "proofLinks": [],
+          "last_nudged_at": null,
+          "last_checkpoint_update": "2026-02-03T11:00:00Z"
+        }
+      ],
+      "milestones": [
+        {
+          "id": 1,
+          "name": "Architecture",
+          "description": "System design & database schema",
+          "completionWeight": 0.25
+        },
+        {
+          "id": 2,
+          "name": "Core Logic",
+          "description": "Business logic implementation",
+          "completionWeight": 0.25
+        },
+        {
+          "id": 3,
+          "name": "API Integration",
+          "description": "External services & endpoints",
+          "completionWeight": 0.25
+        },
+        {
+          "id": 4,
+          "name": "Demo Ready",
+          "description": "UI polish & deployment",
+          "completionWeight": 0.25
+        }
+      ],
+      "submissionWindowOpen": false,
+      "firstCompletionAt": null,
+      "winnerUserId": null,
+      "sprintDeadline": "2026-02-19T16:58:47.584Z",
+      "isPaused": false,
+      "auditLog": []
+    },
+    {
+      "id": "lead_029",
+      "business_name": "Williamsburg Roast",
+      "category": "Coffee Shop & Cafe",
+      "location": {
+        "address": "278 Bedford Ave",
+        "neighborhood": "Williamsburg",
+        "zip": "11211",
+        "borough": "Brooklyn"
+      },
+      "contact": {
+        "phone": "(718) 555-7293",
+        "owner_name": "Alex Thompson"
+      },
+      "hfi_score": 72,
+      "friction_type": "Loyalty Program",
+      "status": "engaged",
+      "review_count": 456,
+      "rating": 4.5,
+      "friction_clusters": [
+        {
+          "category": "intake",
+          "count": 24,
+          "recent_count": 18,
+          "sample_quotes": [
+            "No rewards program despite being a regular customer. No loyalty tracking.",
+            "Been coming here for months but no way to earn points or discounts.",
+            "Other coffee shops have apps with rewards. This place has no rewards system.",
+            "No loyalty program means I'm going elsewhere. Missing retention opportunity.",
+            "Asked about rewards program—they don't have one. Very outdated.",
+            "No rewards for frequent customers. No CRM system to track visits."
+          ]
+        },
+        {
+          "category": "logistics",
+          "count": 9,
+          "recent_count": 6,
+          "sample_quotes": [
+            "Can't track my order history. No customer database system.",
+            "Staff doesn't remember regulars. No customer relationship management."
+          ]
+        }
+      ],
+      "recency_data": {
+        "0_30_days": 24,
+        "31_90_days": 7,
+        "90_plus_days": 2
+      },
+      "time_on_task_estimate": "14-17 hours/week on manual customer tracking",
+      "discovered_at": "2026-02-01T11:00:00Z",
+      "qualified_at": "2026-02-02T10:00:00Z",
+      "briefed_at": "2026-02-03T09:00:00Z",
+      "engaged_at": "2026-02-03T15:00:00Z",
+      "bespoke_deliverable": "Williamsburg Coffee Bean Loyalty Rewards Engine",
+      "sprintDeadline": "2026-02-19T16:58:47.584Z",
+      "isPaused": false,
+      "auditLog": []
+    },
+    {
+      "id": "lead_030",
+      "business_name": "Red Hook Seafood Market",
+      "category": "Seafood Restaurant",
+      "location": {
+        "address": "275 Van Brunt St",
+        "neighborhood": "Red Hook",
+        "zip": "11231",
+        "borough": "Brooklyn"
+      },
+      "contact": {
+        "phone": "(718) 555-6382",
+        "owner_name": "Maria Santos"
+      },
+      "hfi_score": 79,
+      "friction_type": "Inventory Management",
+      "status": "qualified",
+      "review_count": 367,
+      "rating": 4.2,
+      "friction_clusters": [
+        {
+          "category": "logistics",
+          "count": 27,
+          "recent_count": 20,
+          "sample_quotes": [
+            "Fresh catch items are sold out by 7pm every night. No inventory alerts.",
+            "Menu says 'catch of the day' but it's already sold out when ordering.",
+            "Can't reserve fresh seafood in advance. Always running out.",
+            "Sold out of popular dishes during weekend rush. Need better stock tracking.",
+            "No way to check what's available before arriving. Inventory gaps are constant."
+          ]
+        },
+        {
+          "category": "intake",
+          "count": 13,
+          "recent_count": 10,
+          "sample_quotes": [
+            "Online menu doesn't update when items sell out. Orders get cancelled.",
+            "Phone orders taken for items that are already gone. Very frustrating."
+          ]
+        }
+      ],
+      "recency_data": {
+        "0_30_days": 30,
+        "31_90_days": 8,
+        "90_plus_days": 2
+      },
+      "time_on_task_estimate": "17-21 hours/week on manual inventory management",
+      "complexity_score": 4,
+      "estimated_build_time": "4-5 weeks",
+      "discovered_at": "2026-02-03T11:30:00Z",
+      "qualified_at": "2026-02-03T11:30:00Z",
+      "bespoke_deliverable": "Red Hook Fresh Catch Daily Inventory Predictor",
+      "maxSlots": 4,
+      "activeBuilders": [
+        {
+          "userId": "alumni_007",
+          "joinedAt": "2026-02-03T11:30:00Z",
+          "checkpointsCompleted": 1,
+          "proofLinks": [
+            "https://github.com/quinn/inventory-predictor"
+          ],
+          "last_nudged_at": null,
+          "last_checkpoint_update": "2026-01-31T16:17:00.370Z"
+        }
+      ],
+      "milestones": [
+        {
+          "id": 1,
+          "name": "Architecture",
+          "description": "System design & database schema",
+          "completionWeight": 0.25
+        },
+        {
+          "id": 2,
+          "name": "Core Logic",
+          "description": "Business logic implementation",
+          "completionWeight": 0.25
+        },
+        {
+          "id": 3,
+          "name": "API Integration",
+          "description": "External services & endpoints",
+          "completionWeight": 0.25
+        },
+        {
+          "id": 4,
+          "name": "Demo Ready",
+          "description": "UI polish & deployment",
+          "completionWeight": 0.25
+        }
+      ],
+      "submissionWindowOpen": false,
+      "firstCompletionAt": null,
+      "winnerUserId": null,
+      "sprintDeadline": "2026-02-19T16:58:47.584Z",
+      "isPaused": false,
+      "auditLog": []
+    },
+    {
+      "id": "lead_031",
+      "business_name": "Sunset Park Bakery & Cafe",
+      "category": "Bakery & Cafe",
+      "location": {
+        "address": "4902 5th Ave",
+        "neighborhood": "Sunset Park",
+        "zip": "11220",
+        "borough": "Brooklyn"
+      },
+      "contact": {
+        "phone": "(718) 555-8473",
+        "owner_name": "Elena Rodriguez"
+      },
+      "hfi_score": 81,
+      "friction_type": "Inventory Management",
+      "status": "briefed",
+      "review_count": 423,
+      "rating": 4.4,
+      "friction_clusters": [
+        {
+          "category": "logistics",
+          "count": 29,
+          "recent_count": 22,
+          "sample_quotes": [
+            "Popular pastries sold out by 10am every day. No pre-order system.",
+            "Went for morning coffee and they were sold out of everything. Inventory gaps.",
+            "Menu items constantly unavailable. No real-time stock tracking.",
+            "Can't plan breakfast orders because items sell out unpredictably.",
+            "Sold out of half the display case by lunch. Need inventory management system.",
+            "No way to reserve items in advance. Always running out of favorites."
+          ]
+        },
+        {
+          "category": "intake",
+          "count": 14,
+          "recent_count": 11,
+          "sample_quotes": [
+            "Online ordering shows items available but they're sold out in store.",
+            "Phone orders for catering get cancelled because items aren't in stock."
+          ]
+        }
+      ],
+      "recency_data": {
+        "0_30_days": 33,
+        "31_90_days": 8,
+        "90_plus_days": 1
+      },
+      "time_on_task_estimate": "19-23 hours/week on manual inventory tracking",
+      "discovered_at": "2026-02-02T13:00:00Z",
+      "qualified_at": "2026-02-03T10:00:00Z",
+      "briefed_at": "2026-02-03T16:00:00Z",
+      "bespoke_deliverable": "Sunset Park Bakery Batch Tracking Module",
+      "maxSlots": 4,
+      "activeBuilders": [
+        {
+          "userId": "alumni_008",
+          "joinedAt": "2026-02-02T15:00:00Z",
+          "checkpointsCompleted": 2,
+          "proofLinks": [
+            "https://github.com/avery/batch-tracking",
+            "https://loom.com/share/batch-demo"
+          ],
+          "checkpointStatuses": {
+            "1": {
+              "status": "approved",
+              "proofLink": "https://github.com/avery/batch-tracking",
+              "submittedAt": "2026-02-03T10:00:00Z",
+              "verifiedAt": "2026-02-03T12:00:00Z"
+            },
+            "2": {
+              "status": "submitted",
+              "proofLink": "https://loom.com/share/lmn456-batch-logic-checkpoint",
+              "submittedAt": "2026-02-04T12:30:00Z"
+            }
+          },
+          "last_nudged_at": null,
+          "last_checkpoint_update": "2026-02-04T12:30:00.000Z"
+        },
+        {
+          "userId": "alumni_009",
+          "joinedAt": "2026-02-03T12:00:00Z",
+          "checkpointsCompleted": 1,
+          "proofLinks": [
+            "https://github.com/riley/inventory-api"
+          ],
+          "checkpointStatuses": {
+            "1": {
+              "status": "submitted",
+              "proofLink": "https://loom.com/share/opq789-inventory-api-proof",
+              "submittedAt": "2026-02-04T15:40:00Z"
+            }
+          },
+          "last_nudged_at": null,
+          "last_checkpoint_update": "2026-02-04T15:40:00.000Z"
+        }
+      ],
+      "milestones": [
+        {
+          "id": 1,
+          "name": "Architecture",
+          "description": "System design & database schema",
+          "completionWeight": 0.25
+        },
+        {
+          "id": 2,
+          "name": "Core Logic",
+          "description": "Business logic implementation",
+          "completionWeight": 0.25
+        },
+        {
+          "id": 3,
+          "name": "API Integration",
+          "description": "External services & endpoints",
+          "completionWeight": 0.25
+        },
+        {
+          "id": 4,
+          "name": "Demo Ready",
+          "description": "UI polish & deployment",
+          "completionWeight": 0.25
+        }
+      ],
+      "submissionWindowOpen": false,
+      "firstCompletionAt": null,
+      "winnerUserId": null,
+      "sprintDeadline": "2026-02-19T16:58:47.584Z",
+      "isPaused": false,
+      "auditLog": []
+    },
+    {
+      "id": "lead_032",
+      "business_name": "Astoria Delivery Hub",
+      "category": "Asian Fusion Restaurant",
+      "location": {
+        "address": "29-12 30th Ave",
+        "neighborhood": "Astoria",
+        "zip": "11102",
+        "borough": "Queens"
+      },
+      "contact": {
+        "phone": "(718) 555-5927",
+        "owner_name": "Kevin Park"
+      },
+      "hfi_score": 76,
+      "friction_type": "Delivery Logistics",
+      "status": "engaged",
+      "review_count": 398,
+      "rating": 4.3,
+      "friction_clusters": [
+        {
+          "category": "logistics",
+          "count": 25,
+          "recent_count": 18,
+          "sample_quotes": [
+            "Delivery delay of 90 minutes. No tracking to see where driver is.",
+            "Using three different delivery apps but orders get confused. Need consolidation.",
+            "Delivery times are never accurate. Said 35 minutes, took over an hour.",
+            "Driver got lost because no GPS tracking. Had to call multiple times.",
+            "Delivery delay notification came too late. Food was already cold.",
+            "No real-time delivery updates. Can't track order status at all."
+          ]
+        },
+        {
+          "category": "intake",
+          "count": 12,
+          "recent_count": 9,
+          "sample_quotes": [
+            "Online ordering doesn't show delivery time until after payment.",
+            "Can't choose which delivery service to use. Very inconsistent."
+          ]
+        }
+      ],
+      "recency_data": {
+        "0_30_days": 27,
+        "31_90_days": 8,
+        "90_plus_days": 2
+      },
+      "time_on_task_estimate": "15-19 hours/week on manual delivery coordination",
+      "discovered_at": "2026-02-01T15:00:00Z",
+      "qualified_at": "2026-02-02T11:00:00Z",
+      "briefed_at": "2026-02-03T10:00:00Z",
+      "engaged_at": "2026-02-03T16:30:00Z",
+      "bespoke_deliverable": "Astoria Multi-Cuisine Delivery Route Consolidator",
+      "sprintDeadline": "2026-02-19T16:58:47.584Z",
+      "isPaused": false,
+      "auditLog": []
+    },
+    {
+      "id": "lead_033",
+      "business_name": "DUMBO Quick Bites",
+      "category": "Fast Casual Restaurant",
+      "location": {
+        "address": "58 Water St",
+        "neighborhood": "DUMBO",
+        "zip": "11201",
+        "borough": "Brooklyn"
+      },
+      "contact": {
+        "phone": "(718) 555-3841",
+        "owner_name": "Rachel Green"
+      },
+      "hfi_score": 74,
+      "friction_type": "Delivery Logistics",
+      "status": "qualified",
+      "review_count": 341,
+      "rating": 4.2,
+      "friction_clusters": [
+        {
+          "category": "logistics",
+          "count": 24,
+          "recent_count": 17,
+          "sample_quotes": [
+            "Delivery delay of over an hour with no updates. Very frustrating.",
+            "Multiple delivery platforms but no consolidation. Orders get mixed up.",
+            "Delivery times are always wrong. No tracking system for drivers.",
+            "Driver never showed up. No way to track or contact them.",
+            "Delivery delay notification came after waiting 90 minutes. Too late.",
+            "No real-time delivery tracking. Can't see where order is."
+          ]
+        },
+        {
+          "category": "intake",
+          "count": 10,
+          "recent_count": 7,
+          "sample_quotes": [
+            "Online ordering doesn't show delivery estimate until checkout.",
+            "Can't choose delivery service. They use different platforms randomly."
+          ]
+        }
+      ],
+      "recency_data": {
+        "0_30_days": 24,
+        "31_90_days": 7,
+        "90_plus_days": 2
+      },
+      "time_on_task_estimate": "14-18 hours/week on manual delivery management",
+      "complexity_score": 4,
+      "estimated_build_time": "4-6 weeks",
+      "discovered_at": "2026-02-03T12:00:00Z",
+      "qualified_at": "2026-02-03T12:00:00Z",
+      "bespoke_deliverable": "DUMBO Quick Bites Lunch Rush Delivery Optimizer",
+      "maxSlots": 4,
+      "activeBuilders": [],
+      "milestones": [
+        {
+          "id": 1,
+          "name": "Architecture",
+          "description": "System design & database schema",
+          "completionWeight": 0.25
+        },
+        {
+          "id": 2,
+          "name": "Core Logic",
+          "description": "Business logic implementation",
+          "completionWeight": 0.25
+        },
+        {
+          "id": 3,
+          "name": "API Integration",
+          "description": "External services & endpoints",
+          "completionWeight": 0.25
+        },
+        {
+          "id": 4,
+          "name": "Demo Ready",
+          "description": "UI polish & deployment",
+          "completionWeight": 0.25
+        }
+      ],
+      "submissionWindowOpen": false,
+      "firstCompletionAt": null,
+      "winnerUserId": null,
+      "sprintDeadline": "2026-02-19T16:58:47.584Z",
+      "isPaused": false,
+      "auditLog": []
+    },
+    {
+      "id": "lead_034",
+      "business_name": "Williamsburg Corner Bistro",
+      "category": "American Bistro",
+      "location": {
+        "address": "312 Grand St",
+        "neighborhood": "Williamsburg",
+        "zip": "11211",
+        "borough": "Brooklyn"
+      },
+      "contact": {
+        "phone": "(718) 555-6291",
+        "owner_name": "Sarah Mitchell"
+      },
+      "hfi_score": 71,
+      "friction_type": "Loyalty Program",
+      "status": "briefed",
+      "review_count": 374,
+      "rating": 4.4,
+      "friction_clusters": [
+        {
+          "category": "intake",
+          "count": 22,
+          "recent_count": 16,
+          "sample_quotes": [
+            "No rewards program for regular customers. No loyalty tracking system.",
+            "Been coming here weekly but no way to earn points or get discounts.",
+            "Other restaurants have loyalty apps. This place has no rewards program.",
+            "No loyalty retention system means I'm going to competitors.",
+            "Asked about rewards—they don't have any. Missing customer retention.",
+            "No rewards for frequent diners. No CRM to track customer visits."
+          ]
+        },
+        {
+          "category": "logistics",
+          "count": 8,
+          "recent_count": 5,
+          "sample_quotes": [
+            "Can't track my dining history. No customer database.",
+            "Staff doesn't recognize regulars. No customer relationship management."
+          ]
+        }
+      ],
+      "recency_data": {
+        "0_30_days": 21,
+        "31_90_days": 7,
+        "90_plus_days": 1
+      },
+      "time_on_task_estimate": "13-16 hours/week on manual customer tracking",
+      "complexity_score": 4,
+      "estimated_build_time": "4-5 weeks",
+      "discovered_at": "2026-02-02T16:00:00Z",
+      "qualified_at": "2026-02-03T11:00:00Z",
+      "briefed_at": "2026-02-03T17:00:00Z",
+      "bespoke_deliverable": "Williamsburg Bistro Wine Pairing Recommendation Engine",
+      "maxSlots": 4,
+      "activeBuilders": [
+        {
+          "userId": "alumni_010",
+          "joinedAt": "2026-02-03T10:00:00Z",
+          "checkpointsCompleted": 1,
+          "proofLinks": [
+            "https://github.com/quinn/wine-pairing"
+          ],
+          "last_nudged_at": null,
+          "last_checkpoint_update": "2026-02-03T10:00:00Z"
+        },
+        {
+          "userId": "alumni_001",
+          "joinedAt": "2026-02-03T14:00:00Z",
+          "checkpointsCompleted": 0,
+          "proofLinks": [],
+          "last_nudged_at": null,
+          "last_checkpoint_update": "2026-02-03T14:00:00Z"
+        }
+      ],
+      "milestones": [
+        {
+          "id": 1,
+          "name": "Architecture",
+          "description": "System design & database schema",
+          "completionWeight": 0.25
+        },
+        {
+          "id": 2,
+          "name": "Core Logic",
+          "description": "Business logic implementation",
+          "completionWeight": 0.25
+        },
+        {
+          "id": 3,
+          "name": "API Integration",
+          "description": "External services & endpoints",
+          "completionWeight": 0.25
+        },
+        {
+          "id": 4,
+          "name": "Demo Ready",
+          "description": "UI polish & deployment",
+          "completionWeight": 0.25
+        }
+      ],
+      "submissionWindowOpen": false,
+      "firstCompletionAt": null,
+      "winnerUserId": null,
+      "sprintDeadline": "2026-02-19T16:58:47.584Z",
+      "isPaused": false,
+      "auditLog": []
     }
   ],
   "metadata": {
-    "total_leads": 26,
-    "high_priority_count": 9,
-    "avg_hfi_score": 73.2,
-    "last_updated": "2026-02-03T00:00:00Z",
+    "total_leads": 34,
+    "high_priority_count": 12,
+    "avg_hfi_score": 73.5,
+    "last_updated": "2026-02-04T00:00:00Z",
     "demo_version": "4.2"
   }
 }

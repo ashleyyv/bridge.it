@@ -1,0 +1,255 @@
+{
+  "alumni": [
+    {
+      "id": "alumni_001",
+      "name": "Sarah Chen",
+      "avatar": "SC",
+      "specialty": "Full-Stack",
+      "qualityRating": 92,
+      "currentBuildCount": 2,
+      "skills": ["React", "Node.js", "PostgreSQL", "TypeScript", "Express", "Next.js"],
+      "completedProjects": 8,
+      "averageCompletionTime": "2.8 weeks"
+    },
+    {
+      "id": "alumni_002",
+      "name": "Marcus Johnson",
+      "avatar": "MJ",
+      "specialty": "Backend",
+      "qualityRating": 88,
+      "currentBuildCount": 0,
+      "skills": ["Node.js", "Python", "PostgreSQL", "Redis", "Docker", "AWS"],
+      "completedProjects": 6,
+      "averageCompletionTime": "3.1 weeks"
+    },
+    {
+      "id": "alumni_003",
+      "name": "Priya Patel",
+      "avatar": "PP",
+      "specialty": "Frontend",
+      "qualityRating": 85,
+      "currentBuildCount": 1,
+      "skills": ["React", "Vue.js", "TypeScript", "Tailwind CSS", "GraphQL"],
+      "completedProjects": 5,
+      "averageCompletionTime": "2.5 weeks"
+    },
+    {
+      "id": "alumni_004",
+      "name": "David Kim",
+      "avatar": "DK",
+      "specialty": "DevOps",
+      "qualityRating": 90,
+      "currentBuildCount": 3,
+      "skills": ["Docker", "Kubernetes", "AWS", "CI/CD", "Terraform", "Linux"],
+      "completedProjects": 7,
+      "averageCompletionTime": "3.5 weeks"
+    },
+    {
+      "id": "alumni_005",
+      "name": "Amara Okafor",
+      "avatar": "AO",
+      "specialty": "AI/ML",
+      "qualityRating": 87,
+      "currentBuildCount": 0,
+      "skills": ["Python", "TensorFlow", "OpenAI API", "Pandas", "Scikit-learn", "FastAPI"],
+      "completedProjects": 4,
+      "averageCompletionTime": "4.2 weeks"
+    },
+    {
+      "id": "alumni_006",
+      "name": "James Rodriguez",
+      "avatar": "JR",
+      "specialty": "Mobile",
+      "qualityRating": 82,
+      "currentBuildCount": 1,
+      "skills": ["React Native", "Swift", "Kotlin", "Firebase", "REST APIs"],
+      "completedProjects": 6,
+      "averageCompletionTime": "3.8 weeks"
+    },
+    {
+      "id": "alumni_007",
+      "name": "Li Wei",
+      "avatar": "LW",
+      "specialty": "Full-Stack",
+      "qualityRating": 79,
+      "currentBuildCount": 0,
+      "skills": ["Vue.js", "Express", "MongoDB", "JavaScript", "REST APIs"],
+      "completedProjects": 3,
+      "averageCompletionTime": "3.6 weeks"
+    },
+    {
+      "id": "alumni_008",
+      "name": "Elena Vasquez",
+      "avatar": "EV",
+      "specialty": "Backend",
+      "qualityRating": 91,
+      "currentBuildCount": 2,
+      "skills": ["Python", "Django", "PostgreSQL", "Celery", "Docker", "Nginx"],
+      "completedProjects": 9,
+      "averageCompletionTime": "2.9 weeks"
+    },
+    {
+      "id": "alumni_009",
+      "name": "Jordan Taylor",
+      "avatar": "JT",
+      "specialty": "Frontend",
+      "qualityRating": 75,
+      "currentBuildCount": 0,
+      "skills": ["React", "JavaScript", "CSS", "HTML", "Webpack", "Jest"],
+      "completedProjects": 2,
+      "averageCompletionTime": "4.0 weeks"
+    },
+    {
+      "id": "alumni_010",
+      "name": "Alex Morgan",
+      "avatar": "AM",
+      "specialty": "Full-Stack",
+      "qualityRating": 86,
+      "currentBuildCount": 1,
+      "skills": ["Next.js", "TypeScript", "PostgreSQL", "Prisma", "Tailwind CSS", "Vercel"],
+      "completedProjects": 7,
+      "averageCompletionTime": "3.0 weeks"
+    },
+    {
+      "id": "alumni_ashley",
+      "name": "Ashley Vigo",
+      "email": "ashley.vigo@pursuit.org",
+      "avatar": "AV",
+      "specialty": "Full-Stack Developer",
+      "qualityRating": 95,
+      "currentBuildCount": 3,
+      "tier": 2,
+      "tierName": "Advanced Builder",
+      "completedBuilds": [
+        {
+          "leadId": "lead_002",
+          "businessName": "Sunset Park BBQ",
+          "techStack": ["React", "Node.js", "PostgreSQL", "Express"],
+          "completedAt": "2026-01-15T10:00:00Z",
+          "quality": 92,
+          "repoUrl": "https://github.com/ashley-vigo/sunset-park-bbq"
+        },
+        {
+          "leadId": "lead_007",
+          "businessName": "Astoria Mediterranean Grill",
+          "techStack": ["React", "Node.js", "PostgreSQL", "Express"],
+          "completedAt": "2026-01-22T10:00:00Z",
+          "quality": 96,
+          "repoUrl": "https://github.com/ashley-vigo/astoria-med-grill"
+        },
+        {
+          "leadId": "lead_012",
+          "businessName": "DUMBO Pasta Lab",
+          "techStack": ["React", "Node.js", "PostgreSQL"],
+          "completedAt": "2026-01-28T10:00:00Z",
+          "quality": 98,
+          "repoUrl": "https://github.com/ashley-vigo/dumbo-pasta-lab"
+        }
+      ],
+      "skills": ["React", "Node.js", "PostgreSQL", "Express", "TypeScript", "REST APIs"],
+      "preferredStack": ["React", "Node.js", "PostgreSQL", "Express"],
+      "teamSize": 3
+    },
+    {
+      "id": "alumni_seth",
+      "name": "Seth Rogan",
+      "email": "seth.rogan@pursuit.org",
+      "avatar": "SR",
+      "specialty": "Backend Developer",
+      "qualityRating": 89,
+      "currentBuildCount": 2,
+      "tier": 2,
+      "tierName": "Advanced Builder",
+      "completedBuilds": [
+        {
+          "leadId": "lead_010",
+          "businessName": "Flushing Hot Pot",
+          "techStack": ["Node.js", "MongoDB", "Express"],
+          "completedAt": "2026-01-20T10:00:00Z",
+          "quality": 87,
+          "repoUrl": "https://github.com/seth-rogan/flushing-hot-pot"
+        },
+        {
+          "leadId": "lead_015",
+          "businessName": "Crown Heights Cafe",
+          "techStack": ["Python", "Django", "PostgreSQL"],
+          "completedAt": "2026-01-25T10:00:00Z",
+          "quality": 91,
+          "repoUrl": "https://github.com/seth-rogan/crown-heights-cafe"
+        }
+      ],
+      "skills": ["Node.js", "Python", "MongoDB", "PostgreSQL", "Express", "Django"],
+      "preferredStack": ["Node.js", "Express", "MongoDB"],
+      "teamSize": 1
+    },
+    {
+      "id": "alumni_tina",
+      "name": "Tina Fey",
+      "email": "tina.fey@pursuit.org",
+      "avatar": "TF",
+      "specialty": "Full-Stack Developer",
+      "qualityRating": 92,
+      "currentBuildCount": 2,
+      "tier": 2,
+      "tierName": "Advanced Builder",
+      "completedBuilds": [
+        {
+          "leadId": "lead_018",
+          "businessName": "Park Slope Deli",
+          "techStack": ["React", "Node.js", "MySQL"],
+          "completedAt": "2026-01-12T10:00:00Z",
+          "quality": 90,
+          "repoUrl": "https://github.com/tina-fey/park-slope-deli"
+        },
+        {
+          "leadId": "lead_021",
+          "businessName": "Greenpoint Pizzeria",
+          "techStack": ["Vue.js", "Express", "PostgreSQL"],
+          "completedAt": "2026-01-29T10:00:00Z",
+          "quality": 94,
+          "repoUrl": "https://github.com/tina-fey/greenpoint-pizzeria"
+        }
+      ],
+      "skills": ["React", "Vue.js", "Node.js", "MySQL", "PostgreSQL", "Express"],
+      "preferredStack": ["React", "Node.js", "PostgreSQL"],
+      "teamSize": 1
+    },
+    {
+      "id": "alumni_adam",
+      "name": "Adam Sandler",
+      "email": "adam.sandler@pursuit.org",
+      "avatar": "AS",
+      "specialty": "Frontend Specialist",
+      "qualityRating": 88,
+      "currentBuildCount": 2,
+      "tier": 2,
+      "tierName": "Advanced Builder",
+      "completedBuilds": [
+        {
+          "leadId": "lead_024",
+          "businessName": "Williamsburg Coffee Bar",
+          "techStack": ["React", "TypeScript", "Firebase"],
+          "completedAt": "2026-01-08T10:00:00Z",
+          "quality": 86,
+          "repoUrl": "https://github.com/adam-sandler/williamsburg-coffee"
+        },
+        {
+          "leadId": "lead_026",
+          "businessName": "Ridgewood Bakehouse",
+          "techStack": ["Next.js", "Tailwind", "Supabase"],
+          "completedAt": "2026-01-19T10:00:00Z",
+          "quality": 90,
+          "repoUrl": "https://github.com/adam-sandler/ridgewood-bakehouse"
+        }
+      ],
+      "skills": ["React", "Next.js", "TypeScript", "Tailwind", "Firebase", "Supabase"],
+      "preferredStack": ["React", "TypeScript", "Tailwind"],
+      "teamSize": 1
+    }
+  ],
+  "metadata": {
+    "total_alumni": 14,
+    "active_builders": 9,
+    "avg_quality_rating": 85.0
+  }
+}

@@ -32,8 +32,11 @@ body {
   @apply bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-medium border border-blue-200;
 }
 
-.badge-status-briefed {
-  @apply bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-medium border border-blue-200;
+.badge-status-ready {
+  @apply bg-slate-100 text-slate-700 px-3 py-1 rounded-full text-xs font-medium border border-slate-300;
+  background-color: #64748b;
+  color: #ffffff;
+  border-color: #64748b;
 }
 
 .badge-status-engaged {
@@ -44,12 +47,18 @@ body {
   @apply bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full text-xs font-medium border border-yellow-200;
 }
 
-.badge-status-matched {
-  @apply bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-xs font-medium border border-purple-200;
+.badge-status-evaluating {
+  @apply bg-orange-100 text-orange-700 px-3 py-1 rounded-full text-xs font-medium border border-orange-300;
+  background-color: #f97316;
+  color: #ffffff;
+  border-color: #f97316;
 }
 
-.badge-status-in-build {
-  @apply bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-xs font-medium border border-purple-200;
+.badge-status-sprinting {
+  @apply bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-medium border border-blue-300;
+  background-color: #2563eb;
+  color: #ffffff;
+  border-color: #2563eb;
 }
 
 .badge-status-live {
@@ -63,6 +72,25 @@ body {
 /* Tech Stack Tag Styles - Purple/Tech Color */
 .badge-tech-stack {
   @apply bg-purple-100 text-purple-700 px-3 py-1 rounded-md text-xs font-medium border border-purple-300 shadow-sm;
+  font-weight: 600;
+  letter-spacing: 0.025em;
+}
+
+/* Friction Type Badge Styles */
+.badge-tech-inventory {
+  @apply bg-orange-100 text-orange-700 px-3 py-1 rounded-md text-xs font-medium border border-orange-200 shadow-sm;
+  font-weight: 600;
+  letter-spacing: 0.025em;
+}
+
+.badge-tech-logistics {
+  @apply bg-teal-100 text-teal-700 px-3 py-1 rounded-md text-xs font-medium border border-teal-200 shadow-sm;
+  font-weight: 600;
+  letter-spacing: 0.025em;
+}
+
+.badge-tech-crm {
+  @apply bg-amber-100 text-amber-700 px-3 py-1 rounded-md text-xs font-medium border border-amber-200 shadow-sm;
   font-weight: 600;
   letter-spacing: 0.025em;
 }
@@ -150,17 +178,112 @@ body::before {
   filter: drop-shadow(0 0 12px rgba(0, 212, 255, 0.6));
 }
 
-/* Sparkline Styles */
-.sparkline-svg {
-  display: block;
-  filter: drop-shadow(0 0 2px rgba(0, 212, 255, 0.3));
+/* Alumni Theme Styles */
+.alumni-card-bg {
+  @apply bg-gradient-to-br from-emerald-50 to-green-50;
+  border: 1px solid rgba(16, 185, 129, 0.2);
 }
 
-.sparkline-svg polyline {
-  transition: opacity 0.2s ease;
+.alumni-accent {
+  @apply text-emerald-600;
+  font-weight: 600;
 }
 
-.sparkline-svg:hover polyline {
-  opacity: 1;
-  stroke-width: 2;
+.btn-claim-project {
+  @apply bg-gradient-to-r from-emerald-500 to-green-600 text-white font-medium px-4 py-2 rounded-md shadow-md transition-all;
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.3);
+}
+
+.btn-claim-project:hover:not(:disabled) {
+  box-shadow: 0 0 20px rgba(16, 185, 129, 0.6);
+  transform: translateY(-1px);
+}
+
+/* Fire Glow Animation for Leading Builders */
+@keyframes fire-glow {
+  0%, 100% {
+    box-shadow: 
+      0 0 10px rgba(255, 140, 0, 0.6),
+      0 0 20px rgba(255, 69, 0, 0.4),
+      0 0 30px rgba(255, 0, 0, 0.2);
+  }
+  50% {
+    box-shadow: 
+      0 0 15px rgba(255, 140, 0, 0.8),
+      0 0 30px rgba(255, 69, 0, 0.6),
+      0 0 45px rgba(255, 0, 0, 0.4);
+  }
+}
+
+.fire-glow {
+  animation: fire-glow 2s ease-in-out infinite;
+  position: relative;
+}
+
+.fire-glow::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  border-radius: 50%;
+  background: linear-gradient(45deg, rgba(255, 140, 0, 0.3), rgba(255, 69, 0, 0.3), rgba(255, 0, 0, 0.3));
+  z-index: -1;
+  animation: fire-glow 2s ease-in-out infinite;
+}
+
+/* Live Activity Feed Animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-in forwards;
+  opacity: 0;
+}
+
+/* Grayscale effect for paused sprints */
+.sprint-paused {
+  filter: grayscale(100%);
+  opacity: 0.6;
+}
+
+.sprint-paused .progress-bar {
+  background-color: #94a3b8 !important;
+}
+
+/* High match project highlighting */
+.border-green-500 {
+  border-color: #10b981 !important;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+}
+
+.ring-green-200 {
+  --tw-ring-color: rgb(187 247 208);
+}
+
+/* Strategic match glow effect */
+.shadow-green-500\/50 {
+  box-shadow: 0 10px 25px -5px rgba(16, 185, 129, 0.5), 0 8px 10px -6px rgba(16, 185, 129, 0.5);
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.85;
+  }
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }

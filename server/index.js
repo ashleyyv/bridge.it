@@ -3,8 +3,9 @@ import cors from 'cors';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { appendFileSync } from 'fs';
-import { readFile } from 'fs/promises';
+import { readFile, writeFile } from 'fs/promises';
 import jsPDF from 'jspdf';
+import nodemailer from 'nodemailer';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -12,9 +13,71 @@ const __dirname = dirname(__filename);
 const app = express();
 const PORT = 3001;
 
+// Mock email transporter for demo (would use real SMTP in production)
+const transporter = nodemailer.createTransport({
+  host: 'smtp.ethereal.email', // Demo service
+  port: 587,
+  secure: false,
+  auth: {
+    user: 'demo@bridge.it',
+    pass: 'demo-password'
+  }
+});
+
 // Middleware
 app.use(cors());
 app.use(express.json());
+
+// Helper function to load alumni data
+async function loadAlumniData() {
+  try {
+    const alumniPath = join(__dirname, '..', '_architect_ref', 'mockAlumni.json');
+    const rawData = await readFile(alumniPath, 'utf-8');
+    const data = JSON.parse(rawData);
+    return data.alumni || [];
+  } catch (error) {
+    console.error('Error loading alumni data:', error);
+    return [];
+  }
+}
+
+// Helper function to populate builder details from alumni registry
+async function populateBuilderDetails(builder) {
+  const alumni = await loadAlumniData();
+  const alumniData = alumni.find(a => a.id === builder.userId);
+  
+  if (alumniData) {
+    return {
+      ...builder,
+      name: alumniData.name,
+      avatar: alumniData.avatar,
+      specialty: alumniData.specialty,
+      qualityRating: alumniData.qualityRating,
+      skills: alumniData.skills,
+      completedProjects: alumniData.completedProjects,
+      averageCompletionTime: alumniData.averageCompletionTime
+    };
+  }
+  
+  // Return builder as-is if not found in registry
+  return builder;
+}
+
+// Helper function to populate activeBuilders with alumni details
+async function populateActiveBuilders(lead) {
+  if (!lead.activeBuilders || lead.activeBuilders.length === 0) {
+    return lead;
+  }
+  
+  const populatedBuilders = await Promise.all(
+    lead.activeBuilders.map(builder => populateBuilderDetails(builder))
+  );
+  
+  return {
+    ...lead,
+    activeBuilders: populatedBuilders
+  };
+}
 
 // Helper function to apply recency weights to HFI scores
 function applyRecencyWeights(lead) {
@@ -39,8 +102,13 @@ app.get('/api/leads', async (req, res) => {
     const rawData = await readFile(mockDataPath, 'utf-8');
     const data = JSON.parse(rawData);
     
-    // Apply recency weighting to all leads
-    const processedLeads = data.leads.map(applyRecencyWeights);
+    // Apply recency weighting to all leads and populate builder details
+    const processedLeads = await Promise.all(
+      data.leads.map(async (lead) => {
+        const weightedLead = applyRecencyWeights(lead);
+        return await populateActiveBuilders(weightedLead);
+      })
+    );
     
     res.json({
       leads: processedLeads,
@@ -68,11 +136,57 @@ app.get('/api/leads/:id', async (req, res) => {
       return res.status(404).json({ error: 'Lead not found' });
     }
     
-    res.json(applyRecencyWeights(lead));
+    const weightedLead = applyRecencyWeights(lead);
+    const populatedLead = await populateActiveBuilders(weightedLead);
+    res.json(populatedLead);
   } catch (error) {
     console.error('Error loading lead:', error);
     res.status(500).json({ 
       error: 'Failed to load lead data',
+      message: error.message 
+    });
+  }
+});
+
+// Update lead status
+app.patch('/api/leads/:id/status', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+    
+    if (!status) {
+      return res.status(400).json({ error: 'Status is required' });
+    }
+    
+    const mockDataPath = join(__dirname, '..', '_architect_ref', 'MOCK_DATA.json');
+    const rawData = await readFile(mockDataPath, 'utf-8');
+    const data = JSON.parse(rawData);
+    
+    const leadIndex = data.leads.findIndex(l => l.id === id);
+    
+    if (leadIndex === -1) {
+      return res.status(404).json({ error: 'Lead not found' });
+    }
+    
+    // Update lead status
+    data.leads[leadIndex].status = status;
+    
+    // Add claimed_at timestamp if status is 'matched'
+    if (status === 'matched') {
+      data.leads[leadIndex].claimed_at = new Date().toISOString();
+    }
+    
+    // Write updated data back to file
+    await writeFile(mockDataPath, JSON.stringify(data, null, 2), 'utf-8');
+    
+    // Return updated lead with recency weights applied
+    const updatedLead = applyRecencyWeights(data.leads[leadIndex]);
+    res.json(updatedLead);
+    
+  } catch (error) {
+    console.error('Error updating lead status:', error);
+    res.status(500).json({ 
+      error: 'Failed to update lead status',
       message: error.message 
     });
   }
@@ -486,6 +600,1251 @@ app.get('/generate-handoff/:leadId/pdf', async (req, res) => {
   }
 });
 
+// Helper function to load and save data
+async function loadData() {
+  const mockDataPath = join(__dirname, '..', '_architect_ref', 'MOCK_DATA.json');
+  const rawData = await readFile(mockDataPath, 'utf-8');
+  return JSON.parse(rawData);
+}
+
+async function saveData(data) {
+  const mockDataPath = join(__dirname, '..', '_architect_ref', 'MOCK_DATA.json');
+  await writeFile(mockDataPath, JSON.stringify(data, null, 2), 'utf-8');
+}
+
+// POST /api/leads/:id/launch-sprint - Scout launches a sprint
+app.post('/api/leads/:id/launch-sprint', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { maxSlots, duration } = req.body;
+    
+    if (!maxSlots || !duration) {
+      return res.status(400).json({ error: 'maxSlots and duration are required' });
+    }
+    
+    if (maxSlots < 1 || maxSlots > 4) {
+      return res.status(400).json({ error: 'maxSlots must be between 1 and 4' });
+    }
+    
+    if (duration < 2 || duration > 4) {
+      return res.status(400).json({ error: 'duration must be between 2 and 4 weeks' });
+    }
+    
+    const data = await loadData();
+    const leadIndex = data.leads.findIndex(l => l.id === id);
+    
+    if (leadIndex === -1) {
+      return res.status(404).json({ error: 'Lead not found' });
+    }
+    
+    const lead = data.leads[leadIndex];
+    
+    // Check if sprint is already active
+    if (lead.sprintActive) {
+      return res.status(400).json({ error: 'Sprint is already active for this lead' });
+    }
+    
+    // Initialize activeBuilders if it doesn't exist
+    if (!lead.activeBuilders) {
+      lead.activeBuilders = [];
+    }
+    
+    // Set sprint configuration
+    lead.sprintActive = true;
+    lead.maxSlots = maxSlots;
+    lead.sprintDuration = duration;
+    lead.sprintStartedAt = new Date().toISOString();
+    
+    await saveData(data);
+    
+    const weightedLead = applyRecencyWeights(lead);
+    const populatedLead = await populateActiveBuilders(weightedLead);
+    res.json(populatedLead);
+    
+  } catch (error) {
+    console.error('Error launching sprint:', error);
+    res.status(500).json({ 
+      error: 'Failed to launch sprint',
+      message: error.message 
+    });
+  }
+});
+
+// POST /api/leads/:id/join-sprint - Alumni joins a sprint
+app.post('/api/leads/:id/join-sprint', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { userId, selectedDeliverables } = req.body;
+    
+    if (!userId) {
+      return res.status(400).json({ error: 'userId is required' });
+    }
+    
+    // Validate selectedDeliverables if provided
+    if (selectedDeliverables && !Array.isArray(selectedDeliverables)) {
+      return res.status(400).json({ error: 'selectedDeliverables must be an array' });
+    }
+    
+    // Validate alumni ID exists in registry
+    const alumni = await loadAlumniData();
+    const alumniData = alumni.find(a => a.id === userId);
+    
+    if (!alumniData) {
+      return res.status(404).json({ error: 'Alumni ID not found in registry' });
+    }
+    
+    // Check if alumni is available (currentBuildCount < 3)
+    if (alumniData.currentBuildCount >= 3) {
+      return res.status(400).json({ error: 'Alumni has reached maximum concurrent builds (3)' });
+    }
+    
+    const data = await loadData();
+    const leadIndex = data.leads.findIndex(l => l.id === id);
+    
+    if (leadIndex === -1) {
+      return res.status(404).json({ error: 'Lead not found' });
+    }
+    
+    const lead = data.leads[leadIndex];
+    
+    // Check if user is already active on another project
+    const activeOnOtherProject = data.leads.some(lead => 
+      lead.id !== id &&
+      lead.activeBuilders &&
+      lead.activeBuilders.some(b => b.userId === userId)
+    );
+    
+    if (activeOnOtherProject) {
+      const otherProject = data.leads.find(lead =>
+        lead.id !== id &&
+        lead.activeBuilders &&
+        lead.activeBuilders.some(b => b.userId === userId)
+      );
+      
+      return res.status(400).json({ 
+        error: 'Already active on another project',
+        message: `You are already building ${otherProject.business_name}. Complete or leave that project first.`
+      });
+    }
+    
+    // Initialize activeBuilders if it doesn't exist
+    if (!lead.activeBuilders) {
+      lead.activeBuilders = [];
+    }
+    
+    // Check if maxSlots reached
+    if (lead.activeBuilders.length >= (lead.maxSlots || 4)) {
+      return res.status(400).json({ error: 'Maximum slots reached for this sprint' });
+    }
+    
+    // Check if builder already joined
+    if (lead.activeBuilders.some(b => b.userId === userId)) {
+      return res.status(400).json({ error: 'Builder already joined this sprint' });
+    }
+    
+    // Add builder to activeBuilders with selectedDeliverables
+    const now = new Date().toISOString();
+    const builderEntry = {
+      userId,
+      joinedAt: now,
+      checkpointsCompleted: 0,
+      proofLinks: [],
+      last_nudged_at: null,
+      last_checkpoint_update: now // Initialize to join time
+    };
+    
+    // Store selectedDeliverables if provided
+    if (selectedDeliverables && selectedDeliverables.length > 0) {
+      builderEntry.selectedDeliverables = selectedDeliverables;
+    } else {
+      // If no deliverables selected, mark as "full_project"
+      builderEntry.selectedDeliverables = ['full_project'];
+    }
+    
+    lead.activeBuilders.push(builderEntry);
+    
+    await saveData(data);
+    
+    const weightedLead = applyRecencyWeights(lead);
+    const populatedLead = await populateActiveBuilders(weightedLead);
+    res.json(populatedLead);
+    
+  } catch (error) {
+    console.error('Error joining sprint:', error);
+    res.status(500).json({ 
+      error: 'Failed to join sprint',
+      message: error.message 
+    });
+  }
+});
+
+// PATCH /api/leads/:id/checkpoint - Submit checkpoint proof
+app.patch('/api/leads/:id/checkpoint', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { userId, milestoneId, proofLink } = req.body;
+    
+    if (!userId || milestoneId === undefined || !proofLink) {
+      return res.status(400).json({ error: 'userId, milestoneId, and proofLink are required' });
+    }
+    
+    const data = await loadData();
+    const leadIndex = data.leads.findIndex(l => l.id === id);
+    
+    if (leadIndex === -1) {
+      return res.status(404).json({ error: 'Lead not found' });
+    }
+    
+    const lead = data.leads[leadIndex];
+    
+    if (!lead.activeBuilders) {
+      return res.status(400).json({ error: 'No active builders for this lead' });
+    }
+    
+    const builderIndex = lead.activeBuilders.findIndex(b => b.userId === userId);
+    
+    if (builderIndex === -1) {
+      return res.status(404).json({ error: 'Builder not found in this sprint' });
+    }
+    
+    const builder = lead.activeBuilders[builderIndex];
+    
+    // Initialize proofLinks if it doesn't exist
+    if (!builder.proofLinks) {
+      builder.proofLinks = [];
+    }
+    
+    // Update checkpoint completion
+    builder.checkpointsCompleted = Math.max(builder.checkpointsCompleted, milestoneId);
+    
+    // Update last_checkpoint_update timestamp
+    builder.last_checkpoint_update = new Date().toISOString();
+    
+    // Add proof link if not already present
+    if (!builder.proofLinks.includes(proofLink)) {
+      builder.proofLinks.push(proofLink);
+    }
+    
+    // Check if all 4 checkpoints are completed
+    const allCheckpointsDone = builder.checkpointsCompleted >= 4;
+    
+    // If all checkpoints done AND firstCompletionAt is null, set firstCompletionAt
+    if (allCheckpointsDone && !lead.firstCompletionAt) {
+      lead.firstCompletionAt = new Date().toISOString();
+    }
+    
+    // If firstCompletionAt exists, check if within 48hr window
+    if (lead.firstCompletionAt) {
+      const firstCompletionTime = new Date(lead.firstCompletionAt).getTime();
+      const now = new Date().getTime();
+      const hoursSinceFirstCompletion = (now - firstCompletionTime) / (1000 * 60 * 60);
+      
+      lead.submissionWindowOpen = hoursSinceFirstCompletion <= 48;
+    } else {
+      lead.submissionWindowOpen = false;
+    }
+    
+    await saveData(data);
+    
+    const weightedLead = applyRecencyWeights(lead);
+    const populatedLead = await populateActiveBuilders(weightedLead);
+    res.json(populatedLead);
+    
+  } catch (error) {
+    console.error('Error submitting checkpoint:', error);
+    res.status(500).json({ 
+      error: 'Failed to submit checkpoint',
+      message: error.message 
+    });
+  }
+});
+
+// POST /api/leads/:id/scout-review - Scout assigns quality scores to builders
+app.post('/api/leads/:id/scout-review', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { userId, qualityScore, scoutReviewScore, reviewNotes } = req.body;
+    
+    if (!userId || qualityScore === undefined) {
+      return res.status(400).json({ error: 'userId and qualityScore (0-100) are required' });
+    }
+    
+    if (qualityScore < 0 || qualityScore > 100) {
+      return res.status(400).json({ error: 'qualityScore must be between 0 and 100' });
+    }
+    
+    if (scoutReviewScore !== undefined && (scoutReviewScore < 0 || scoutReviewScore > 100)) {
+      return res.status(400).json({ error: 'scoutReviewScore must be between 0 and 100' });
+    }
+    
+    const data = await loadData();
+    const leadIndex = data.leads.findIndex(l => l.id === id);
+    
+    if (leadIndex === -1) {
+      return res.status(404).json({ error: 'Lead not found' });
+    }
+    
+    const lead = data.leads[leadIndex];
+    
+    if (!lead.activeBuilders || lead.activeBuilders.length === 0) {
+      return res.status(400).json({ error: 'No active builders for this lead' });
+    }
+    
+    const builderIndex = lead.activeBuilders.findIndex(b => b.userId === userId);
+    
+    if (builderIndex === -1) {
+      return res.status(404).json({ error: 'Builder not found in this sprint' });
+    }
+    
+    // Store scout review data
+    if (!lead.activeBuilders[builderIndex].scoutReview) {
+      lead.activeBuilders[builderIndex].scoutReview = {};
+    }
+    
+    lead.activeBuilders[builderIndex].scoutReview.qualityScore = qualityScore;
+    if (scoutReviewScore !== undefined) {
+      lead.activeBuilders[builderIndex].scoutReview.scoutReviewScore = scoutReviewScore;
+    } else {
+      // Default to qualityScore if not provided
+      lead.activeBuilders[builderIndex].scoutReview.scoutReviewScore = qualityScore;
+    }
+    lead.activeBuilders[builderIndex].scoutReview.reviewNotes = reviewNotes || '';
+    lead.activeBuilders[builderIndex].scoutReview.reviewedAt = new Date().toISOString();
+    
+    await saveData(data);
+    
+    // Check if submission window is closed and trigger winner calculation
+    if (lead.firstCompletionAt) {
+      const firstCompletionTime = new Date(lead.firstCompletionAt).getTime();
+      const now = new Date().getTime();
+      const hoursSinceFirstCompletion = (now - firstCompletionTime) / (1000 * 60 * 60);
+      
+      // If 48 hours passed and window is closed, calculate winner
+      if (hoursSinceFirstCompletion > 48 && !lead.submissionWindowOpen && !lead.winnerUserId) {
+        // Check if all builders have scout reviews
+        const finalists = lead.activeBuilders.filter(b => b.checkpointsCompleted >= 4);
+        const allReviewed = finalists.every(b => b.scoutReview && b.scoutReview.qualityScore !== undefined);
+        
+        if (allReviewed && finalists.length > 0) {
+          // Calculate winner
+          const scoredBuilders = finalists.map(builder => {
+            // Calculate pace score
+            const joinedTime = new Date(builder.joinedAt).getTime();
+            const completionTime = joinedTime + (builder.checkpointsCompleted * 24 * 60 * 60 * 1000);
+            const timeDifference = completionTime - firstCompletionTime;
+            const hoursDifference = timeDifference / (1000 * 60 * 60);
+            const paceScore = Math.max(4, 100 - (Math.abs(hoursDifference) * 2));
+            
+            // Use scout review quality score
+            const qualityScoreValue = builder.scoutReview?.qualityScore || 0;
+            
+            // Scout review score (separate from quality score)
+            const scoutReviewScore = builder.scoutReview?.scoutReviewScore ?? builder.scoutReview?.qualityScore ?? 0;
+            
+            // Total score: (Pace × 0.3) + (Quality × 0.5) + (Scout_Review × 0.2)
+            const totalScore = (paceScore * 0.3) + (qualityScoreValue * 0.5) + (scoutReviewScore * 0.2);
+            
+            return {
+              ...builder,
+              scores: {
+                pace: Math.round(paceScore * 100) / 100,
+                quality: Math.round(qualityScoreValue * 100) / 100,
+                scoutReview: Math.round(scoutReviewScore * 100) / 100,
+                total: Math.round(totalScore * 100) / 100
+              }
+            };
+          });
+          
+          const winner = scoredBuilders.reduce((prev, current) => 
+            (current.scores.total > prev.scores.total) ? current : prev
+          );
+          
+          lead.winnerUserId = winner.userId;
+          lead.status = 'awarded';
+          await saveData(data);
+          
+          const weightedLead = applyRecencyWeights(lead);
+          const populatedLead = await populateActiveBuilders(weightedLead);
+          return res.json({
+            message: 'Scout review submitted and winner calculated',
+            winner: {
+              userId: winner.userId,
+              name: winner.name,
+              scores: winner.scores
+            },
+            lead: populatedLead
+          });
+        }
+      }
+    }
+    
+    const weightedLead = applyRecencyWeights(lead);
+    const populatedLead = await populateActiveBuilders(weightedLead);
+    res.json({
+      message: 'Scout review submitted',
+      lead: populatedLead
+    });
+    
+  } catch (error) {
+    console.error('Error submitting scout review:', error);
+    res.status(500).json({ 
+      error: 'Failed to submit scout review',
+      message: error.message 
+    });
+  }
+});
+
+// POST /api/leads/:id/calculate-winner - Calculate winner (only if window closed)
+app.post('/api/leads/:id/calculate-winner', async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const data = await loadData();
+    const leadIndex = data.leads.findIndex(l => l.id === id);
+    
+    if (leadIndex === -1) {
+      return res.status(404).json({ error: 'Lead not found' });
+    }
+    
+    const lead = data.leads[leadIndex];
+    
+    // Check if submission window is closed
+    if (lead.submissionWindowOpen) {
+      return res.status(400).json({ error: 'Submission window is still open. Cannot calculate winner yet.' });
+    }
+    
+    // Check if 48 hours passed since firstCompletionAt
+    if (!lead.firstCompletionAt) {
+      return res.status(400).json({ error: 'No first completion time set' });
+    }
+    
+    const firstCompletionTime = new Date(lead.firstCompletionAt).getTime();
+    const now = new Date().getTime();
+    const hoursSinceFirstCompletion = (now - firstCompletionTime) / (1000 * 60 * 60);
+    
+    if (hoursSinceFirstCompletion <= 48) {
+      return res.status(400).json({ error: '48 hours have not passed since first completion. Submission window is still open.' });
+    }
+    
+    if (!lead.activeBuilders || lead.activeBuilders.length === 0) {
+      return res.status(400).json({ error: 'No active builders for this lead' });
+    }
+    
+    // Get finalist pool (builders who completed all 4 checkpoints)
+    const finalists = lead.activeBuilders.filter(b => b.checkpointsCompleted >= 4);
+    
+    if (finalists.length === 0) {
+      return res.status(400).json({ error: 'No builders have completed all checkpoints' });
+    }
+    
+    // Check if all finalists have scout reviews
+    const allReviewed = finalists.every(b => b.scoutReview && b.scoutReview.qualityScore !== undefined);
+    
+    if (!allReviewed) {
+      return res.status(400).json({ error: 'Not all builders have been reviewed by Scout. Please complete reviews first.' });
+    }
+    
+    // Calculate scores for each finalist
+    const scoredBuilders = finalists.map(builder => {
+      // Calculate pace score
+      const joinedTime = new Date(builder.joinedAt).getTime();
+      const completionTime = joinedTime + (builder.checkpointsCompleted * 24 * 60 * 60 * 1000);
+      const timeDifference = completionTime - firstCompletionTime;
+      const hoursDifference = timeDifference / (1000 * 60 * 60);
+      
+      // Pace score: 100 if completed at same time, decreases by 2 points per hour after first
+      const paceScore = Math.max(4, 100 - (Math.abs(hoursDifference) * 2));
+      
+      // Quality score from scout review
+      const qualityScore = builder.scoutReview?.qualityScore || 0;
+      
+      // Scout review score (separate from quality score)
+      const scoutReviewScore = builder.scoutReview?.scoutReviewScore ?? builder.scoutReview?.qualityScore ?? 0;
+      
+      // Total score: (Pace × 0.3) + (Quality × 0.5) + (Scout_Review × 0.2)
+      const totalScore = (paceScore * 0.3) + (qualityScore * 0.5) + (scoutReviewScore * 0.2);
+      
+      return {
+        ...builder,
+        scores: {
+          pace: Math.round(paceScore * 100) / 100,
+          quality: Math.round(qualityScore * 100) / 100,
+          scoutReview: Math.round(scoutReviewScore * 100) / 100,
+          total: Math.round(totalScore * 100) / 100
+        }
+      };
+    });
+    
+    // Find winner (highest total score)
+    const winner = scoredBuilders.reduce((prev, current) => 
+      (current.scores.total > prev.scores.total) ? current : prev
+    );
+    
+    // Set winnerUserId and update status to 'awarded'
+    lead.winnerUserId = winner.userId;
+    lead.status = 'awarded';
+    
+    await saveData(data);
+    
+    const weightedLead = applyRecencyWeights(lead);
+    const populatedLead = await populateActiveBuilders(weightedLead);
+    
+    res.json({
+      winner: {
+        userId: winner.userId,
+        name: winner.name,
+        scores: winner.scores
+      },
+      allScores: scoredBuilders.map(b => ({
+        userId: b.userId,
+        name: b.name,
+        scores: b.scores
+      })),
+      lead: populatedLead
+    });
+    
+  } catch (error) {
+    console.error('Error calculating winner:', error);
+    res.status(500).json({ 
+      error: 'Failed to calculate winner',
+      message: error.message 
+    });
+  }
+});
+
+// GET /api/leaderboard - Get platform-wide builder rankings
+app.get('/api/leaderboard', async (req, res) => {
+  try {
+    const data = await loadData();
+    const alumni = await loadAlumniData();
+    
+    // Create alumni lookup map
+    const alumniMap = {};
+    alumni.forEach(a => {
+      alumniMap[a.id] = a;
+    });
+    
+    // Collect all builders across all leads
+    const builderStats = {};
+    
+    data.leads.forEach(lead => {
+      if (lead.activeBuilders && lead.activeBuilders.length > 0) {
+        lead.activeBuilders.forEach(builder => {
+          if (!builderStats[builder.userId]) {
+            const alumniData = alumniMap[builder.userId];
+            builderStats[builder.userId] = {
+              userId: builder.userId,
+              name: alumniData?.name || builder.userId,
+              specialty: alumniData?.specialty,
+              qualityRating: alumniData?.qualityRating,
+              totalSprints: 0,
+              totalCheckpoints: 0,
+              completedSprints: 0,
+              wins: 0,
+              joinedAt: builder.joinedAt
+            };
+          }
+          
+          builderStats[builder.userId].totalSprints++;
+          builderStats[builder.userId].totalCheckpoints += builder.checkpointsCompleted || 0;
+          
+          if (builder.checkpointsCompleted >= 4) {
+            builderStats[builder.userId].completedSprints++;
+          }
+          
+          if (lead.winnerUserId === builder.userId) {
+            builderStats[builder.userId].wins++;
+          }
+        });
+      }
+    });
+    
+    // Convert to array and sort by wins (descending), then by completed sprints
+    const leaderboard = Object.values(builderStats).sort((a, b) => {
+      if (b.wins !== a.wins) {
+        return b.wins - a.wins;
+      }
+      return b.completedSprints - a.completedSprints;
+    });
+    
+    res.json({
+      leaderboard,
+      totalBuilders: leaderboard.length,
+      updatedAt: new Date().toISOString()
+    });
+    
+  } catch (error) {
+    console.error('Error loading leaderboard:', error);
+    res.status(500).json({ 
+      error: 'Failed to load leaderboard',
+      message: error.message 
+    });
+  }
+});
+
+// Submit checkpoint proof
+app.post('/api/leads/:id/checkpoint', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { checkpointId, proofLink, userId } = req.body;
+    
+    if (!checkpointId || !proofLink || !userId) {
+      return res.status(400).json({ error: 'checkpointId, proofLink, and userId are required' });
+    }
+    
+    // Validate URL format (GitHub or Loom)
+    const urlPattern = /^https?:\/\/(github\.com|loom\.com|www\.github\.com|www\.loom\.com)/i;
+    if (!urlPattern.test(proofLink)) {
+      return res.status(400).json({ error: 'Proof link must be a GitHub or Loom URL' });
+    }
+    
+    const mockDataPath = join(__dirname, '..', '_architect_ref', 'MOCK_DATA.json');
+    const rawData = await readFile(mockDataPath, 'utf-8');
+    const data = JSON.parse(rawData);
+    
+    const leadIndex = data.leads.findIndex(l => l.id === id);
+    
+    if (leadIndex === -1) {
+      return res.status(404).json({ error: 'Lead not found' });
+    }
+    
+    const lead = data.leads[leadIndex];
+    
+    // Find or create builder entry
+    let builder = lead.activeBuilders?.find(b => b.userId === userId);
+    
+    if (!builder) {
+      // Create new builder entry
+      if (!lead.activeBuilders) {
+        lead.activeBuilders = [];
+      }
+      builder = {
+        userId: userId,
+        name: userId, // Will be updated when we have user names
+        joinedAt: new Date().toISOString(),
+        checkpointsCompleted: 0,
+        proofLinks: [],
+        checkpointStatuses: {}
+      };
+      lead.activeBuilders.push(builder);
+    }
+    
+    // Initialize checkpointStatuses if needed
+    if (!builder.checkpointStatuses) {
+      builder.checkpointStatuses = {};
+    }
+    
+    // Update checkpoint status to "submitted"
+    builder.checkpointStatuses[checkpointId] = {
+      status: 'submitted',
+      proofLink: proofLink,
+      submittedAt: new Date().toISOString()
+    };
+    
+    // Update last_checkpoint_update timestamp
+    builder.last_checkpoint_update = new Date().toISOString();
+    
+    // Add proof link to array if not already present
+    if (!builder.proofLinks.includes(proofLink)) {
+      builder.proofLinks.push(proofLink);
+    }
+    
+    // Write updated data back to file
+    await writeFile(mockDataPath, JSON.stringify(data, null, 2), 'utf-8');
+    
+    // Return updated lead with recency weights applied and builder details populated
+    const weightedLead = applyRecencyWeights(data.leads[leadIndex]);
+    const populatedLead = await populateActiveBuilders(weightedLead);
+    res.json(populatedLead);
+    
+  } catch (error) {
+    console.error('Error submitting checkpoint:', error);
+    res.status(500).json({ 
+      error: 'Failed to submit checkpoint',
+      message: error.message 
+    });
+  }
+});
+
+// GET /api/proofs/pending - Fetch all pending proof submissions
+app.get('/api/proofs/pending', async (req, res) => {
+  try {
+    const data = await loadData();
+    const pendingProofs = [];
+    
+    // Iterate through all leads
+    data.leads.forEach(lead => {
+      if (!lead.activeBuilders || lead.activeBuilders.length === 0) return;
+      
+      // Get milestone names from lead
+      const milestoneMap = {};
+      if (lead.milestones && Array.isArray(lead.milestones)) {
+        lead.milestones.forEach(m => {
+          milestoneMap[m.id] = m.name;
+        });
+      } else {
+        // Default milestones if not defined
+        milestoneMap[1] = 'Architecture';
+        milestoneMap[2] = 'Core Logic';
+        milestoneMap[3] = 'API Integration';
+        milestoneMap[4] = 'Demo Ready';
+      }
+      
+      // Check each builder's checkpoint statuses
+      lead.activeBuilders.forEach(builder => {
+        if (!builder.checkpointStatuses) return;
+        
+        Object.keys(builder.checkpointStatuses).forEach(milestoneId => {
+          const checkpoint = builder.checkpointStatuses[milestoneId];
+          
+          // Only include submitted (pending) proofs
+          if (checkpoint.status === 'submitted') {
+            pendingProofs.push({
+              id: `${lead.id}-${builder.userId}-${milestoneId}`,
+              leadId: lead.id,
+              businessName: lead.business_name,
+              neighborhood: lead.location?.neighborhood || 'Unknown',
+              builderId: builder.userId,
+              builderName: builder.name || builder.userId,
+              milestoneId: parseInt(milestoneId),
+              milestoneName: milestoneMap[milestoneId] || `Milestone ${milestoneId}`,
+              proofLink: checkpoint.proofLink || '',
+              submittedAt: checkpoint.submittedAt || new Date().toISOString(),
+              status: 'submitted'
+            });
+          }
+        });
+      });
+    });
+    
+    res.json({
+      proofs: pendingProofs,
+      count: pendingProofs.length
+    });
+  } catch (error) {
+    console.error('Error fetching pending proofs:', error);
+    res.status(500).json({ 
+      error: 'Failed to fetch pending proofs',
+      message: error.message 
+    });
+  }
+});
+
+// PATCH /api/leads/:id/verify-checkpoint - Verify a checkpoint proof
+app.patch('/api/leads/:id/verify-checkpoint', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { userId, milestoneId, approved, notes } = req.body;
+    
+    if (!userId || milestoneId === undefined || approved === undefined) {
+      return res.status(400).json({ error: 'userId, milestoneId, and approved are required' });
+    }
+    
+    const data = await loadData();
+    const leadIndex = data.leads.findIndex(l => l.id === id);
+    
+    if (leadIndex === -1) {
+      return res.status(404).json({ error: 'Lead not found' });
+    }
+    
+    const lead = data.leads[leadIndex];
+    
+    if (!lead.activeBuilders) {
+      return res.status(400).json({ error: 'No active builders for this lead' });
+    }
+    
+    const builderIndex = lead.activeBuilders.findIndex(b => b.userId === userId);
+    
+    if (builderIndex === -1) {
+      return res.status(404).json({ error: 'Builder not found in this sprint' });
+    }
+    
+    const builder = lead.activeBuilders[builderIndex];
+    
+    // Initialize checkpointStatuses if needed
+    if (!builder.checkpointStatuses) {
+      builder.checkpointStatuses = {};
+    }
+    
+    const milestoneKey = milestoneId.toString();
+    
+    if (!builder.checkpointStatuses[milestoneKey]) {
+      return res.status(404).json({ error: 'Checkpoint not found' });
+    }
+    
+    // Update checkpoint status
+    builder.checkpointStatuses[milestoneKey].status = approved ? 'approved' : 'rejected';
+    builder.checkpointStatuses[milestoneKey].verifiedAt = new Date().toISOString();
+    if (notes) {
+      builder.checkpointStatuses[milestoneKey].notes = notes;
+    }
+    
+    // If approved, update checkpointsCompleted if needed
+    if (approved && builder.checkpointsCompleted < milestoneId) {
+      builder.checkpointsCompleted = milestoneId;
+      // Update last_checkpoint_update timestamp when checkpoint is approved
+      builder.last_checkpoint_update = new Date().toISOString();
+    }
+    
+    // If rejected, builder needs to resubmit (status already set to rejected)
+    
+    await saveData(data);
+    
+    const weightedLead = applyRecencyWeights(lead);
+    const populatedLead = await populateActiveBuilders(weightedLead);
+    res.json({
+      message: approved ? 'Checkpoint approved' : 'Checkpoint rejected',
+      lead: populatedLead
+    });
+    
+  } catch (error) {
+    console.error('Error verifying checkpoint:', error);
+    res.status(500).json({ 
+      error: 'Failed to verify checkpoint',
+      message: error.message 
+    });
+  }
+});
+
+// GET /api/alumni - Get list of available alumni
+app.get('/api/alumni', async (req, res) => {
+  try {
+    const { available } = req.query;
+    let alumni = await loadAlumniData();
+    
+    // Filter by availability if requested (currentBuildCount < 3)
+    if (available === 'true') {
+      alumni = alumni.filter(a => a.currentBuildCount < 3);
+    }
+    
+    res.json({
+      alumni,
+      total: alumni.length,
+      available: alumni.filter(a => a.currentBuildCount < 3).length
+    });
+  } catch (error) {
+    console.error('Error loading alumni:', error);
+    res.status(500).json({ 
+      error: 'Failed to load alumni data',
+      message: error.message 
+    });
+  }
+});
+
+// Stall Detection Function
+function detectStalledBuilders(leads) {
+  const stalledBuilders = [];
+  const now = new Date();
+  const STALL_THRESHOLD_MS = 72 * 60 * 60 * 1000; // 72 hours
+  
+  for (const lead of leads) {
+    if (!lead.activeBuilders || lead.activeBuilders.length === 0) continue;
+    
+    for (const builder of lead.activeBuilders) {
+      // Skip if already nudged recently
+      if (builder.last_nudged_at) {
+        const lastNudge = new Date(builder.last_nudged_at);
+        const timeSinceNudge = now - lastNudge;
+        if (timeSinceNudge < STALL_THRESHOLD_MS) continue;
+      }
+      
+      // Check if stalled
+      if (!builder.last_checkpoint_update) continue;
+      
+      const lastUpdate = new Date(builder.last_checkpoint_update);
+      const timeSinceUpdate = now - lastUpdate;
+      
+      if (timeSinceUpdate >= STALL_THRESHOLD_MS && builder.checkpointsCompleted < 4) {
+        stalledBuilders.push({
+          leadId: lead.id,
+          businessName: lead.business_name,
+          neighborhood: lead.location?.neighborhood || lead.neighborhood || 'Unknown',
+          builderId: builder.userId,
+          checkpointsCompleted: builder.checkpointsCompleted,
+          daysSinceUpdate: Math.floor(timeSinceUpdate / (24 * 60 * 60 * 1000))
+        });
+      }
+    }
+  }
+  
+  return stalledBuilders;
+}
+
+// Email Sending Function
+async function sendNudgeEmail(builderData, builderProfile) {
+  const emailTemplate = `
+    <div style="font-family: Inter, sans-serif; max-width: 600px; margin: 0 auto;">
+      <h2 style="color: #0f172a;">Bridge.it System Update</h2>
+      
+      <p style="color: #475569; line-height: 1.6;">
+        Hi ${builderProfile.name},
+      </p>
+      
+      <p style="color: #475569; line-height: 1.6;">
+        We noticed a pause in your <strong>${builderData.businessName}</strong> build 
+        (${builderData.neighborhood}). You've completed ${builderData.checkpointsCompleted} of 4 milestones, 
+        and it's been ${builderData.daysSinceUpdate} days since your last update.
+      </p>
+      
+      <p style="color: #475569; line-height: 1.6;">
+        <strong>Sprint Status:</strong> Active with ${4 - builderData.checkpointsCompleted} milestone(s) remaining.
+      </p>
+      
+      <p style="color: #475569; line-height: 1.6;">
+        If you're facing blockers or need technical guidance, please reach out to your Scout. 
+        Otherwise, we encourage you to submit your next Proof of Progress to maintain momentum.
+      </p>
+      
+      <div style="margin: 24px 0;">
+        <a href="http://localhost:3000/alumni-dashboard" 
+           style="background-color: #10b981; color: white; padding: 12px 24px; 
+                  text-decoration: none; border-radius: 6px; display: inline-block;">
+          Continue Your Build
+        </a>
+      </div>
+      
+      <p style="color: #64748b; font-size: 14px; margin-top: 32px;">
+        — The Bridge.it Team<br/>
+        Connecting Institutional Scouts with Alumni Talent
+      </p>
+    </div>
+  `;
+  
+  const mailOptions = {
+    from: '"Bridge.it System" <system@bridge.it>',
+    to: builderProfile.email || 'builder@example.com', // Mock email
+    subject: `Sprint Pulse Check: ${builderData.businessName}`,
+    html: emailTemplate
+  };
+  
+  try {
+    await transporter.sendMail(mailOptions);
+    console.log(`✓ Nudge email sent to ${builderProfile.name} for ${builderData.businessName}`);
+    return true;
+  } catch (error) {
+    console.error(`✗ Failed to send nudge email:`, error);
+    return false;
+  }
+}
+
+// POST /api/nudge-service/check - Run stall detection and send nudges
+app.post('/api/nudge-service/check', async (req, res) => {
+  try {
+    const MOCK_DATA_PATH = join(__dirname, '..', '_architect_ref', 'MOCK_DATA.json');
+    const MOCK_ALUMNI_PATH = join(__dirname, '..', '_architect_ref', 'mockAlumni.json');
+    
+    const leadsData = JSON.parse(await readFile(MOCK_DATA_PATH, 'utf8'));
+    const alumniDataRaw = await readFile(MOCK_ALUMNI_PATH, 'utf8');
+    const alumniData = JSON.parse(alumniDataRaw).alumni || [];
+    
+    const stalledBuilders = detectStalledBuilders(leadsData.leads);
+    const nudgeResults = [];
+    
+    for (const stalledBuilder of stalledBuilders) {
+      const builderProfile = alumniData.find(a => a.id === stalledBuilder.builderId);
+      if (!builderProfile) continue;
+      
+      const emailSent = await sendNudgeEmail(stalledBuilder, builderProfile);
+      
+      if (emailSent) {
+        // Update last_nudged_at timestamp
+        const leadIndex = leadsData.leads.findIndex(l => l.id === stalledBuilder.leadId);
+        if (leadIndex !== -1) {
+          const builderIndex = leadsData.leads[leadIndex].activeBuilders.findIndex(
+            b => b.userId === stalledBuilder.builderId
+          );
+          
+          if (builderIndex !== -1) {
+            leadsData.leads[leadIndex].activeBuilders[builderIndex].last_nudged_at = new Date().toISOString();
+            
+            nudgeResults.push({
+              leadId: stalledBuilder.leadId,
+              builderId: stalledBuilder.builderId,
+              status: 'sent'
+            });
+          }
+        }
+      }
+    }
+    
+    // Save updated data
+    await writeFile(MOCK_DATA_PATH, JSON.stringify(leadsData, null, 2));
+    
+    res.json({
+      success: true,
+      nudgesSent: nudgeResults.length,
+      results: nudgeResults
+    });
+  } catch (error) {
+    console.error('Nudge service error:', error);
+    res.status(500).json({ error: 'Failed to process nudge service' });
+  }
+});
+
+// GET /api/nudge-service/stalled - View stalled projects without sending emails
+app.get('/api/nudge-service/stalled', async (req, res) => {
+  try {
+    const MOCK_DATA_PATH = join(__dirname, '..', '_architect_ref', 'MOCK_DATA.json');
+    const leadsData = JSON.parse(await readFile(MOCK_DATA_PATH, 'utf8'));
+    const stalledBuilders = detectStalledBuilders(leadsData.leads);
+    
+    res.json({
+      count: stalledBuilders.length,
+      stalled: stalledBuilders
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to detect stalled projects' });
+  }
+});
+
+// PATCH /api/leads/:id/pause-sprint - Pause or resume sprint
+app.patch('/api/leads/:id/pause-sprint', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { isPaused, scoutName } = req.body;
+    
+    const MOCK_DATA_PATH = join(__dirname, '..', '_architect_ref', 'MOCK_DATA.json');
+    const leadsData = JSON.parse(await readFile(MOCK_DATA_PATH, 'utf8'));
+    const leadIndex = leadsData.leads.findIndex(l => l.id === id);
+    
+    if (leadIndex === -1) {
+      return res.status(404).json({ error: 'Lead not found' });
+    }
+    
+    leadsData.leads[leadIndex].isPaused = isPaused;
+    
+    // Add audit log entry
+    if (!leadsData.leads[leadIndex].auditLog) {
+      leadsData.leads[leadIndex].auditLog = [];
+    }
+    
+    leadsData.leads[leadIndex].auditLog.push({
+      action: isPaused ? 'paused_sprint' : 'resumed_sprint',
+      performedBy: scoutName || 'Scout',
+      timestamp: new Date().toISOString(),
+      details: `Sprint ${isPaused ? 'paused' : 'resumed'} for ${leadsData.leads[leadIndex].business_name}`
+    });
+    
+    await writeFile(MOCK_DATA_PATH, JSON.stringify(leadsData, null, 2));
+    
+    const weightedLead = applyRecencyWeights(leadsData.leads[leadIndex]);
+    const populatedLead = await populateActiveBuilders(weightedLead);
+    
+    res.json({ 
+      success: true, 
+      isPaused: populatedLead.isPaused,
+      lead: populatedLead
+    });
+  } catch (error) {
+    console.error('Pause sprint error:', error);
+    res.status(500).json({ error: 'Failed to pause sprint' });
+  }
+});
+
+// PATCH /api/leads/:id/extend-deadline - Extend sprint deadline
+app.patch('/api/leads/:id/extend-deadline', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { days, scoutName } = req.body;
+    
+    const MOCK_DATA_PATH = join(__dirname, '..', '_architect_ref', 'MOCK_DATA.json');
+    const leadsData = JSON.parse(await readFile(MOCK_DATA_PATH, 'utf8'));
+    const leadIndex = leadsData.leads.findIndex(l => l.id === id);
+    
+    if (leadIndex === -1) {
+      return res.status(404).json({ error: 'Lead not found' });
+    }
+    
+    const currentDeadline = new Date(leadsData.leads[leadIndex].sprintDeadline || new Date());
+    const newDeadline = new Date(currentDeadline.getTime() + (days * 24 * 60 * 60 * 1000));
+    leadsData.leads[leadIndex].sprintDeadline = newDeadline.toISOString();
+    
+    // Add audit log entry
+    if (!leadsData.leads[leadIndex].auditLog) {
+      leadsData.leads[leadIndex].auditLog = [];
+    }
+    
+    leadsData.leads[leadIndex].auditLog.push({
+      action: 'extended_deadline',
+      performedBy: scoutName || 'Scout',
+      timestamp: new Date().toISOString(),
+      details: `Extended deadline by ${days} days for ${leadsData.leads[leadIndex].business_name}`
+    });
+    
+    await writeFile(MOCK_DATA_PATH, JSON.stringify(leadsData, null, 2));
+    
+    const weightedLead = applyRecencyWeights(leadsData.leads[leadIndex]);
+    const populatedLead = await populateActiveBuilders(weightedLead);
+    
+    res.json({ 
+      success: true, 
+      newDeadline: populatedLead.sprintDeadline,
+      lead: populatedLead
+    });
+  } catch (error) {
+    console.error('Extend deadline error:', error);
+    res.status(500).json({ error: 'Failed to extend deadline' });
+  }
+});
+
+// DELETE /api/leads/:id/evict-builder/:builderId - Evict builder from sprint
+app.delete('/api/leads/:id/evict-builder/:builderId', async (req, res) => {
+  try {
+    const { id, builderId } = req.params;
+    const { scoutName, reason } = req.body;
+    
+    const MOCK_DATA_PATH = join(__dirname, '..', '_architect_ref', 'MOCK_DATA.json');
+    const MOCK_ALUMNI_PATH = join(__dirname, '..', '_architect_ref', 'mockAlumni.json');
+    
+    const leadsData = JSON.parse(await readFile(MOCK_DATA_PATH, 'utf8'));
+    const alumniDataRaw = await readFile(MOCK_ALUMNI_PATH, 'utf8');
+    const alumniData = JSON.parse(alumniDataRaw).alumni || [];
+    
+    const leadIndex = leadsData.leads.findIndex(l => l.id === id);
+    
+    if (leadIndex === -1) {
+      return res.status(404).json({ error: 'Lead not found' });
+    }
+    
+    const builderProfile = alumniData.find(a => a.id === builderId);
+    const builderName = builderProfile?.name || builderId;
+    
+    // Remove builder from activeBuilders
+    leadsData.leads[leadIndex].activeBuilders = leadsData.leads[leadIndex].activeBuilders.filter(
+      b => b.userId !== builderId
+    );
+    
+    // Add audit log entry
+    if (!leadsData.leads[leadIndex].auditLog) {
+      leadsData.leads[leadIndex].auditLog = [];
+    }
+    
+    leadsData.leads[leadIndex].auditLog.push({
+      action: 'evicted_builder',
+      performedBy: scoutName || 'Scout',
+      timestamp: new Date().toISOString(),
+      details: `Evicted ${builderName} from ${leadsData.leads[leadIndex].business_name}`,
+      reason: reason || 'Inactivity'
+    });
+    
+    await writeFile(MOCK_DATA_PATH, JSON.stringify(leadsData, null, 2));
+    
+    const weightedLead = applyRecencyWeights(leadsData.leads[leadIndex]);
+    const populatedLead = await populateActiveBuilders(weightedLead);
+    
+    res.json({ 
+      success: true,
+      openSlots: populatedLead.maxSlots - (populatedLead.activeBuilders?.length || 0),
+      lead: populatedLead
+    });
+  } catch (error) {
+    console.error('Evict builder error:', error);
+    res.status(500).json({ error: 'Failed to evict builder' });
+  }
+});
+
+// GET /api/leads/:id/audit-log - Get audit log for a lead
+app.get('/api/leads/:id/audit-log', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const MOCK_DATA_PATH = join(__dirname, '..', '_architect_ref', 'MOCK_DATA.json');
+    const leadsData = JSON.parse(await readFile(MOCK_DATA_PATH, 'utf8'));
+    const lead = leadsData.leads.find(l => l.id === id);
+    
+    if (!lead) {
+      return res.status(404).json({ error: 'Lead not found' });
+    }
+    
+    res.json({ 
+      auditLog: lead.auditLog || []
+    });
+  } catch (error) {
+    console.error('Get audit log error:', error);
+    res.status(500).json({ error: 'Failed to fetch audit log' });
+  }
+});
+
+// GET /api/library - Fetch completed builds
+app.get('/api/library', async (req, res) => {
+  try {
+    const MOCK_DATA_PATH = join(__dirname, '..', '_architect_ref', 'MOCK_DATA.json');
+    const MOCK_ALUMNI_PATH = join(__dirname, '..', '_architect_ref', 'mockAlumni.json');
+    
+    const leadsData = JSON.parse(await readFile(MOCK_DATA_PATH, 'utf8'));
+    const alumniDataRaw = await readFile(MOCK_ALUMNI_PATH, 'utf8');
+    const alumniData = JSON.parse(alumniDataRaw).alumni || [];
+    
+    // Get Ashley Vigo's completed builds
+    const ashleyProfile = alumniData.find(a => a.id === 'alumni_ashley');
+    const completedBuilds = [];
+    
+    if (ashleyProfile && ashleyProfile.completedBuilds) {
+      ashleyProfile.completedBuilds.forEach((build, index) => {
+        const lead = leadsData.leads.find(l => l.id === build.leadId);
+        if (lead) {
+          completedBuilds.push({
+            id: `build_${index + 1}`,
+            leadId: build.leadId,
+            businessName: build.businessName,
+            neighborhood: lead.location.neighborhood,
+            borough: lead.location.borough,
+            techStack: build.techStack,
+            completedAt: build.completedAt,
+            builderName: ashleyProfile.name,
+            builderId: ashleyProfile.id,
+            quality: build.quality,
+            repoUrl: build.repoUrl,
+            description: lead.friction_clusters[0]?.category || 'Technical Solution',
+            isPioneer: index === 0 // First build is pioneer
+          });
+        }
+      });
+    }
+    
+    // Add some mock builds from other users
+    const mockBuilds = [
+      {
+        id: 'build_4',
+        leadId: 'lead_005',
+        businessName: 'Jackson Heights Deli',
+        neighborhood: 'Jackson Heights',
+        borough: 'Queens',
+        techStack: ['Vue.js', 'Node.js', 'MongoDB'],
+        completedAt: '2026-01-10T10:00:00Z',
+        builderName: 'Jordan Taylor',
+        builderId: 'alumni_001',
+        quality: 88,
+        repoUrl: 'https://github.com/jordan-taylor/jackson-heights-deli',
+        description: 'Phone Intake Optimization',
+        isPioneer: true
+      },
+      {
+        id: 'build_5',
+        leadId: 'lead_009',
+        businessName: 'Bushwick Bakery',
+        neighborhood: 'Bushwick',
+        borough: 'Brooklyn',
+        techStack: ['React', 'Python', 'PostgreSQL'],
+        completedAt: '2026-01-18T10:00:00Z',
+        builderName: 'Alex Chen',
+        builderId: 'alumni_003',
+        quality: 91,
+        repoUrl: 'https://github.com/alex-chen/bushwick-bakery',
+        description: 'Inventory Management',
+        isPioneer: false
+      }
+    ];
+    
+    res.json({
+      builds: [...completedBuilds, ...mockBuilds],
+      total: completedBuilds.length + mockBuilds.length
+    });
+  } catch (error) {
+    console.error('Library fetch error:', error);
+    res.status(500).json({ error: 'Failed to fetch library' });
+  }
+});
+
 // Health check
 app.get('/health', (req, res) => {
   res.json({ 
@@ -501,6 +1860,22 @@ app.listen(PORT, () => {
   console.log(`📊 Endpoints:`);
   console.log(`   GET /api/leads                    - Fetch all restaurant leads`);
   console.log(`   GET /api/leads/:id                - Fetch single lead by ID`);
+  console.log(`   PATCH /api/leads/:id/status       - Update lead status`);
+  console.log(`   POST /api/leads/:id/checkpoint    - Submit checkpoint proof`);
+  console.log(`   POST /api/leads/:id/join-sprint   - Join sprint race`);
+  console.log(`   POST /api/leads/:id/scout-review  - Scout review submissions`);
+  console.log(`   POST /api/leads/:id/calculate-winner - Calculate sprint winner`);
+  console.log(`   GET /api/leaderboard              - Fetch top builders leaderboard`);
+  console.log(`   GET /api/proofs/pending           - Fetch all pending proofs`);
+  console.log(`   PATCH /api/leads/:id/verify-checkpoint - Verify checkpoint proof`);
+  console.log(`   GET /api/alumni                   - Fetch alumni registry (add ?available=true for available only)`);
+  console.log(`   POST /api/nudge-service/check     - Run stall detection and send nudges`);
+  console.log(`   GET /api/nudge-service/stalled    - View stalled projects without sending emails`);
+  console.log(`   PATCH /api/leads/:id/pause-sprint - Pause or resume sprint`);
+  console.log(`   PATCH /api/leads/:id/extend-deadline - Extend sprint deadline`);
+  console.log(`   DELETE /api/leads/:id/evict-builder/:builderId - Evict builder from sprint`);
+  console.log(`   GET /api/leads/:id/audit-log     - Get audit log for a lead`);
+  console.log(`   GET /api/library                 - Fetch completed builds library`);
   console.log(`   POST /generate-handoff             - Generate handoff brief (JSON)`);
   console.log(`   GET /generate-handoff/:leadId/markdown - Download markdown brief`);
   console.log(`   GET /generate-handoff/:leadId/pdf      - Download PDF report`);
