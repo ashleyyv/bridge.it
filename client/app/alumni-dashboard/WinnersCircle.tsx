@@ -40,7 +40,7 @@ const WinnersCircle: React.FC<WinnersCircleProps> = () => {
           // Debug logging
           console.log('Total leads:', data.leads.length);
           console.log('Evaluating projects:', evaluating.length);
-          console.log('Evaluating projects:', evaluating.map(p => ({
+          console.log('Evaluating projects:', evaluating.map((p: any) => ({
             id: p.id,
             name: p.business_name,
             submissionWindowOpen: p.submissionWindowOpen,
