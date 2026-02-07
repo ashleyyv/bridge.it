@@ -2,10 +2,10 @@
 
 **Pursuit Staff Portal | Hospitality Vertical**
 
-## 🎯 Mission
+##  Mission
 Identify technical friction in NYC Hospitality SMBs and generate scoped projects for Pursuit Alumni.
 
-## 🏗️ Architecture
+## Architecture
 
 ```
 bridge-it/
@@ -15,7 +15,7 @@ bridge-it/
 └── .cursorrules     Project constitution
 ```
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 - Node.js 18+ installed
@@ -46,13 +46,13 @@ bridge-it/
 4. **Open the dashboard**:
    Navigate to `http://localhost:3000`
 
-## 📊 API Endpoints
+##  API Endpoints
 
 - `GET /api/leads` - Fetch all restaurant leads with HFI scoring
 - `GET /api/leads/:id` - Fetch single lead by ID
 - `GET /health` - Health check
 
-## 🎨 Design System: Industrial Professional
+##  Design System: Industrial Professional
 
 ### Color Palette
 - **Slate**: `#1e293b` - Primary backgrounds
@@ -69,7 +69,7 @@ bridge-it/
 - **31-90 days**: Gray text (0.5x weight) - Supporting evidence
 - **90+ days**: Archived (0.0x weight) - Not used in active scoring
 
-## 🧮 Core Logic
+##  Core Logic
 
 ### Hospitality Friction Index (HFI)
 Filters **Signal** (tech-solvable) vs **Noise** (operational):
@@ -98,7 +98,7 @@ Filters **Signal** (tech-solvable) vs **Noise** (operational):
 - **[Secured]**: Owner agreed to partnership
 - **[In-Build]**: Alumni started development
 
-## 🎁 Demo Artifacts (v4.2)
+##  Demo Artifacts (v4.2)
 
 ### For Restaurant Owners
 **Voice of Customer Audit** (PDF)
@@ -112,7 +112,7 @@ Filters **Signal** (tech-solvable) vs **Noise** (operational):
 - V1 Feature List
 - Definition of Done
 
-## 📦 Mock Data Structure
+##  Mock Data Structure
 
 See `_architect_ref/MOCK_DATA.json` for 5 NYC restaurant scenarios:
 1. Taco Libre Brooklyn (Phone Intake issues)
@@ -121,7 +121,7 @@ See `_architect_ref/MOCK_DATA.json` for 5 NYC restaurant scenarios:
 4. Harlem Soul Kitchen (Order management)
 5. Bronx Pizza Palace (Intake & coordination)
 
-## 🎪 Feb 9th Demo Checklist
+##  Feb 9th Demo Checklist
 
 - [x] Next.js dashboard with Industrial Professional aesthetic
 - [x] Express API serving mock data
@@ -139,21 +139,21 @@ See `_architect_ref/MOCK_DATA.json` for 5 NYC restaurant scenarios:
 **Phase 2** (Next): Yelp API integration
 **Phase 3** (Future): OpenAI-powered artifact generation
 
-## 🚫 Constraints
+##  Constraints
 
 - **No currency**: Use "Time-on-Task" metrics only
 - **No web scraping**: Manual paste or API-only
 - **No PM tools**: Simple status tracking only
 - **Recency bias**: 90+ day data weighted at 0.0x
 
-## 🛠️ Tech Stack
+##  Tech Stack
 
 - **Frontend**: Next.js 15, React 19, Tailwind CSS, TypeScript
 - **Backend**: Node.js, Express.js
 - **Data**: Mock JSON → Yelp API (future)
 - **Deployment**: TBD
 
-## 📞 Support
+##  Support
 
 Built for Pursuit Leadership by Ashley Vigo  
 Demo Date: February 9, 2026
