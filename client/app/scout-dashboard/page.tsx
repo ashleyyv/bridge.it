@@ -429,6 +429,7 @@ export default function ScoutDashboard() {
 
   useEffect(() => {
     fetchLeads();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Auto-refresh every 10 seconds for Live Sprints view
@@ -439,6 +440,7 @@ export default function ScoutDashboard() {
       }, 10000); // 10 seconds
       return () => clearInterval(interval);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [viewTab]);
 
   // Auto-open Finalist Comparison modal when conditions are met

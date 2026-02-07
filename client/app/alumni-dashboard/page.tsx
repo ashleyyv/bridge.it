@@ -1454,7 +1454,7 @@ export default function AlumniDashboard() {
           </svg>
           <div>
             <div className="font-semibold">Project Claimed Successfully!</div>
-            <div className="text-sm text-green-100">You've been assigned to this project.</div>
+            <div className="text-sm text-green-100">You&apos;ve been assigned to this project.</div>
           </div>
         </div>
       )}
@@ -1771,7 +1771,7 @@ export default function AlumniDashboard() {
                           <span className="text-xl">🏆</span>
                           <div>
                             <div className="font-semibold text-sm">Right to Outreach Unlocked!</div>
-                            <div className="text-xs text-green-100">You've won this sprint. Contact the business owner to proceed.</div>
+                            <div className="text-xs text-green-100">You&apos;ve won this sprint. Contact the business owner to proceed.</div>
                           </div>
                         </div>
                       </div>
@@ -2198,7 +2198,7 @@ export default function AlumniDashboard() {
                       <span className="text-2xl">🏆</span>
                       <div>
                         <div className="font-bold text-lg">Right to Outreach Unlocked!</div>
-                        <div className="text-sm text-green-100 mt-1">You've won this sprint. Contact the business owner to proceed with the project.</div>
+                        <div className="text-sm text-green-100 mt-1">You&apos;ve won this sprint. Contact the business owner to proceed with the project.</div>
                       </div>
                     </div>
                   </div>

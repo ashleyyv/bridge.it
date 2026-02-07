@@ -58,7 +58,7 @@ export default function RulesOfEngagementModal({ isOpen, onClose }: RulesOfEngag
             <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-lg p-5 border-2 border-green-200 mb-4">
               <h4 className="text-lg font-semibold text-green-900 mb-2">Competitive Build Model</h4>
               <p className="text-gray-700 leading-relaxed">
-                When you join a sprint, you're competing with other builders to earn the <span className="font-semibold text-green-700">"Right to Outreach."</span> The winning builder gets to present their solution to the business owner.
+                When you join a sprint, you&apos;re competing with other builders to earn the <span className="font-semibold text-green-700">&quot;Right to Outreach.&quot;</span> The winning builder gets to present their solution to the business owner.
               </p>
             </div>
           </section>
@@ -158,7 +158,7 @@ export default function RulesOfEngagementModal({ isOpen, onClose }: RulesOfEngag
               <ul className="list-disc list-inside space-y-2 text-gray-700">
                 <li>Scout reviews all finalists after window closes</li>
                 <li>Scores are calculated using the weighted formula</li>
-                <li>Winner is announced and granted <span className="font-semibold text-green-700">"Right to Outreach"</span></li>
+                <li>Winner is announced and granted <span className="font-semibold text-green-700">&quot;Right to Outreach&quot;</span></li>
                 <li>Winner can contact the business owner directly</li>
               </ul>
             </div>

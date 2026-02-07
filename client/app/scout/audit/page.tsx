@@ -76,12 +76,6 @@ export default function ScoutAuditPage() {
   }, [isAuthenticated, user, router]);
 
   // Fetch leads with completed submissions
-  useEffect(() => {
-    if (isAuthenticated && user?.role === 'scout') {
-      fetchLeads();
-    }
-  }, [isAuthenticated, user]);
-
   const fetchLeads = async () => {
     try {
       const response = await fetch('http://localhost:3001/api/leads');
@@ -107,6 +101,13 @@ export default function ScoutAuditPage() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (isAuthenticated && user?.role === 'scout') {
+      fetchLeads();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated, user]);
 
   const initializeScores = (lead: Lead) => {
     const finalists = lead.activeBuilders?.filter(b => b.checkpointsCompleted >= 4) || [];

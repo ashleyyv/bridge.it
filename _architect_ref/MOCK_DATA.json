@@ -471,10 +471,10 @@
             }
           },
           "scoutReview": {
-            "qualityScore": 0,
-            "scoutReviewScore": 0,
+            "qualityScore": 74,
+            "scoutReviewScore": 64,
             "reviewNotes": "",
-            "reviewedAt": "2026-02-05T15:45:02.342Z"
+            "reviewedAt": "2026-02-07T02:42:30.974Z"
           },
           "last_nudged_at": null,
           "last_checkpoint_update": "2026-02-02T18:00:00.000Z"
@@ -520,10 +520,10 @@
             }
           },
           "scoutReview": {
-            "qualityScore": 0,
-            "scoutReviewScore": 0,
+            "qualityScore": 100,
+            "scoutReviewScore": 14,
             "reviewNotes": "",
-            "reviewedAt": "2026-02-05T15:45:02.513Z"
+            "reviewedAt": "2026-02-07T02:42:31.026Z"
           },
           "last_nudged_at": null,
           "last_checkpoint_update": "2026-02-02T19:30:00.000Z"
@@ -582,7 +582,7 @@
       ],
       "submissionWindowOpen": false,
       "firstCompletionAt": "2026-02-04T10:00:00Z",
-      "winnerUserId": null,
+      "winnerUserId": "alumni_004",
       "sprintDeadline": "2026-02-19T16:58:47.584Z",
       "isPaused": false,
       "auditLog": []
