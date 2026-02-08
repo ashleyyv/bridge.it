@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { useAuth } from "../context/AuthContext";
@@ -11,11 +11,12 @@ interface ActiveBuilder {
   joinedAt: string;
   checkpointsCompleted: number;
   proofLinks: string[];
+  specialty?: string;
   last_nudged_at?: string | null;
   last_checkpoint_update?: string | null;
   checkpointStatuses?: {
     [key: string]: {
-      status: 'pending' | 'submitted' | 'verified';
+      status: 'pending' | 'submitted' | 'verified' | 'approved';
       proofLink?: string;
       submittedAt?: string;
       verifiedAt?: string;
@@ -1620,7 +1621,7 @@ export default function ScoutDashboard() {
   };
 
   // Get capacity indicator badge
-  const getCapacityBadge = (filledSlots: number, maxSlots: number): JSX.Element => {
+  const getCapacityBadge = (filledSlots: number, maxSlots: number): React.ReactElement => {
     const isFull = filledSlots >= maxSlots;
     const bgColor = isFull ? "bg-red-600" : filledSlots >= maxSlots * 0.75 ? "bg-orange-500" : "bg-slate-600";
     const text = isFull ? `FULL ${filledSlots}/${maxSlots}` : `${filledSlots}/${maxSlots} Active`;
@@ -2079,7 +2080,7 @@ export default function ScoutDashboard() {
                                   </div>
                                   {recentNudge && (
                                     <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-purple-100 text-purple-700 text-xs rounded-full flex-shrink-0"
-                                          title={`Nudge sent ${getTimeSince(builder.last_nudged_at)}`}>
+                                          title={`Nudge sent ${getTimeSince(builder.last_nudged_at ?? null)}`}>
                                       <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                                         <path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z"/>
                                       </svg>
