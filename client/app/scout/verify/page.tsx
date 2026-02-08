@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../../context/AuthContext";
+import { apiUrl } from "@/lib/api";
 
 interface Proof {
   id: string;
@@ -44,7 +45,7 @@ export default function ScoutVerifyPage() {
   // Fetch pending proofs
   const fetchProofs = async () => {
     try {
-      const response = await fetch('http://localhost:3001/api/proofs/pending');
+      const response = await fetch(apiUrl('/api/proofs/pending'));
       if (!response.ok) throw new Error('Failed to fetch proofs');
       const data = await response.json();
       setProofs(data.proofs || []);
@@ -101,7 +102,7 @@ export default function ScoutVerifyPage() {
     setProcessing(prev => new Set(prev).add(proofId));
     
     try {
-      const response = await fetch(`http://localhost:3001/api/leads/${proof.leadId}/verify-checkpoint`, {
+      const response = await fetch(apiUrl(`/api/leads/${proof.leadId}/verify-checkpoint`), {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

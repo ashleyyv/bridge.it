@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../context/AuthContext";
+import { apiUrl } from "@/lib/api";
 
 interface CompletedBuild {
   id: string;
@@ -38,7 +39,7 @@ export default function LibraryPage() {
 
   const fetchBuilds = async () => {
     try {
-      const response = await fetch("http://localhost:3001/api/library");
+      const response = await fetch(apiUrl("/api/library"));
       if (response.ok) {
         const data = await response.json();
         setBuilds(data.builds);

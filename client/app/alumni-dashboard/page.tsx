@@ -8,6 +8,7 @@ import SprintSidebar from "./SprintSidebar";
 import SprintCountdown from "./SprintCountdown";
 import RulesOfEngagementModal from "./RulesOfEngagementModal";
 import WinnersCircle from "./WinnersCircle";
+import { apiUrl } from "@/lib/api";
 
 interface Lead {
   id: string;
@@ -907,7 +908,7 @@ export default function AlumniDashboard() {
   }, [logoHolding]);
 
   useEffect(() => {
-    fetch("http://localhost:3001/api/leads")
+    fetch(apiUrl("/api/leads"))
       .then((res) => res.json())
       .then((data) => {
         setData(data);
@@ -922,7 +923,7 @@ export default function AlumniDashboard() {
   // Refresh data periodically to show live updates
   useEffect(() => {
     const interval = setInterval(() => {
-      fetch("http://localhost:3001/api/leads")
+      fetch(apiUrl("/api/leads"))
         .then((res) => res.json())
         .then((data) => {
           setData(data);
@@ -1011,7 +1012,7 @@ export default function AlumniDashboard() {
     setSubmittingProof(true);
 
     try {
-      const response = await fetch(`http://localhost:3001/api/leads/${selectedSprintForCheckpoint.id}/submit-checkpoint`, {
+      const response = await fetch(apiUrl(`/api/leads/${selectedSprintForCheckpoint.id}/submit-checkpoint`), {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -1024,7 +1025,7 @@ export default function AlumniDashboard() {
       if (response.ok) {
         alert('✅ Checkpoint submitted for Scout review!');
         // Refresh data
-        const updatedData = await fetch("http://localhost:3001/api/leads").then(res => res.json());
+        const updatedData = await fetch(apiUrl("/api/leads")).then(res => res.json());
         setData(updatedData);
         setCheckpointProofs(prev => ({ ...prev, [milestoneId]: '' }));
       } else {
@@ -1094,7 +1095,7 @@ export default function AlumniDashboard() {
     setJoiningSprint(pendingLeadId); // Set joining state for this lead
     
     try {
-      const response = await fetch(`http://localhost:3001/api/leads/${pendingLeadId}/join-sprint`, {
+      const response = await fetch(apiUrl(`/api/leads/${pendingLeadId}/join-sprint`), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -1116,7 +1117,7 @@ export default function AlumniDashboard() {
       const updatedLead = await response.json();
       
       // Refresh leads data
-      const leadsResponse = await fetch("http://localhost:3001/api/leads");
+      const leadsResponse = await fetch(apiUrl("/api/leads"));
       const leadsData = await leadsResponse.json();
       setData(leadsData);
       
@@ -1268,7 +1269,7 @@ export default function AlumniDashboard() {
       // Mock userId - in production, get from auth context
       const userId = 'alumni_001'; // This would come from user context
       
-      const response = await fetch(`http://localhost:3001/api/leads/${leadId}/checkpoint`, {
+      const response = await fetch(apiUrl(`/api/leads/${leadId}/checkpoint`), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -1296,7 +1297,7 @@ export default function AlumniDashboard() {
       });
       
       // Refresh leads data
-      const leadsResponse = await fetch("http://localhost:3001/api/leads");
+      const leadsResponse = await fetch(apiUrl("/api/leads"));
       const leadsData = await leadsResponse.json();
       setData(leadsData);
       

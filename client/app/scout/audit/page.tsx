@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../../context/AuthContext";
+import { apiUrl } from "@/lib/api";
 
 interface CheckpointStatus {
   status: 'submitted' | 'approved' | 'rejected';
@@ -78,7 +79,7 @@ export default function ScoutAuditPage() {
   // Fetch leads with completed submissions
   const fetchLeads = async () => {
     try {
-      const response = await fetch('http://localhost:3001/api/leads');
+      const response = await fetch(apiUrl('/api/leads'));
       if (!response.ok) throw new Error('Failed to fetch leads');
       const data = await response.json();
       
@@ -229,7 +230,7 @@ export default function ScoutAuditPage() {
         const scoreData = scores[builder.userId];
         if (!scoreData) continue;
 
-        await fetch(`http://localhost:3001/api/leads/${selectedLeadId}/scout-review`, {
+        await fetch(apiUrl(`/api/leads/${selectedLeadId}/scout-review`), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -242,7 +243,7 @@ export default function ScoutAuditPage() {
       }
 
       // Calculate winner (this will set winnerUserId based on scores)
-      const calculateResponse = await fetch(`http://localhost:3001/api/leads/${selectedLeadId}/calculate-winner`, {
+      const calculateResponse = await fetch(apiUrl(`/api/leads/${selectedLeadId}/calculate-winner`), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' }
       });

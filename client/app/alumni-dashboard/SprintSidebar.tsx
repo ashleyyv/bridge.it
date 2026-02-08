@@ -1,5 +1,7 @@
 "use client";
 
+import { apiUrl } from "@/lib/api";
+
 import { useEffect, useState } from "react";
 
 interface Builder {
@@ -81,7 +83,7 @@ export default function SprintSidebar() {
   // Fetch leaderboard data - focus on builders on final milestone
   const fetchLeaderboard = async () => {
     try {
-      const response = await fetch("http://localhost:3001/api/leads");
+      const response = await fetch(apiUrl("/api/leads"));
       if (!response.ok) throw new Error("Failed to fetch leads");
       const data = await response.json();
       
@@ -116,7 +118,7 @@ export default function SprintSidebar() {
   // Fetch audit log entries
   const fetchAuditLog = async () => {
     try {
-      const response = await fetch('http://localhost:3001/api/leads');
+      const response = await fetch(apiUrl('/api/leads'));
       if (!response.ok) throw new Error('Failed to fetch leads');
       const data = await response.json();
       
@@ -206,7 +208,7 @@ export default function SprintSidebar() {
   // Fetch recent submissions
   const fetchSubmissions = async () => {
     try {
-      const response = await fetch("http://localhost:3001/api/recent-submissions");
+      const response = await fetch(apiUrl("/api/recent-submissions"));
       if (!response.ok) throw new Error("Failed to fetch submissions");
       const data: RecentSubmissionsData = await response.json();
       // Format time ago for each submission

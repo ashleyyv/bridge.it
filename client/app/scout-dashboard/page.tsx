@@ -4,6 +4,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { useAuth } from "../context/AuthContext";
+import { apiUrl } from "@/lib/api";
 
 interface ActiveBuilder {
   userId: string;
@@ -330,7 +331,7 @@ export default function ScoutDashboard() {
   }, [isAuthenticated, user, router]);
 
   const fetchLeads = () => {
-    fetch("http://localhost:3001/api/leads")
+    fetch(apiUrl("/api/leads"))
       .then((res) => res.json())
       .then((data) => {
         setData(data);
@@ -356,7 +357,7 @@ export default function ScoutDashboard() {
       data: { isPaused },
       callback: async () => {
         try {
-          const response = await fetch(`http://localhost:3001/api/leads/${leadId}/pause-sprint`, {
+          const response = await fetch(apiUrl(`/api/leads/${leadId}/pause-sprint`), {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
@@ -385,7 +386,7 @@ export default function ScoutDashboard() {
       data: { days },
       callback: async () => {
         try {
-          const response = await fetch(`http://localhost:3001/api/leads/${leadId}/extend-deadline`, {
+          const response = await fetch(apiUrl(`/api/leads/${leadId}/extend-deadline`), {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
@@ -410,7 +411,7 @@ export default function ScoutDashboard() {
   // Handler for evict builder
   const handleEvictBuilder = async (leadId: string, builderId: string) => {
     try {
-      const response = await fetch(`http://localhost:3001/api/leads/${leadId}/evict-builder/${builderId}`, {
+      const response = await fetch(apiUrl(`/api/leads/${leadId}/evict-builder/${builderId}`), {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -1098,7 +1099,7 @@ export default function ScoutDashboard() {
 
     setReviewLoading(true);
     try {
-      const response = await fetch(`http://localhost:3001/api/leads/${reviewLead.id}/scout-review`, {
+      const response = await fetch(apiUrl(`/api/leads/${reviewLead.id}/scout-review`), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -1118,7 +1119,7 @@ export default function ScoutDashboard() {
       const result = await response.json();
       
       // Refresh data
-      const leadsResponse = await fetch("http://localhost:3001/api/leads");
+      const leadsResponse = await fetch(apiUrl("/api/leads"));
       const leadsData = await leadsResponse.json();
       setData(leadsData);
       
@@ -1161,7 +1162,7 @@ export default function ScoutDashboard() {
             continue; // Skip if unchanged
           }
 
-          const response = await fetch(`http://localhost:3001/api/leads/${reviewLead.id}/scout-review`, {
+          const response = await fetch(apiUrl(`/api/leads/${reviewLead.id}/scout-review`), {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -1181,7 +1182,7 @@ export default function ScoutDashboard() {
       }
 
       // Refresh data
-      const leadsResponse = await fetch("http://localhost:3001/api/leads");
+      const leadsResponse = await fetch(apiUrl("/api/leads"));
       const leadsData = await leadsResponse.json();
       setData(leadsData);
       
@@ -1235,7 +1236,7 @@ export default function ScoutDashboard() {
 
     setReviewLoading(true);
     try {
-      const response = await fetch(`http://localhost:3001/api/leads/${reviewLead.id}/calculate-winner`, {
+      const response = await fetch(apiUrl(`/api/leads/${reviewLead.id}/calculate-winner`), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -1250,7 +1251,7 @@ export default function ScoutDashboard() {
       const result = await response.json();
       
       // Refresh data
-      const leadsResponse = await fetch("http://localhost:3001/api/leads");
+      const leadsResponse = await fetch(apiUrl("/api/leads"));
       const leadsData = await leadsResponse.json();
       setData(leadsData);
       
@@ -1277,7 +1278,7 @@ export default function ScoutDashboard() {
     setSprintLoadingStates((prev) => new Set(prev).add(lead.id));
     
     try {
-      const response = await fetch(`http://localhost:3001/api/leads/${lead.id}/launch-sprint`, {
+      const response = await fetch(apiUrl(`/api/leads/${lead.id}/launch-sprint`), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -1296,7 +1297,7 @@ export default function ScoutDashboard() {
       const updatedLead = await response.json();
       
       // Refresh data
-      const leadsResponse = await fetch("http://localhost:3001/api/leads");
+      const leadsResponse = await fetch(apiUrl("/api/leads"));
       const leadsData = await leadsResponse.json();
       setData(leadsData);
       
@@ -1420,7 +1421,7 @@ export default function ScoutDashboard() {
           const scores = finalistScores[builder.userId];
           if (scores && (scores.qualityScore !== builder.scoutReview?.qualityScore || scores.scoutReviewScore !== (builder.scoutReview?.scoutReviewScore ?? builder.scoutReview?.qualityScore))) {
             // Update via scout-review endpoint with both scores
-            await fetch(`http://localhost:3001/api/leads/${finalistComparisonLead.id}/scout-review`, {
+            await fetch(apiUrl(`/api/leads/${finalistComparisonLead.id}/scout-review`), {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
@@ -1437,7 +1438,7 @@ export default function ScoutDashboard() {
       }
 
       // Calculate and set winner
-      const response = await fetch(`http://localhost:3001/api/leads/${finalistComparisonLead.id}/calculate-winner`, {
+      const response = await fetch(apiUrl(`/api/leads/${finalistComparisonLead.id}/calculate-winner`), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

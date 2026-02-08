@@ -1,5 +1,7 @@
 "use client";
 
+import { apiUrl } from "@/lib/api";
+
 import { useEffect, useState } from "react";
 
 interface Lead {
@@ -24,7 +26,7 @@ const WinnersCircle: React.FC<WinnersCircleProps> = () => {
   useEffect(() => {
     const fetchEvaluatingProjects = async () => {
       try {
-        const response = await fetch("http://localhost:3001/api/leads");
+        const response = await fetch(apiUrl("/api/leads"));
         if (response.ok) {
           const data = await response.json();
           
@@ -66,7 +68,7 @@ const WinnersCircle: React.FC<WinnersCircleProps> = () => {
   useEffect(() => {
     const fetchHallOfFame = async () => {
       try {
-        const response = await fetch('http://localhost:3001/api/alumni');
+        const response = await fetch(apiUrl('/api/alumni'));
         if (response.ok) {
           const data = await response.json();
           

@@ -5,6 +5,9 @@ import { AuthProvider } from "./context/AuthContext";
 export const metadata: Metadata = {
   title: "Bridge.it | Institutional Opportunity Engine",
   description: "Pursuit Staff Portal - Hospitality Vertical",
+  icons: {
+    icon: "/bridge-icon-clean.png",
+  },
 };
 
 export default function RootLayout({

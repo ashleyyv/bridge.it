@@ -11,7 +11,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const app = express();
-const PORT = 3001;
+const PORT = process.env.PORT || 3001;
 
 // Mock email transporter for demo (would use real SMTP in production)
 const transporter = nodemailer.createTransport({
@@ -1931,8 +1931,8 @@ app.get('/health', (req, res) => {
   });
 });
 
-app.listen(PORT, () => {
-  console.log(`🚀 Bridge.it API Server v4.2 running on http://localhost:${PORT}`);
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`🚀 Bridge.it API Server running on port ${PORT}`);
   console.log(`📊 Endpoints:`);
   console.log(`   GET /api/leads                    - Fetch all restaurant leads`);
   console.log(`   GET /api/leads/:id                - Fetch single lead by ID`);
