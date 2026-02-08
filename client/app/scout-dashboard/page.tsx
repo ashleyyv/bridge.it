@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { useAuth } from "../context/AuthContext";
 
 interface ActiveBuilder {
@@ -1747,9 +1748,11 @@ export default function ScoutDashboard() {
             <div className="flex items-center gap-3">
               {/* Bridge.IT Title with B logo */}
               <div className="flex items-center gap-1">
-                <img 
+                <Image 
                   src="/bridge-b-arch.png" 
                   alt="Bridge B" 
+                  width={112}
+                  height={112}
                   className="h-28 w-auto logo-glow"
                   style={{ backgroundColor: '#000000', padding: '8px', borderRadius: '8px' }}
                 />

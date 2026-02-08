@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { useAuth } from "../context/AuthContext";
 import SprintSidebar from "./SprintSidebar";
 import SprintCountdown from "./SprintCountdown";
@@ -49,6 +50,16 @@ interface Lead {
   milestones?: Array<{
     id: number;
     name: string;
+  }>;
+  bespoke_deliverable?: any;
+  isPaused?: boolean;
+  sprintDeadline?: string;
+  last_nudged_at?: string;
+  last_checkpoint_update?: string;
+  auditLog?: Array<{
+    action: string;
+    timestamp: string;
+    actor: string;
   }>;
 }
 
@@ -1479,9 +1490,11 @@ export default function AlumniDashboard() {
                       : 'none'
                   }}
                 >
-                  <img 
+                  <Image 
                     src="/bridge-b-arch.png" 
                     alt="Bridge B" 
+                    width={112}
+                    height={112}
                     className="h-28 w-auto logo-glow"
                     style={{ 
                       backgroundColor: '#000000', 
@@ -2719,7 +2732,7 @@ export default function AlumniDashboard() {
                     setTeamSize(1);
                     setJoiningSprint(false);
                   }}
-                  disabled={joiningSprint}
+                  disabled={!!joiningSprint}
                 >
                   Cancel
                 </button>
@@ -2729,7 +2742,7 @@ export default function AlumniDashboard() {
                       ? 'bg-gray-400 cursor-not-allowed'
                       : 'bg-green-600 hover:bg-green-700'
                   }`}
-                  disabled={selectedDeliverables.length === 0 || joiningSprint}
+                  disabled={selectedDeliverables.length === 0 || !!joiningSprint}
                   onClick={handleConfirmJoin}
                 >
                   {joiningSprint ? (

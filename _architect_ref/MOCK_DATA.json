@@ -16,7 +16,7 @@
       },
       "hfi_score": 78,
       "friction_type": "Phone Intake",
-      "status": "qualified",
+      "status": "awarded",
       "review_count": 347,
       "rating": 4.1,
       "friction_clusters": [
@@ -94,7 +94,13 @@
             }
           },
           "last_nudged_at": null,
-          "last_checkpoint_update": "2026-02-03T20:00:00.000Z"
+          "last_checkpoint_update": "2026-02-03T20:00:00.000Z",
+          "scoutReview": {
+            "qualityScore": 0,
+            "scoutReviewScore": 0,
+            "reviewNotes": "",
+            "reviewedAt": "2026-02-08T19:30:22.214Z"
+          }
         },
         {
           "userId": "alumni_002",
@@ -137,7 +143,13 @@
             }
           },
           "last_nudged_at": null,
-          "last_checkpoint_update": "2026-02-03T21:00:00.000Z"
+          "last_checkpoint_update": "2026-02-03T21:00:00.000Z",
+          "scoutReview": {
+            "qualityScore": 0,
+            "scoutReviewScore": 0,
+            "reviewNotes": "",
+            "reviewedAt": "2026-02-08T19:30:22.266Z"
+          }
         },
         {
           "userId": "alumni_003",
@@ -228,7 +240,7 @@
       ],
       "submissionWindowOpen": false,
       "firstCompletionAt": "2026-02-05T10:00:00Z",
-      "winnerUserId": null,
+      "winnerUserId": "alumni_002",
       "sprintDeadline": "2026-02-19T16:58:47.582Z",
       "isPaused": false,
       "auditLog": []
