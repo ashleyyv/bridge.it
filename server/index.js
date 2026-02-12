@@ -612,6 +612,36 @@ async function saveData(data) {
   await writeFile(mockDataPath, JSON.stringify(data, null, 2), 'utf-8');
 }
 
+async function loadBuilds() {
+  try {
+    const path = join(__dirname, '..', '_architect_ref', 'builds.json');
+    const raw = await readFile(path, 'utf-8');
+    return JSON.parse(raw);
+  } catch (error) {
+    return [];
+  }
+}
+
+async function saveBuilds(builds) {
+  const path = join(__dirname, '..', '_architect_ref', 'builds.json');
+  await writeFile(path, JSON.stringify(builds, null, 2), 'utf-8');
+}
+
+async function loadBuildVotes() {
+  try {
+    const path = join(__dirname, '..', '_architect_ref', 'build_votes.json');
+    const raw = await readFile(path, 'utf-8');
+    return JSON.parse(raw);
+  } catch (error) {
+    return [];
+  }
+}
+
+async function saveBuildVotes(votes) {
+  const path = join(__dirname, '..', '_architect_ref', 'build_votes.json');
+  await writeFile(path, JSON.stringify(votes, null, 2), 'utf-8');
+}
+
 // POST /api/leads/:id/launch-sprint - Scout launches a sprint
 app.post('/api/leads/:id/launch-sprint', async (req, res) => {
   try {
@@ -1819,6 +1849,147 @@ app.delete('/api/leads/:id/evict-builder/:builderId', async (req, res) => {
   }
 });
 
+// POST /api/leads/:id/terminate-sprint - Terminate entire sprint (no winner)
+app.post('/api/leads/:id/terminate-sprint', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { scoutName } = req.body;
+    
+    const MOCK_DATA_PATH = join(__dirname, '..', '_architect_ref', 'MOCK_DATA.json');
+    const leadsData = JSON.parse(await readFile(MOCK_DATA_PATH, 'utf8'));
+    const leadIndex = leadsData.leads.findIndex(l => l.id === id);
+    
+    if (leadIndex === -1) {
+      return res.status(404).json({ error: 'Lead not found' });
+    }
+    
+    const lead = leadsData.leads[leadIndex];
+    
+    // Clear activeBuilders, end sprint, no winner
+    leadsData.leads[leadIndex].activeBuilders = [];
+    leadsData.leads[leadIndex].sprintActive = false;
+    leadsData.leads[leadIndex].winnerUserId = null;
+    leadsData.leads[leadIndex].status = 'terminated';
+    
+    if (!leadsData.leads[leadIndex].auditLog) {
+      leadsData.leads[leadIndex].auditLog = [];
+    }
+    leadsData.leads[leadIndex].auditLog.push({
+      action: 'terminated_sprint',
+      performedBy: scoutName || 'Scout',
+      timestamp: new Date().toISOString(),
+      details: `Sprint terminated for ${lead.business_name}. No winner.`
+    });
+    
+    await writeFile(MOCK_DATA_PATH, JSON.stringify(leadsData, null, 2));
+    
+    const weightedLead = applyRecencyWeights(leadsData.leads[leadIndex]);
+    const populatedLead = await populateActiveBuilders(weightedLead);
+    
+    res.json({ success: true, lead: populatedLead });
+  } catch (error) {
+    console.error('Terminate sprint error:', error);
+    res.status(500).json({ error: 'Failed to terminate sprint' });
+  }
+});
+
+// POST /api/leads/:id/nudge-builder/:builderId - Nudge a specific builder (72h+ no milestone)
+app.post('/api/leads/:id/nudge-builder/:builderId', async (req, res) => {
+  try {
+    const { id, builderId } = req.params;
+    const { scoutName } = req.body;
+    
+    const MOCK_DATA_PATH = join(__dirname, '..', '_architect_ref', 'MOCK_DATA.json');
+    const leadsData = JSON.parse(await readFile(MOCK_DATA_PATH, 'utf8'));
+    const leadIndex = leadsData.leads.findIndex(l => l.id === id);
+    
+    if (leadIndex === -1) {
+      return res.status(404).json({ error: 'Lead not found' });
+    }
+    
+    const lead = leadsData.leads[leadIndex];
+    const builderIndex = lead.activeBuilders?.findIndex(b => b.userId === builderId);
+    
+    if (builderIndex === -1) {
+      return res.status(404).json({ error: 'Builder not found in this sprint' });
+    }
+    
+    const now = new Date().toISOString();
+    leadsData.leads[leadIndex].activeBuilders[builderIndex].last_nudged_at = now;
+    
+    if (!leadsData.leads[leadIndex].auditLog) {
+      leadsData.leads[leadIndex].auditLog = [];
+    }
+    const builderName = lead.activeBuilders[builderIndex].name || builderId;
+    leadsData.leads[leadIndex].auditLog.push({
+      action: 'nudged_builder',
+      performedBy: scoutName || 'Scout',
+      timestamp: now,
+      details: `Nudge sent to ${builderName} for ${lead.business_name}`
+    });
+    
+    await writeFile(MOCK_DATA_PATH, JSON.stringify(leadsData, null, 2));
+    
+    const weightedLead = applyRecencyWeights(leadsData.leads[leadIndex]);
+    const populatedLead = await populateActiveBuilders(weightedLead);
+    
+    res.json({ success: true, lead: populatedLead });
+  } catch (error) {
+    console.error('Nudge builder error:', error);
+    res.status(500).json({ error: 'Failed to nudge builder' });
+  }
+});
+
+// POST /api/leads/:id/flag-builder/:builderId - Flag builder with 5h warning (submit or be kicked)
+app.post('/api/leads/:id/flag-builder/:builderId', async (req, res) => {
+  try {
+    const { id, builderId } = req.params;
+    const { scoutName } = req.body;
+    
+    const MOCK_DATA_PATH = join(__dirname, '..', '_architect_ref', 'MOCK_DATA.json');
+    const leadsData = JSON.parse(await readFile(MOCK_DATA_PATH, 'utf8'));
+    const leadIndex = leadsData.leads.findIndex(l => l.id === id);
+    
+    if (leadIndex === -1) {
+      return res.status(404).json({ error: 'Lead not found' });
+    }
+    
+    const lead = leadsData.leads[leadIndex];
+    const builderIndex = lead.activeBuilders?.findIndex(b => b.userId === builderId);
+    
+    if (builderIndex === -1) {
+      return res.status(404).json({ error: 'Builder not found in this sprint' });
+    }
+    
+    const now = new Date();
+    const expiresAt = new Date(now.getTime() + 5 * 60 * 60 * 1000);
+    
+    leadsData.leads[leadIndex].activeBuilders[builderIndex].flagged_at = now.toISOString();
+    leadsData.leads[leadIndex].activeBuilders[builderIndex].flagged_expires_at = expiresAt.toISOString();
+    
+    if (!leadsData.leads[leadIndex].auditLog) {
+      leadsData.leads[leadIndex].auditLog = [];
+    }
+    const builderName = lead.activeBuilders[builderIndex].name || builderId;
+    leadsData.leads[leadIndex].auditLog.push({
+      action: 'flagged_builder',
+      performedBy: scoutName || 'Scout',
+      timestamp: now.toISOString(),
+      details: `Flagged ${builderName} - submit within 5 hours or be kicked from ${lead.business_name}`
+    });
+    
+    await writeFile(MOCK_DATA_PATH, JSON.stringify(leadsData, null, 2));
+    
+    const weightedLead = applyRecencyWeights(leadsData.leads[leadIndex]);
+    const populatedLead = await populateActiveBuilders(weightedLead);
+    
+    res.json({ success: true, lead: populatedLead });
+  } catch (error) {
+    console.error('Flag builder error:', error);
+    res.status(500).json({ error: 'Failed to flag builder' });
+  }
+});
+
 // GET /api/leads/:id/audit-log - Get audit log for a lead
 app.get('/api/leads/:id/audit-log', async (req, res) => {
   try {
@@ -1921,6 +2092,265 @@ app.get('/api/library', async (req, res) => {
   }
 });
 
+// POST /api/leads/:id/open-voting - Open voting, create builds for finalists
+app.post('/api/leads/:id/open-voting', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const data = await loadData();
+    const leadIndex = data.leads.findIndex(l => l.id === id);
+    if (leadIndex === -1) return res.status(404).json({ error: 'Lead not found' });
+
+    const lead = data.leads[leadIndex];
+    const totalMilestones = lead.milestones?.length || 4;
+    const finalists = (lead.activeBuilders || []).filter(b => b.checkpointsCompleted >= totalMilestones);
+    if (finalists.length < 2) return res.status(400).json({ error: 'Need at least 2 builders with all milestones complete to open voting' });
+    if (lead.voting_open) return res.status(400).json({ error: 'Voting already open' });
+    if (lead.winnerUserId) return res.status(400).json({ error: 'Winner already selected' });
+
+    const alumni = await loadAlumniData();
+    const builds = await loadBuilds();
+
+    for (const builder of finalists) {
+      const alumniData = alumni.find(a => a.id === builder.userId);
+      // Use final submission (last milestone proof link) as deployed link for voting
+      let deployed_url = (builder.proofLinks && builder.proofLinks[builder.proofLinks.length - 1]) || '';
+      if (!deployed_url && builder.checkpointStatuses) {
+        const entries = Object.entries(builder.checkpointStatuses).filter(([, c]) => c?.proofLink);
+        entries.sort(([a], [b]) => Number(b) - Number(a));
+        deployed_url = entries[0]?.[1]?.proofLink || '';
+      }
+      const buildId = `build_${id}_${builder.userId}`;
+      if (!builds.find(b => b.id === buildId)) {
+        builds.push({
+          id: buildId,
+          lead_id: id,
+          builder_user_id: builder.userId,
+          builder_name: alumniData?.name || builder.userId,
+          business_name: lead.business_name,
+          deployed_url,
+          created_at: new Date().toISOString()
+        });
+      }
+    }
+
+    await saveBuilds(builds);
+    data.leads[leadIndex].voting_open = true;
+    await saveData(data);
+
+    const populatedLead = await populateActiveBuilders(applyRecencyWeights(data.leads[leadIndex]));
+    res.json({ success: true, lead: populatedLead, builds: builds.filter(b => b.lead_id === id) });
+  } catch (error) {
+    console.error('Open voting error:', error);
+    res.status(500).json({ error: 'Failed to open voting' });
+  }
+});
+
+// GET /api/leads/:id/voting - Get voting status and builds for a lead
+app.get('/api/leads/:id/voting', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const data = await loadData();
+    const lead = data.leads.find(l => l.id === id);
+    if (!lead) return res.status(404).json({ error: 'Lead not found' });
+
+    const builds = await loadBuilds();
+    const leadBuilds = builds.filter(b => b.lead_id === id);
+    const votes = await loadBuildVotes();
+    const buildVotes = votes.filter(v => leadBuilds.some(b => b.id === v.build_id));
+
+    const totalVotes = buildVotes.length;
+    const buildsWithVotes = leadBuilds.map(b => {
+      const bVotes = buildVotes.filter(v => v.build_id === b.id);
+      const avg = bVotes.length ? bVotes.reduce((s, v) => s + v.score, 0) / bVotes.length : 0;
+      return { ...b, voteCount: bVotes.length, averageScore: Math.round(avg * 100) / 100 };
+    });
+
+    res.json({
+      lead_id: id,
+      business_name: lead.business_name,
+      voting_open: !!lead.voting_open,
+      winnerUserId: lead.winnerUserId,
+      builds: buildsWithVotes,
+      totalVotes,
+      minVotesRequired: 10
+    });
+  } catch (error) {
+    console.error('Get voting error:', error);
+    res.status(500).json({ error: 'Failed to get voting status' });
+  }
+});
+
+// Helper: ensure a lead has voting open and builds for finalists (2+ builders with all milestones). Mutates data/builds and saves.
+async function ensureVotingOpenForLead(data, lead, builds, alumni) {
+  const totalMilestones = lead.milestones?.length || 4;
+  const finalists = (lead.activeBuilders || []).filter(b => b.checkpointsCompleted >= totalMilestones);
+  if (finalists.length < 2 || lead.winnerUserId) return false;
+  const leadIndex = data.leads.findIndex(l => l.id === lead.id);
+  if (leadIndex === -1) return false;
+
+  for (const builder of finalists) {
+    const alumniData = alumni.find(a => a.id === builder.userId);
+    let deployed_url = (builder.proofLinks && builder.proofLinks[builder.proofLinks.length - 1]) || '';
+    if (!deployed_url && builder.checkpointStatuses) {
+      const entries = Object.entries(builder.checkpointStatuses).filter(([, c]) => c?.proofLink);
+      entries.sort(([a], [b]) => Number(b) - Number(a));
+      deployed_url = entries[0]?.[1]?.proofLink || '';
+    }
+    const buildId = `build_${lead.id}_${builder.userId}`;
+    if (!builds.find(b => b.id === buildId)) {
+      builds.push({
+        id: buildId,
+        lead_id: lead.id,
+        builder_user_id: builder.userId,
+        builder_name: alumniData?.name || builder.userId,
+        business_name: lead.business_name,
+        deployed_url,
+        created_at: new Date().toISOString()
+      });
+    }
+  }
+  data.leads[leadIndex].voting_open = true;
+  return true;
+}
+
+// GET /api/voting/leads - Get all leads with voting open (for fellow voting UI). Auto-opens voting for leads with 2+ finalists.
+// Query: voter_id - optional, if provided each build includes hasVoted for this voter
+app.get('/api/voting/leads', async (req, res) => {
+  try {
+    const { voter_id } = req.query;
+    const data = await loadData();
+    const totalMilestonesDefault = 4;
+    const alumni = await loadAlumniData();
+    let builds = await loadBuilds();
+
+    // Auto-open voting for any lead that has 2+ builders with all milestones complete (so voting card populates)
+    for (const lead of data.leads || []) {
+      if (lead.winnerUserId) continue;
+      if (lead.voting_open) continue;
+      const finalists = (lead.activeBuilders || []).filter(b => b.checkpointsCompleted >= (lead.milestones?.length || totalMilestonesDefault));
+      if (finalists.length >= 2) {
+        const changed = await ensureVotingOpenForLead(data, lead, builds, alumni);
+        if (changed) {
+          await saveBuilds(builds);
+          await saveData(data);
+        }
+      }
+    }
+
+    const leads = (data.leads || []).filter(l => l.voting_open && !l.winnerUserId);
+    const votes = await loadBuildVotes();
+
+    const result = leads.map(lead => {
+      const leadBuilds = builds.filter(b => b.lead_id === lead.id);
+      const leadVotes = votes.filter(v => leadBuilds.some(b => b.id === v.build_id));
+      return {
+        lead_id: lead.id,
+        business_name: lead.business_name,
+        builds: leadBuilds.map(b => {
+          const bVotes = votes.filter(v => v.build_id === b.id);
+          const hasVoted = voter_id && bVotes.some(v => v.voter_id === voter_id);
+          return {
+            ...b,
+            voteCount: bVotes.length,
+            averageScore: bVotes.length ? Math.round((bVotes.reduce((s, v) => s + v.score, 0) / bVotes.length) * 100) / 100 : 0,
+            hasVoted: !!hasVoted
+          };
+        }),
+        totalVotes: leadVotes.length
+      };
+    });
+
+    res.json({ leads: result });
+  } catch (error) {
+    console.error('Get voting leads error:', error);
+    res.status(500).json({ error: 'Failed to get voting leads' });
+  }
+});
+
+// POST /api/builds/:buildId/vote - Submit a vote (1-5)
+app.post('/api/builds/:buildId/vote', async (req, res) => {
+  try {
+    const { buildId } = req.params;
+    const { voter_id, score } = req.body;
+
+    if (!voter_id || score === undefined) return res.status(400).json({ error: 'voter_id and score (1-5) required' });
+    if (score < 1 || score > 5) return res.status(400).json({ error: 'score must be between 1 and 5' });
+
+    const builds = await loadBuilds();
+    const build = builds.find(b => b.id === buildId);
+    if (!build) return res.status(404).json({ error: 'Build not found' });
+
+    const data = await loadData();
+    const lead = data.leads.find(l => l.id === build.lead_id);
+    if (!lead?.voting_open) return res.status(400).json({ error: 'Voting is not open for this project' });
+    if (lead.winnerUserId) return res.status(400).json({ error: 'Winner already selected' });
+
+    const votes = await loadBuildVotes();
+    const existing = votes.find(v => v.build_id === buildId && v.voter_id === voter_id);
+    if (existing) return res.status(400).json({ error: 'Already voted on this build' });
+
+    votes.push({
+      id: `vote_${Date.now()}_${Math.random().toString(36).slice(2)}`,
+      build_id: buildId,
+      voter_id,
+      score,
+      created_at: new Date().toISOString()
+    });
+    await saveBuildVotes(votes);
+
+    res.json({ success: true, message: 'Vote submitted' });
+  } catch (error) {
+    console.error('Vote error:', error);
+    res.status(500).json({ error: 'Failed to submit vote' });
+  }
+});
+
+// POST /api/leads/:id/close-voting - Close voting and calculate winner (min 10 votes)
+app.post('/api/leads/:id/close-voting', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const data = await loadData();
+    const leadIndex = data.leads.findIndex(l => l.id === id);
+    if (leadIndex === -1) return res.status(404).json({ error: 'Lead not found' });
+
+    const lead = data.leads[leadIndex];
+    if (!lead.voting_open) return res.status(400).json({ error: 'Voting is not open' });
+    if (lead.winnerUserId) return res.status(400).json({ error: 'Winner already selected' });
+
+    const builds = await loadBuilds();
+    const leadBuilds = builds.filter(b => b.lead_id === id);
+    const votes = await loadBuildVotes();
+    const leadVotes = votes.filter(v => leadBuilds.some(b => b.id === v.build_id));
+
+    const totalVotes = leadVotes.length;
+    if (totalVotes < 10) return res.status(400).json({ error: `Need at least 10 votes to close. Current: ${totalVotes}` });
+
+    const scored = leadBuilds.map(b => {
+      const bVotes = leadVotes.filter(v => v.build_id === b.id);
+      const avg = bVotes.length ? bVotes.reduce((s, v) => s + v.score, 0) / bVotes.length : 0;
+      return { ...b, voteCount: bVotes.length, averageScore: avg };
+    });
+
+    const winner = scored.reduce((prev, curr) => curr.averageScore > prev.averageScore ? curr : prev);
+
+    data.leads[leadIndex].winnerUserId = winner.builder_user_id;
+    data.leads[leadIndex].winnerAverageScore = Math.round(winner.averageScore * 100) / 100;
+    data.leads[leadIndex].status = 'awarded';
+    data.leads[leadIndex].voting_open = false;
+    await saveData(data);
+
+    const populatedLead = await populateActiveBuilders(applyRecencyWeights(data.leads[leadIndex]));
+    res.json({
+      success: true,
+      winner: { userId: winner.builder_user_id, name: winner.builder_name, averageScore: winner.averageScore },
+      lead: populatedLead
+    });
+  } catch (error) {
+    console.error('Close voting error:', error);
+    res.status(500).json({ error: 'Failed to close voting' });
+  }
+});
+
 // Health check
 app.get('/health', (req, res) => {
   res.json({ 
@@ -1950,8 +2380,16 @@ app.listen(PORT, '0.0.0.0', () => {
   console.log(`   PATCH /api/leads/:id/pause-sprint - Pause or resume sprint`);
   console.log(`   PATCH /api/leads/:id/extend-deadline - Extend sprint deadline`);
   console.log(`   DELETE /api/leads/:id/evict-builder/:builderId - Evict builder from sprint`);
+  console.log(`   POST /api/leads/:id/terminate-sprint - Terminate entire sprint`);
+  console.log(`   POST /api/leads/:id/nudge-builder/:builderId - Nudge a builder`);
+  console.log(`   POST /api/leads/:id/flag-builder/:builderId - Flag builder (5h warning)`);
   console.log(`   GET /api/leads/:id/audit-log     - Get audit log for a lead`);
   console.log(`   GET /api/library                 - Fetch completed builds library`);
+  console.log(`   POST /api/leads/:id/open-voting  - Open voting for finalists`);
+  console.log(`   GET /api/leads/:id/voting        - Get voting status and builds`);
+  console.log(`   GET /api/voting/leads            - Get all leads with voting open`);
+  console.log(`   POST /api/builds/:buildId/vote   - Submit vote (1-5)`);
+  console.log(`   POST /api/leads/:id/close-voting - Close voting and calculate winner (min 10 votes)`);
   console.log(`   POST /generate-handoff             - Generate handoff brief (JSON)`);
   console.log(`   GET /generate-handoff/:leadId/markdown - Download markdown brief`);
   console.log(`   GET /generate-handoff/:leadId/pdf      - Download PDF report`);

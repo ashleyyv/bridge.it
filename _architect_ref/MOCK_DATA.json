@@ -240,7 +240,8 @@
       ],
       "submissionWindowOpen": false,
       "firstCompletionAt": "2026-02-05T10:00:00Z",
-      "winnerUserId": "alumni_002",
+      "winnerUserId": null,
+      "voting_open": true,
       "sprintDeadline": "2026-02-19T16:58:47.582Z",
       "isPaused": false,
       "auditLog": []
@@ -594,7 +595,8 @@
       ],
       "submissionWindowOpen": false,
       "firstCompletionAt": "2026-02-04T10:00:00Z",
-      "winnerUserId": "alumni_004",
+      "winnerUserId": null,
+      "voting_open": true,
       "sprintDeadline": "2026-02-19T16:58:47.584Z",
       "isPaused": false,
       "auditLog": []
@@ -2046,51 +2048,119 @@
         {
           "userId": "alumni_009",
           "joinedAt": "2026-02-01T11:00:00Z",
-          "checkpointsCompleted": 2,
+          "checkpointsCompleted": 4,
           "proofLinks": [
-            "https://github.com/indigo/waitlist-estimator",
-            "https://loom.com/share/bbq-demo"
+            "https://github.com/jtaylor/bbq-waitlist-arch",
+            "https://loom.com/share/bbq-waitlist-core",
+            "https://github.com/jtaylor/bbq-waitlist-api",
+            "https://jtaylor-bbq-waitlist.vercel.app"
           ],
           "checkpointStatuses": {
             "1": {
               "status": "approved",
-              "proofLink": "https://github.com/indigo/waitlist-estimator",
+              "proofLink": "https://github.com/jtaylor/bbq-waitlist-arch",
               "submittedAt": "2026-02-02T09:00:00Z",
               "verifiedAt": "2026-02-02T11:00:00Z"
             },
             "2": {
-              "status": "submitted",
-              "proofLink": "https://loom.com/share/qrs345-bbq-core-logic",
-              "submittedAt": "2026-02-04T13:00:00Z"
+              "status": "approved",
+              "proofLink": "https://loom.com/share/bbq-waitlist-core",
+              "submittedAt": "2026-02-03T14:00:00Z",
+              "verifiedAt": "2026-02-03T16:00:00Z"
+            },
+            "3": {
+              "status": "approved",
+              "proofLink": "https://github.com/jtaylor/bbq-waitlist-api",
+              "submittedAt": "2026-02-05T10:00:00Z",
+              "verifiedAt": "2026-02-05T12:00:00Z"
+            },
+            "4": {
+              "status": "approved",
+              "proofLink": "https://jtaylor-bbq-waitlist.vercel.app",
+              "submittedAt": "2026-02-06T15:00:00Z",
+              "verifiedAt": "2026-02-06T17:00:00Z"
             }
           },
           "last_nudged_at": null,
-          "last_checkpoint_update": "2026-02-04T13:00:00.000Z"
+          "last_checkpoint_update": "2026-02-06T17:00:00.000Z"
         },
         {
           "userId": "alumni_010",
           "joinedAt": "2026-02-01T15:00:00Z",
-          "checkpointsCompleted": 1,
+          "checkpointsCompleted": 4,
           "proofLinks": [
-            "https://github.com/kai/smoke-time-api"
+            "https://github.com/amorgan/smoke-time-arch",
+            "https://loom.com/share/smoke-time-core",
+            "https://github.com/amorgan/smoke-time-api",
+            "https://amorgan-bbq-waitlist.netlify.app"
           ],
           "checkpointStatuses": {
             "1": {
-              "status": "submitted",
-              "proofLink": "https://loom.com/share/tuv678-smoke-api-proof",
-              "submittedAt": "2026-02-04T17:25:00Z"
+              "status": "approved",
+              "proofLink": "https://github.com/amorgan/smoke-time-arch",
+              "submittedAt": "2026-02-02T12:00:00Z",
+              "verifiedAt": "2026-02-02T14:00:00Z"
+            },
+            "2": {
+              "status": "approved",
+              "proofLink": "https://loom.com/share/smoke-time-core",
+              "submittedAt": "2026-02-04T10:00:00Z",
+              "verifiedAt": "2026-02-04T12:00:00Z"
+            },
+            "3": {
+              "status": "approved",
+              "proofLink": "https://github.com/amorgan/smoke-time-api",
+              "submittedAt": "2026-02-05T14:00:00Z",
+              "verifiedAt": "2026-02-05T16:00:00Z"
+            },
+            "4": {
+              "status": "approved",
+              "proofLink": "https://amorgan-bbq-waitlist.netlify.app",
+              "submittedAt": "2026-02-06T18:00:00Z",
+              "verifiedAt": "2026-02-06T20:00:00Z"
             }
           },
           "last_nudged_at": null,
-          "last_checkpoint_update": "2026-02-04T17:25:00.000Z"
+          "last_checkpoint_update": "2026-02-06T20:00:00.000Z"
         },
         {
           "userId": "alumni_001",
-          "joinedAt": "2026-02-05T14:40:08.604Z",
-          "checkpointsCompleted": 0,
-          "proofLinks": [],
+          "joinedAt": "2026-02-01T09:00:00Z",
+          "checkpointsCompleted": 4,
+          "proofLinks": [
+            "https://github.com/sarahchen/bbq-queue-arch",
+            "https://loom.com/share/bbq-queue-core",
+            "https://github.com/sarahchen/bbq-queue-integration",
+            "https://sarahchen-bbq-queue.vercel.app"
+          ],
+          "checkpointStatuses": {
+            "1": {
+              "status": "approved",
+              "proofLink": "https://github.com/sarahchen/bbq-queue-arch",
+              "submittedAt": "2026-02-02T08:00:00Z",
+              "verifiedAt": "2026-02-02T10:00:00Z"
+            },
+            "2": {
+              "status": "approved",
+              "proofLink": "https://loom.com/share/bbq-queue-core",
+              "submittedAt": "2026-02-03T16:00:00Z",
+              "verifiedAt": "2026-02-03T18:00:00Z"
+            },
+            "3": {
+              "status": "approved",
+              "proofLink": "https://github.com/sarahchen/bbq-queue-integration",
+              "submittedAt": "2026-02-05T11:00:00Z",
+              "verifiedAt": "2026-02-05T13:00:00Z"
+            },
+            "4": {
+              "status": "approved",
+              "proofLink": "https://sarahchen-bbq-queue.vercel.app",
+              "submittedAt": "2026-02-06T12:00:00Z",
+              "verifiedAt": "2026-02-06T14:00:00Z"
+            }
+          },
           "last_nudged_at": null,
-          "last_checkpoint_update": "2026-02-05T14:40:08.604Z"
+          "last_checkpoint_update": "2026-02-06T14:00:00.000Z"
         }
       ],
       "milestones": [
@@ -2120,8 +2190,9 @@
         }
       ],
       "submissionWindowOpen": false,
-      "firstCompletionAt": null,
+      "firstCompletionAt": "2026-02-06T12:00:00Z",
       "winnerUserId": null,
+      "voting_open": true,
       "sprintDeadline": "2026-02-19T16:58:47.584Z",
       "isPaused": false,
       "auditLog": []

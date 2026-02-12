@@ -1,0 +1,65 @@
+[
+  {
+    "id": "build_lead_001_alumni_001",
+    "lead_id": "lead_001",
+    "builder_user_id": "alumni_001",
+    "builder_name": "Sarah Chen",
+    "business_name": "Taco Libre Brooklyn",
+    "deployed_url": "https://loom.com/share/taco-queue-final-demo",
+    "created_at": "2026-02-08T12:00:00.000Z"
+  },
+  {
+    "id": "build_lead_001_alumni_002",
+    "lead_id": "lead_001",
+    "builder_user_id": "alumni_002",
+    "builder_name": "Marcus Johnson",
+    "business_name": "Taco Libre Brooklyn",
+    "deployed_url": "https://loom.com/share/phone-intake-final",
+    "created_at": "2026-02-08T12:00:00.000Z"
+  },
+  {
+    "id": "build_lead_004_alumni_003",
+    "lead_id": "lead_004",
+    "builder_user_id": "alumni_003",
+    "builder_name": "Priya Patel",
+    "business_name": "Astoria Mediterranean Grill",
+    "deployed_url": "https://loom.com/share/waitlist-final-demo",
+    "created_at": "2026-02-08T12:00:00.000Z"
+  },
+  {
+    "id": "build_lead_004_alumni_004",
+    "lead_id": "lead_004",
+    "builder_user_id": "alumni_004",
+    "builder_name": "David Kim",
+    "business_name": "Astoria Mediterranean Grill",
+    "deployed_url": "https://loom.com/share/waitlist-production-demo",
+    "created_at": "2026-02-08T12:00:00.000Z"
+  },
+  {
+    "id": "build_lead_020_alumni_009",
+    "lead_id": "lead_020",
+    "builder_user_id": "alumni_009",
+    "builder_name": "Jordan Taylor",
+    "business_name": "Sunset Park BBQ House",
+    "deployed_url": "https://jtaylor-bbq-waitlist.vercel.app",
+    "created_at": "2026-02-08T12:00:00.000Z"
+  },
+  {
+    "id": "build_lead_020_alumni_010",
+    "lead_id": "lead_020",
+    "builder_user_id": "alumni_010",
+    "builder_name": "Alex Morgan",
+    "business_name": "Sunset Park BBQ House",
+    "deployed_url": "https://amorgan-bbq-waitlist.netlify.app",
+    "created_at": "2026-02-08T12:00:00.000Z"
+  },
+  {
+    "id": "build_lead_020_alumni_001",
+    "lead_id": "lead_020",
+    "builder_user_id": "alumni_001",
+    "builder_name": "Sarah Chen",
+    "business_name": "Sunset Park BBQ House",
+    "deployed_url": "https://sarahchen-bbq-queue.vercel.app",
+    "created_at": "2026-02-08T12:00:00.000Z"
+  }
+]

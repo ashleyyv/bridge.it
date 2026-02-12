@@ -1,13 +1,13 @@
 "use client";
 
 import { apiUrl } from "@/lib/api";
-
 import { useEffect, useState } from "react";
 
 interface Lead {
   id: string;
   business_name: string;
   submissionWindowOpen?: boolean;
+  voting_open?: boolean;
   winnerUserId?: string | null;
   firstCompletionAt?: string | null;
   activeBuilders?: Array<{
@@ -21,6 +21,7 @@ interface WinnersCircleProps {}
 const WinnersCircle: React.FC<WinnersCircleProps> = () => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [evaluatingProjects, setEvaluatingProjects] = useState<Lead[]>([]);
+  const [recentWinners, setRecentWinners] = useState<Array<{ lead: Lead; winnerName: string }>>([]);
   const [hallOfFame, setHallOfFame] = useState<any[]>([]);
 
   useEffect(() => {
@@ -30,26 +31,24 @@ const WinnersCircle: React.FC<WinnersCircleProps> = () => {
         if (response.ok) {
           const data = await response.json();
           
-          // Filter for projects in evaluation phase
+          // Filter for projects in evaluation phase (no winner yet)
           const evaluating = data.leads.filter((lead: Lead) => 
             lead.submissionWindowOpen === false &&
-            lead.winnerUserId === null &&
-            lead.firstCompletionAt !== null &&
+            (lead.winnerUserId === null || lead.winnerUserId === undefined) &&
+            lead.firstCompletionAt &&
             lead.activeBuilders &&
             lead.activeBuilders.length > 0
           );
           
-          // Debug logging
-          console.log('Total leads:', data.leads.length);
-          console.log('Evaluating projects:', evaluating.length);
-          console.log('Evaluating projects:', evaluating.map((p: any) => ({
-            id: p.id,
-            name: p.business_name,
-            submissionWindowOpen: p.submissionWindowOpen,
-            winnerUserId: p.winnerUserId,
-            firstCompletionAt: p.firstCompletionAt
-          })));
-          
+          // Leads with winner (for "Today's Winner" / recent announcements)
+          const withWinners = data.leads.filter((lead: Lead) => 
+            lead.winnerUserId && lead.activeBuilders && lead.activeBuilders.length > 0
+          );
+          const withWinnerDetails = withWinners.map((lead: Lead) => {
+            const winnerBuilder = lead.activeBuilders!.find(b => b.userId === lead.winnerUserId);
+            return { lead, winnerName: winnerBuilder?.name || 'Unknown' };
+          });
+          setRecentWinners(withWinnerDetails.slice(0, 5)); // Most recent 5
           setEvaluatingProjects(evaluating);
         }
       } catch (error) {
@@ -217,39 +216,68 @@ const WinnersCircle: React.FC<WinnersCircleProps> = () => {
                   </div>
                 </div>
               ) : (
-                evaluatingProjects.map((project) => (
-                  <div
-                    key={project.id}
-                    className="bg-white border-2 border-gray-200 rounded-lg p-4 hover:border-green-300 
-                      transition-colors shadow-sm"
-                  >
-                    {/* Business Name */}
-                    <div className="font-semibold text-gray-900 mb-2">
-                      {project.business_name}
+                evaluatingProjects.map((project) => {
+                  const status = project.voting_open
+                    ? "Voting open"
+                    : "Pending winner announcement";
+                  const statusClass = project.voting_open
+                    ? "bg-cyan-100 text-cyan-700"
+                    : "bg-orange-100 text-orange-700";
+                  return (
+                    <div
+                      key={project.id}
+                      className="bg-white border-2 border-gray-200 rounded-lg p-4 hover:border-green-300 
+                        transition-colors shadow-sm"
+                    >
+                      <div className="font-semibold text-gray-900 mb-2">
+                        {project.business_name}
+                      </div>
+                      <div className="flex items-center justify-between gap-2 flex-wrap">
+                        <span className={`text-xs px-2 py-1 rounded-md font-medium ${statusClass}`}>
+                          {status}
+                        </span>
+                        {!project.voting_open && (
+                          <>
+                            <div className="text-xs text-gray-500">
+                              <ProjectCountdown lead={project} />
+                            </div>
+                            <span className="text-xs text-gray-600">
+                              {getFinalistCount(project)} finalist{getFinalistCount(project) !== 1 ? "s" : ""}
+                            </span>
+                          </>
+                        )}
+                      </div>
                     </div>
+                  );
+                })
+              )}
 
-                    {/* Countdown Timer */}
-                    <div className="mb-2">
-                      <div className="text-xs text-gray-500 mb-1">Winner Announcement:</div>
-                      <ProjectCountdown lead={project} />
-                    </div>
-
-                    {/* Finalists Count */}
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                      <span className="text-xs text-gray-500">Finalists:</span>
-                      <span className="font-medium">
-                        {getFinalistCount(project)} {getFinalistCount(project) === 1 ? 'builder' : 'builders'}
-                      </span>
-                    </div>
-
-                    {/* Status */}
-                    <div className="mt-2 pt-2 border-t border-gray-100">
-                      <span className="text-xs px-2 py-1 bg-orange-100 text-orange-700 rounded-md font-medium">
-                        In Evaluation
-                      </span>
-                    </div>
+              {/* Today's Winner / Just Announced */}
+              {recentWinners.length > 0 && (
+                <div className="mt-6 pt-6 border-t-2 border-green-200">
+                  <h4 className="text-lg font-bold text-green-800 mb-4 flex items-center gap-2">
+                    <span>🏆</span>
+                    Today&apos;s Winner
+                  </h4>
+                  <div className="space-y-3">
+                    {recentWinners.map(({ lead, winnerName }) => (
+                      <div
+                        key={lead.id}
+                        className="flex items-center justify-between p-3 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border-2 border-green-200"
+                      >
+                        <div>
+                          <div className="font-semibold text-gray-900">{lead.business_name}</div>
+                          <div className="text-sm text-green-700 font-medium">
+                            Winner: {winnerName}
+                            {lead.winnerAverageScore != null && (
+                              <span className="text-gray-500 ml-1">(avg: {lead.winnerAverageScore})</span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                ))
+                </div>
               )}
 
               {/* Hall of Fame Section */}

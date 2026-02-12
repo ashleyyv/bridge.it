@@ -15,6 +15,8 @@ interface ActiveBuilder {
   specialty?: string;
   last_nudged_at?: string | null;
   last_checkpoint_update?: string | null;
+  flagged_at?: string | null;
+  flagged_expires_at?: string | null;
   checkpointStatuses?: {
     [key: string]: {
       status: 'pending' | 'submitted' | 'verified' | 'approved';
@@ -73,6 +75,7 @@ interface Lead {
   sprintStartedAt?: string;
   sprintDeadline?: string;
   isPaused?: boolean;
+  voting_open?: boolean;
   auditLog?: {
     action: string;
     performedBy: string;
@@ -316,12 +319,14 @@ export default function ScoutDashboard() {
   const [winnerConfirmLoading, setWinnerConfirmLoading] = useState(false);
   const [sprintFilter, setSprintFilter] = useState<"all" | "urgent" | "finalist" | "needs-review">("all");
   const [sortByHFI, setSortByHFI] = useState(false);
+  const [expandedBuilders, setExpandedBuilders] = useState<Set<string>>(new Set());
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [confirmAction, setConfirmAction] = useState<{
-    type: 'pause' | 'extend' | 'evict';
+    type: 'pause' | 'extend' | 'evict' | 'terminate';
     data?: any;
     callback?: () => void;
   } | null>(null);
+  const [votingStatus, setVotingStatus] = useState<{ totalVotes: number; minVotesRequired: number } | null>(null);
 
   // Route protection: Check if user is authenticated and has scout role
   useEffect(() => {
@@ -430,6 +435,59 @@ export default function ScoutDashboard() {
     }
   };
 
+  // Handler for terminate sprint
+  const handleTerminateSprint = (leadId: string) => {
+    setConfirmAction({
+      type: 'terminate',
+      data: { leadId },
+      callback: async () => {
+        try {
+          const response = await fetch(apiUrl(`/api/leads/${leadId}/terminate-sprint`), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ scoutName: user?.name || 'Scout Maria' })
+          });
+          if (response.ok) {
+            fetchLeads();
+          } else {
+            console.error('Failed to terminate sprint');
+          }
+        } catch (error) {
+          console.error('Failed to terminate sprint:', error);
+        }
+      }
+    });
+    setShowConfirmModal(true);
+  };
+
+  // Handler for nudge builder
+  const handleNudgeBuilder = async (leadId: string, builderId: string) => {
+    try {
+      const response = await fetch(apiUrl(`/api/leads/${leadId}/nudge-builder/${builderId}`), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ scoutName: user?.name || 'Scout Maria' })
+      });
+      if (response.ok) fetchLeads();
+    } catch (error) {
+      console.error('Failed to nudge builder:', error);
+    }
+  };
+
+  // Handler for flag builder (5h warning)
+  const handleFlagBuilder = async (leadId: string, builderId: string) => {
+    try {
+      const response = await fetch(apiUrl(`/api/leads/${leadId}/flag-builder/${builderId}`), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ scoutName: user?.name || 'Scout Maria' })
+      });
+      if (response.ok) fetchLeads();
+    } catch (error) {
+      console.error('Failed to flag builder:', error);
+    }
+  };
+
   useEffect(() => {
     fetchLeads();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -446,44 +504,47 @@ export default function ScoutDashboard() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [viewTab]);
 
-  // Auto-open Finalist Comparison modal when conditions are met
+  // Fetch voting status when finalist modal opens with voting_open
   useEffect(() => {
-    if (!data || !data.leads || finalistComparisonLead) return;
+    if (!finalistComparisonLead?.voting_open) {
+      setVotingStatus(null);
+      return;
+    }
+    fetch(apiUrl(`/api/leads/${finalistComparisonLead.id}/voting`))
+      .then((res) => res.json())
+      .then((d) => setVotingStatus({ totalVotes: d.totalVotes || 0, minVotesRequired: d.minVotesRequired || 10 }))
+      .catch(() => setVotingStatus(null));
+    const interval = setInterval(() => {
+      fetch(apiUrl(`/api/leads/${finalistComparisonLead.id}/voting`))
+        .then((res) => res.json())
+        .then((d) => setVotingStatus({ totalVotes: d.totalVotes || 0, minVotesRequired: d.minVotesRequired || 10 }))
+        .catch(() => {});
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [finalistComparisonLead?.id, finalistComparisonLead?.voting_open]);
+
+  // Auto-open Finalist Comparison modal at most once per session (so closing it doesn't re-open)
+  const hasAutoOpenedFinalistRef = useRef(false);
+  useEffect(() => {
+    if (!data || !data.leads || finalistComparisonLead || hasAutoOpenedFinalistRef.current) return;
     
-    // Find leads that meet the criteria for finalist comparison
+    const totalCheckpoints = 4;
     const eligibleLeads = data.leads.filter(lead => {
+      if (lead.winnerUserId) return false;
+      const milestones = lead.milestones?.length ?? totalCheckpoints;
+      const finalists = lead.activeBuilders?.filter(b => b.checkpointsCompleted >= milestones) || [];
+      if (finalists.length < 2) return false;
       if (!lead.firstCompletionAt) return false;
       if (lead.submissionWindowOpen !== false) return false;
-      if (lead.winnerUserId) return false; // Already has a winner
-      
-      const finalists = lead.activeBuilders?.filter(b => b.checkpointsCompleted >= 4) || [];
-      if (finalists.length < 2) return false; // Need at least 2 finalists
-      
-      // Check if 48 hours have passed since first completion
       const firstCompletionTime = new Date(lead.firstCompletionAt).getTime();
       const now = new Date().getTime();
       const hoursSinceFirstCompletion = (now - firstCompletionTime) / (1000 * 60 * 60);
-      
       return hoursSinceFirstCompletion >= 48;
     });
     
-    // Auto-open modal for the first eligible lead
     if (eligibleLeads.length > 0) {
-      const leadToOpen = eligibleLeads[0];
-      setFinalistComparisonLead(leadToOpen);
-      // Initialize scores from existing scout reviews
-      const initialScores: { [userId: string]: { qualityScore: number; scoutReviewScore: number } } = {};
-      if (leadToOpen.activeBuilders) {
-        leadToOpen.activeBuilders.forEach(builder => {
-          if (builder.checkpointsCompleted >= 4) {
-            initialScores[builder.userId] = {
-              qualityScore: builder.scoutReview?.qualityScore ?? 0,
-              scoutReviewScore: builder.scoutReview?.scoutReviewScore ?? builder.scoutReview?.qualityScore ?? 0
-            };
-          }
-        });
-      }
-      setFinalistScores(initialScores);
+      hasAutoOpenedFinalistRef.current = true;
+      setFinalistComparisonLead(eligibleLeads[0]);
     }
   }, [data, finalistComparisonLead]);
 
@@ -717,7 +778,22 @@ export default function ScoutDashboard() {
     const now = new Date();
     const hoursSinceUpdate = (now.getTime() - lastUpdate.getTime()) / (1000 * 60 * 60);
     
-    return hoursSinceUpdate >= 72 && builder.checkpointsCompleted < 4;
+    return hoursSinceUpdate >= 72 && builder.checkpointsCompleted === 2;
+  };
+
+  const isFlagged = (builder: any): boolean => {
+    return !!(builder.flagged_at && builder.flagged_expires_at);
+  };
+
+  const getFlagTimeRemaining = (builder: any): string | null => {
+    if (!builder.flagged_expires_at) return null;
+    const expires = new Date(builder.flagged_expires_at).getTime();
+    const now = Date.now();
+    const ms = expires - now;
+    if (ms <= 0) return 'Expired';
+    const hours = Math.floor(ms / (1000 * 60 * 60));
+    const mins = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60));
+    return `${hours}h ${mins}m left`;
   };
 
   const getTimeSince = (timestamp: string | null): string => {
@@ -1357,111 +1433,84 @@ export default function ScoutDashboard() {
     return Math.max(4, 100 - (Math.abs(hoursDifference) * 2));
   };
 
-  // Calculate total score for a builder
-  const calculateTotalScore = (
-    paceScore: number,
-    qualityScore: number,
-    scoutReviewScore: number
-  ): number => {
-    return (paceScore * 0.3) + (qualityScore * 0.5) + (scoutReviewScore * 0.2);
-  };
-
-  // Get finalists with calculated scores
+  // Get finalists (voting-only: no quality scores)
   const getFinalistsWithScores = (lead: Lead) => {
     if (!lead.activeBuilders) return [];
     const finalists = lead.activeBuilders.filter(b => b.checkpointsCompleted >= 4);
-    
     return finalists.map(builder => {
       const paceScore = calculatePaceScore(builder, lead.firstCompletionAt);
-      const qualityScore = finalistScores[builder.userId]?.qualityScore ?? builder.scoutReview?.qualityScore ?? 0;
-      const scoutReviewScore = finalistScores[builder.userId]?.scoutReviewScore ?? builder.scoutReview?.scoutReviewScore ?? builder.scoutReview?.qualityScore ?? 0;
-      const totalScore = calculateTotalScore(paceScore, qualityScore, scoutReviewScore);
-      
-      return {
-        ...builder,
-        scores: {
-          pace: Math.round(paceScore * 100) / 100,
-          quality: Math.round(qualityScore * 100) / 100,
-          scoutReview: Math.round(scoutReviewScore * 100) / 100,
-          total: Math.round(totalScore * 100) / 100
-        }
-      };
-    }).sort((a, b) => b.scores.total - a.scores.total);
+      return { ...builder, scores: { pace: Math.round(paceScore * 100) / 100 } };
+    });
   };
 
-  // Handle opening finalist comparison modal
   const handleOpenFinalistComparison = (lead: Lead, e: React.MouseEvent) => {
     e.stopPropagation();
     setFinalistComparisonLead(lead);
-    // Initialize scores from existing scout reviews
-    const initialScores: { [userId: string]: { qualityScore: number; scoutReviewScore: number } } = {};
-    if (lead.activeBuilders) {
-      lead.activeBuilders.forEach(builder => {
-        if (builder.checkpointsCompleted >= 4) {
-          initialScores[builder.userId] = {
-            qualityScore: builder.scoutReview?.qualityScore ?? 0,
-            scoutReviewScore: builder.scoutReview?.scoutReviewScore ?? builder.scoutReview?.qualityScore ?? 0
-          };
-        }
-      });
-    }
-    setFinalistScores(initialScores);
   };
 
-  // Handle confirming winner
-  const handleConfirmWinner = async () => {
+  // Handle opening voting (fellows vote 1-5 on builds)
+  const handleOpenVoting = async () => {
     if (!finalistComparisonLead) return;
-
-    // First, submit all score updates
     setWinnerConfirmLoading(true);
     try {
-          // Submit quality and scout review scores for each finalist
-      for (const builder of finalistComparisonLead.activeBuilders || []) {
-        if (builder.checkpointsCompleted >= 4) {
-          const scores = finalistScores[builder.userId];
-          if (scores && (scores.qualityScore !== builder.scoutReview?.qualityScore || scores.scoutReviewScore !== (builder.scoutReview?.scoutReviewScore ?? builder.scoutReview?.qualityScore))) {
-            // Update via scout-review endpoint with both scores
-            await fetch(apiUrl(`/api/leads/${finalistComparisonLead.id}/scout-review`), {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                userId: builder.userId,
-                qualityScore: scores.qualityScore,
-                scoutReviewScore: scores.scoutReviewScore,
-                reviewNotes: builder.scoutReview?.reviewNotes || ''
-              }),
-            });
-          }
-        }
-      }
-
-      // Calculate and set winner
-      const response = await fetch(apiUrl(`/api/leads/${finalistComparisonLead.id}/calculate-winner`), {
+      const url = apiUrl(`/api/leads/${finalistComparisonLead.id}/open-voting`);
+      const response = await fetch(url, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
       });
-
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to calculate winner');
+        let msg = 'Failed to open voting';
+        const ct = response.headers.get('content-type');
+        if (ct && ct.includes('application/json')) {
+          try {
+            const err = await response.json();
+            msg = err.error || msg;
+          } catch { /* ignore */ }
+        } else {
+          msg = `Server returned ${response.status}. Is the API backend running at ${url.replace(/\/api\/.*/, '')}?`;
+        }
+        throw new Error(msg);
       }
-
-      const result = await response.json();
-      
-      // Refresh data
       fetchLeads();
-      
-      alert(`Winner confirmed: ${result.winner.name}. They now have Right to Outreach.`);
+      setFinalistComparisonLead({ ...finalistComparisonLead, voting_open: true });
+      alert('Voting opened. Fellows can now vote on builds (1-5 scale). Min 10 votes required to close.');
+    } catch (error: any) {
+      alert(error.message || 'Failed to open voting');
+    } finally {
+      setWinnerConfirmLoading(false);
+    }
+  };
+
+  // Handle closing voting and calculating winner from votes
+  const handleCloseVoting = async () => {
+    if (!finalistComparisonLead) return;
+    setWinnerConfirmLoading(true);
+    try {
+      const response = await fetch(apiUrl(`/api/leads/${finalistComparisonLead.id}/close-voting`), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      if (!response.ok) {
+        let msg = 'Failed to close voting';
+        const ct = response.headers.get('content-type');
+        if (ct && ct.includes('application/json')) {
+          try {
+            const err = await response.json();
+            msg = err.error || msg;
+          } catch { /* ignore */ }
+        } else {
+          msg = `Server returned ${response.status}. Is the API backend running?`;
+        }
+        throw new Error(msg);
+      }
+      const result = await response.json();
+      fetchLeads();
+      alert(`Winner: ${result.winner.name} (avg score: ${result.winner.averageScore?.toFixed(1)}). Announced in Winners Circle.`);
       setFinalistComparisonLead(null);
       setFinalistScores({});
       setShowWinnerConfirm(false);
     } catch (error: any) {
-      console.error('Error confirming winner:', error);
-      alert(error.message || 'Failed to confirm winner. Please try again.');
+      alert(error.message || 'Failed to close voting. Need at least 10 votes.');
     } finally {
       setWinnerConfirmLoading(false);
     }
@@ -2050,9 +2099,34 @@ export default function ScoutDashboard() {
                               )}
                             </div>
                           )}
+
+                          {/* Per-lead actions: Pause, Terminate, Extend */}
+                          <div className="flex flex-wrap gap-2 mt-2" onClick={(e) => e.stopPropagation()}>
+                            <label className="inline-flex items-center gap-1 px-2 py-1 bg-slate-100 rounded text-xs cursor-pointer hover:bg-slate-200">
+                              <input
+                                type="checkbox"
+                                checked={lead.isPaused || false}
+                                onChange={() => handlePauseSprint(lead.id, !lead.isPaused)}
+                                className="sr-only peer"
+                              />
+                              <span className={lead.isPaused ? 'text-orange-600 font-medium' : 'text-slate-600'}>Pause</span>
+                            </label>
+                            <button
+                              onClick={() => handleExtendDeadline(lead.id, 7)}
+                              className="px-2 py-1 bg-cyan-100 text-cyan-700 rounded text-xs font-medium hover:bg-cyan-200"
+                            >
+                              +7 Days
+                            </button>
+                            <button
+                              onClick={() => handleTerminateSprint(lead.id)}
+                              className="px-2 py-1 bg-red-100 text-red-700 rounded text-xs font-medium hover:bg-red-200"
+                            >
+                              Terminate
+                            </button>
+                          </div>
                         </div>
 
-                        {/* Builder Progress Bars - Compact */}
+                        {/* Builder Progress Bars - Compact with collapsible actions */}
                         <div className="space-y-2.5">
                           {lead.activeBuilders?.map((builder, builderIndex) => {
                             const isLeading = leader?.userId === builder.userId && builder.checkpointsCompleted > 0;
@@ -2063,40 +2137,96 @@ export default function ScoutDashboard() {
                             const progressColorClass = getProgressColor(builder.checkpointsCompleted, totalCheckpoints);
                             const recentNudge = hasRecentNudge(builder);
                             const stalled = isStalled(builder);
+                            const flagged = isFlagged(builder);
+                            const flagTimeRemaining = getFlagTimeRemaining(builder);
+                            const expandKey = `${lead.id}-${builder.userId}`;
+                            const isExpanded = expandedBuilders.has(expandKey);
+                            const toggleExpand = () => {
+                              setExpandedBuilders((prev) => {
+                                const next = new Set(prev);
+                                if (next.has(expandKey)) next.delete(expandKey);
+                                else next.add(expandKey);
+                                return next;
+                              });
+                            };
 
                             return (
                               <div key={builder.userId} className="space-y-1">
                                 <div className="flex items-center justify-between gap-2">
-                                  <div className="flex items-center gap-2 flex-1 min-w-0">
+                                  <button
+                                    type="button"
+                                    onClick={toggleExpand}
+                                    className="flex items-center gap-2 flex-1 min-w-0 text-left"
+                                  >
+                                    <svg
+                                      className={`w-3.5 h-3.5 text-textSecondary flex-shrink-0 transition-transform ${isExpanded ? 'rotate-90' : ''}`}
+                                      fill="currentColor"
+                                      viewBox="0 0 20 20"
+                                    >
+                                      <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                                    </svg>
                                     <div className="relative flex-shrink-0">
                                       {stalled && (
-                                        <div className="absolute -top-1 -right-1 w-3 h-3 bg-orange-500 rounded-full border-2 border-white" 
-                                             title="Stalled - No updates in 72+ hours">
-                                        </div>
+                                        <span className="text-[10px] font-bold text-orange-600 bg-orange-100 px-1 rounded" title="Stalled 72h+ (2 milestones)">Stalled</span>
+                                      )}
+                                      {flagged && !stalled && (
+                                        <span className="text-[10px] font-bold text-amber-600 bg-amber-100 px-1 rounded" title={flagTimeRemaining || ''}>
+                                          Flagged {flagTimeRemaining ? `- ${flagTimeRemaining}` : ''}
+                                        </span>
                                       )}
                                     </div>
                                     <span className="text-xs font-medium text-textPrimary truncate flex-1">
                                       {builder.name}: {builder.checkpointsCompleted}/{totalCheckpoints} checkpoints
                                     </span>
-                                  </div>
-                                  {recentNudge && (
-                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-purple-100 text-purple-700 text-xs rounded-full flex-shrink-0"
-                                          title={`Nudge sent ${getTimeSince(builder.last_nudged_at ?? null)}`}>
-                                      <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                                        <path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z"/>
-                                      </svg>
-                                      <span className="hidden sm:inline">Nudge</span>
-                                    </span>
-                                  )}
+                                  </button>
                                 </div>
                                 
-                                {/* Progress Bar - Smooth with color-coded fill */}
+                                {/* Progress Bar */}
                                 <div className={`relative w-full h-4 bg-gray-200 rounded-full overflow-hidden border border-gray-300 ${lead.isPaused ? 'sprint-paused' : ''}`}>
                                   <div
                                     className={`h-full progress-bar ${progressColorClass} transition-all duration-500 ease-out rounded-full shadow-sm ${lead.isPaused ? 'sprint-paused' : ''}`}
                                     style={{ width: `${progressPercentage}%` }}
                                   />
                                 </div>
+
+                                {/* Collapsible actions: Nudge, 5h Warning, Kick */}
+                                {isExpanded && (
+                                  <div className="flex items-center gap-1 pl-4 pt-1" onClick={(e) => e.stopPropagation()}>
+                                    {recentNudge && (
+                                      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-purple-100 text-purple-700 text-[10px] rounded" title={`Nudge sent ${getTimeSince(builder.last_nudged_at ?? null)}`}>
+                                        Nudge sent
+                                      </span>
+                                    )}
+                                    <button
+                                      onClick={() => handleNudgeBuilder(lead.id, builder.userId)}
+                                      className="px-1.5 py-0.5 bg-purple-100 text-purple-700 text-[10px] font-medium rounded hover:bg-purple-200"
+                                      title="Nudge builder"
+                                    >
+                                      Nudge
+                                    </button>
+                                    <button
+                                      onClick={() => handleFlagBuilder(lead.id, builder.userId)}
+                                      className="px-1.5 py-0.5 bg-amber-100 text-amber-700 text-[10px] font-medium rounded hover:bg-amber-200"
+                                      title="5h warning - submit or be kicked"
+                                    >
+                                      5h Warning
+                                    </button>
+                                    <button
+                                      onClick={() => {
+                                        setConfirmAction({
+                                          type: 'evict',
+                                          data: { leadId: lead.id, builderId: builder.userId, builderName: builder.name },
+                                          callback: () => handleEvictBuilder(lead.id, builder.userId)
+                                        });
+                                        setShowConfirmModal(true);
+                                      }}
+                                      className="px-1.5 py-0.5 bg-red-100 text-red-700 text-[10px] font-medium rounded hover:bg-red-200"
+                                      title="Kick builder"
+                                    >
+                                      Kick
+                                    </button>
+                                  </div>
+                                )}
                               </div>
                             );
                           })}
@@ -2829,6 +2959,11 @@ export default function ScoutDashboard() {
                   </p>
                 )}
                 
+                {confirmAction.type === 'terminate' && (
+                  <p className="text-slate-700">
+                    Terminate this sprint? All builders will be removed and no winner will be selected.
+                  </p>
+                )}
                 {confirmAction.type === 'evict' && (
                   <p className="text-slate-700">
                     Evict <strong>{confirmAction.data?.builderName}</strong> from this sprint? 
@@ -2963,18 +3098,6 @@ export default function ScoutDashboard() {
                         })}
                       </div>
                       
-                      {/* Quality Score Input */}
-                      <div className="bg-white border border-gray-200 rounded p-3">
-                        <label className="text-sm font-medium text-gray-700">Quality Score (0-100)</label>
-                        <input 
-                          type="number" 
-                          min="0" 
-                          max="100"
-                          value={reviewScores[builder.userId]?.qualityScore || 0}
-                          onChange={(e) => updateQualityScore(builder.userId, parseInt(e.target.value) || 0)}
-                          className="w-full mt-1 px-3 py-2 border border-gray-300 rounded"
-                        />
-                      </div>
                     </div>
                   );
                 })
@@ -2985,57 +3108,30 @@ export default function ScoutDashboard() {
               )}
             </div>
             
-            {/* Footer with action buttons */}
-            <div className="p-6 border-t border-gray-200 flex justify-end gap-3">
+            {/* Footer - view only; winner is determined by fellow voting */}
+            <div className="p-6 border-t border-gray-200 flex justify-end">
               <button 
                 onClick={closeConsole} 
-                className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-50 transition-colors"
+                className="px-4 py-2 bg-cyan-600 text-white rounded hover:bg-cyan-700 transition-colors"
               >
-                Cancel
-              </button>
-              <button 
-                onClick={saveAllReviews}
-                disabled={reviewLoading}
-                className={`px-4 py-2 bg-cyan-600 text-white rounded hover:bg-cyan-700 transition-colors ${
-                  reviewLoading ? 'opacity-50 cursor-not-allowed' : ''
-                }`}
-              >
-                {reviewLoading ? 'Saving...' : 'Save All Reviews'}
+                Close
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Finalist Comparison Modal */}
+      {/* Finalist Comparison Modal - voting only, no quality scores */}
       {finalistComparisonLead && (() => {
-        // Get finalists and recalculate scores with current slider values
-        const baseFinalists = getFinalistsWithScores(finalistComparisonLead);
+        const finalistsList = getFinalistsWithScores(finalistComparisonLead);
         const milestoneNames = ['Architecture', 'Core Logic', 'API Integration', 'Integration & Testing'];
-        
-        // Recalculate and sort finalists based on current scores
-        const finalistsWithCurrentScores = baseFinalists.map(builder => {
-          const currentScores = finalistScores[builder.userId] || {
-            qualityScore: builder.scoutReview?.qualityScore ?? 0,
-            scoutReviewScore: builder.scoutReview?.scoutReviewScore ?? builder.scoutReview?.qualityScore ?? 0
-          };
-          const paceScore = builder.scores.pace;
-          const qualityScore = currentScores.qualityScore;
-          const scoutReviewScore = currentScores.scoutReviewScore;
-          const totalScore = calculateTotalScore(paceScore, qualityScore, scoutReviewScore);
-          
-          return {
-            ...builder,
-            currentTotalScore: totalScore
-          };
-        }).sort((a, b) => b.currentTotalScore - a.currentTotalScore);
-        
         return (
           <div
             className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center p-4 z-50"
             onClick={() => {
               setFinalistComparisonLead(null);
               setFinalistScores({});
+              setSelectedLead(null);
             }}
           >
             <div
@@ -3048,7 +3144,7 @@ export default function ScoutDashboard() {
                     Finalist Comparison: {finalistComparisonLead.business_name}
                   </h2>
                   <p className="text-textSecondary">
-                    Compare finalists and determine the winner. Adjust scores to see real-time total calculations.
+                    Fellows vote 1–5 on builds. Min 10 votes required. Winner is calculated from vote scores.
                   </p>
                 </div>
                 <button
@@ -3056,6 +3152,7 @@ export default function ScoutDashboard() {
                     e.stopPropagation();
                     setFinalistComparisonLead(null);
                     setFinalistScores({});
+                    setSelectedLead(null);
                   }}
                   className="text-textTertiary hover:text-textPrimary text-3xl leading-none"
                 >
@@ -3063,174 +3160,46 @@ export default function ScoutDashboard() {
                 </button>
               </div>
 
-              {/* Comparison Table */}
+              {/* Finalists - voting only, no quality scores */}
               <div className="overflow-x-auto mb-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 min-w-[1200px]">
-                  {finalistsWithCurrentScores.map((builder) => {
-                    const isWinner = finalistsWithCurrentScores.length > 0 && finalistsWithCurrentScores[0].userId === builder.userId;
-                    const currentScores = finalistScores[builder.userId] || {
-                      qualityScore: builder.scoutReview?.qualityScore ?? 0,
-                      scoutReviewScore: builder.scoutReview?.scoutReviewScore ?? builder.scoutReview?.qualityScore ?? 0
-                    };
-                    const paceScore = builder.scores.pace;
-                    const qualityScore = currentScores.qualityScore;
-                    const scoutReviewScore = currentScores.scoutReviewScore;
-                    const totalScore = builder.currentTotalScore;
-                    
-                    // Calculate completion time - estimate based on joinedAt + checkpoints
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 min-w-[800px]">
+                  {finalistsList.map((builder) => {
+                    const isWinner = (finalistComparisonLead.winnerUserId && finalistComparisonLead.winnerUserId === builder.userId);
                     const joinedTime = new Date(builder.joinedAt).getTime();
                     const estimatedCompletionTime = new Date(joinedTime + (builder.checkpointsCompleted * 24 * 60 * 60 * 1000));
                     const completionTime = estimatedCompletionTime.toLocaleString();
-                    
-                    // Calculate time relative to firstCompletionAt
                     let relativeTime = '';
                     if (finalistComparisonLead.firstCompletionAt) {
                       const firstCompletionTime = new Date(finalistComparisonLead.firstCompletionAt).getTime();
                       const hoursDiff = (estimatedCompletionTime.getTime() - firstCompletionTime) / (1000 * 60 * 60);
-                      if (hoursDiff > 0) {
-                        relativeTime = ` (+${Math.round(hoursDiff)}h)`;
-                      } else if (hoursDiff < 0) {
-                        relativeTime = ` (${Math.round(hoursDiff)}h)`;
-                      } else {
-                        relativeTime = ' (same time)';
-                      }
+                      if (hoursDiff > 0) relativeTime = ` (+${Math.round(hoursDiff)}h)`;
+                      else if (hoursDiff < 0) relativeTime = ` (${Math.round(hoursDiff)}h)`;
+                      else relativeTime = ' (same time)';
                     }
-                    
                     return (
                       <div
                         key={builder.userId}
                         className={`bg-gray-50 rounded-lg p-6 border-2 transition-all ${
-                          isWinner 
-                            ? 'border-green-500 shadow-lg bg-green-50' 
-                            : 'border-border'
+                          isWinner ? 'border-green-500 shadow-lg bg-green-50' : 'border-border'
                         }`}
                       >
-                        {/* Builder Header */}
                         <div className="flex items-center gap-3 mb-4">
                           <div className="w-12 h-12 rounded-full bg-slate-600 flex items-center justify-center text-white font-semibold text-lg flex-shrink-0">
                             {builder.name.charAt(0).toUpperCase()}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <h3 className="text-lg font-semibold text-textPrimary truncate">
-                              {builder.name}
-                            </h3>
+                            <h3 className="text-lg font-semibold text-textPrimary truncate">{builder.name}</h3>
                             {isWinner && (
-                              <span className="inline-block px-2 py-0.5 bg-green-500 text-white text-xs font-semibold rounded mt-1">
-                                🏆 Winner
-                              </span>
+                              <span className="inline-block px-2 py-0.5 bg-green-500 text-white text-xs font-semibold rounded mt-1">🏆 Winner</span>
                             )}
                           </div>
                         </div>
-
-                        {/* Completion Time */}
                         <div className="mb-4 pb-4 border-b border-border">
                           <div className="text-xs text-textSecondary mb-1">Completion Time</div>
                           <div className="text-sm font-medium text-textPrimary">
-                            {completionTime}
-                            {relativeTime && <span className="text-xs text-textSecondary ml-1">{relativeTime}</span>}
+                            {completionTime}{relativeTime && <span className="text-xs text-textSecondary ml-1">{relativeTime}</span>}
                           </div>
                         </div>
-
-                        {/* Pace Score */}
-                        <div className="mb-4">
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="text-sm font-medium text-textPrimary">Pace Score</span>
-                            <span className="text-sm font-semibold text-textPrimary">{Math.round(paceScore)}</span>
-                          </div>
-                          <div className="w-full bg-gray-200 rounded-full h-3">
-                            <div
-                              className="bg-blue-500 h-3 rounded-full transition-all"
-                              style={{ width: `${Math.min(100, Math.max(0, paceScore))}%` }}
-                            />
-                          </div>
-                        </div>
-
-                        {/* Quality Score with Slider */}
-                        <div className="mb-4">
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="text-sm font-medium text-textPrimary">Quality Score</span>
-                            <span className="text-sm font-semibold text-cyan-600">{qualityScore}</span>
-                          </div>
-                          <input
-                            type="range"
-                            min="0"
-                            max="100"
-                            value={qualityScore}
-                            onChange={(e) => {
-                              const newScore = parseInt(e.target.value);
-                              setFinalistScores({
-                                ...finalistScores,
-                                [builder.userId]: {
-                                  ...currentScores,
-                                  qualityScore: newScore
-                                }
-                              });
-                            }}
-                            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-cyan-500"
-                          />
-                          <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
-                            <div
-                              className="bg-cyan-500 h-2 rounded-full transition-all"
-                              style={{ width: `${qualityScore}%` }}
-                            />
-                          </div>
-                        </div>
-
-                        {/* Scout Review Score with Slider */}
-                        <div className="mb-4">
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="text-sm font-medium text-textPrimary">Scout Review</span>
-                            <span className="text-sm font-semibold text-cyan-600">{scoutReviewScore}</span>
-                          </div>
-                          <input
-                            type="range"
-                            min="0"
-                            max="100"
-                            value={scoutReviewScore}
-                            onChange={(e) => {
-                              const newScore = parseInt(e.target.value);
-                              setFinalistScores({
-                                ...finalistScores,
-                                [builder.userId]: {
-                                  ...currentScores,
-                                  scoutReviewScore: newScore
-                                }
-                              });
-                            }}
-                            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-cyan-500"
-                          />
-                          <div className="w-full bg-gray-200 rounded-full h-2 mt-1">
-                            <div
-                              className="bg-cyan-500 h-2 rounded-full transition-all"
-                              style={{ width: `${scoutReviewScore}%` }}
-                            />
-                          </div>
-                        </div>
-
-                        {/* Total Score */}
-                        <div className="mb-4 pb-4 border-b border-border">
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="text-sm font-semibold text-textPrimary">Total Score</span>
-                            <span className={`text-lg font-bold ${
-                              isWinner ? 'text-green-600' : 'text-textPrimary'
-                            }`}>
-                              {Math.round(totalScore)}
-                            </span>
-                          </div>
-                          <div className="w-full bg-gray-200 rounded-full h-3">
-                            <div
-                              className={`h-3 rounded-full transition-all ${
-                                isWinner ? 'bg-green-500' : 'bg-slate-600'
-                              }`}
-                              style={{ width: `${Math.min(100, Math.max(0, totalScore))}%` }}
-                            />
-                          </div>
-                          <div className="text-xs text-textSecondary mt-1">
-                            (Pace × 0.3) + (Quality × 0.5) + (Review × 0.2)
-                          </div>
-                        </div>
-
-                        {/* Proof Links */}
                         <div>
                           <div className="text-xs font-medium text-textPrimary mb-2">Proof Links</div>
                           <div className="space-y-2">
@@ -3243,9 +3212,7 @@ export default function ScoutDashboard() {
                                   rel="noopener noreferrer"
                                   className="block text-xs text-cyan-600 hover:text-cyan-800 hover:underline break-all bg-white p-2 rounded border border-border"
                                 >
-                                  <div className="font-medium mb-0.5">
-                                    {milestoneNames[idx] || `Milestone ${idx + 1}`}
-                                  </div>
+                                  <div className="font-medium mb-0.5">{milestoneNames[idx] || `Milestone ${idx + 1}`}</div>
                                   <div className="text-xs text-textSecondary truncate">{link}</div>
                                 </a>
                               ))
@@ -3260,22 +3227,48 @@ export default function ScoutDashboard() {
                 </div>
               </div>
 
-              {/* Confirm Winner Button */}
+              {/* Voting Controls */}
               <div className="mt-6 pt-6 border-t-2 border-border">
-                <button
-                  onClick={handleConfirmWinner}
-                  disabled={winnerConfirmLoading}
-                  className={`w-full px-8 py-4 text-lg font-bold text-white rounded-lg transition-all shadow-lg ${
-                    winnerConfirmLoading
-                      ? 'bg-gray-400 cursor-not-allowed'
-                      : 'bg-green-600 hover:bg-green-700 hover:shadow-xl'
-                  }`}
-                >
-                  {winnerConfirmLoading ? 'Confirming Winner...' : 'Confirm Winner'}
-                </button>
-                <p className="text-sm text-textSecondary mt-3 text-center">
-                  Winner confirmed. They now have Right to Outreach.
-                </p>
+                {!finalistComparisonLead.voting_open ? (
+                  <>
+                    <button
+                      onClick={handleOpenVoting}
+                      disabled={winnerConfirmLoading}
+                      className={`w-full px-8 py-4 text-lg font-bold text-white rounded-lg transition-all shadow-lg ${
+                        winnerConfirmLoading
+                          ? 'bg-gray-400 cursor-not-allowed'
+                          : 'bg-cyan-600 hover:bg-cyan-700 hover:shadow-xl'
+                      }`}
+                    >
+                      {winnerConfirmLoading ? 'Opening...' : 'Open Voting'}
+                    </button>
+                    <p className="text-sm text-textSecondary mt-3 text-center">
+                      Fellows will vote 1–5 on each build. Min 10 votes required before closing.
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <div className="flex items-center justify-between gap-4 mb-4">
+                      <span className="text-textPrimary font-medium">
+                        Votes: {votingStatus?.totalVotes ?? '—'} / {votingStatus?.minVotesRequired ?? 10} minimum
+                      </span>
+                      <button
+                        onClick={handleCloseVoting}
+                        disabled={winnerConfirmLoading || ((votingStatus?.totalVotes ?? 0) < (votingStatus?.minVotesRequired ?? 10))}
+                        className={`px-8 py-3 text-lg font-bold text-white rounded-lg transition-all ${
+                          winnerConfirmLoading || ((votingStatus?.totalVotes ?? 0) < (votingStatus?.minVotesRequired ?? 10))
+                            ? 'bg-gray-400 cursor-not-allowed'
+                            : 'bg-green-600 hover:bg-green-700'
+                        }`}
+                      >
+                        {winnerConfirmLoading ? 'Closing...' : 'Close Voting'}
+                      </button>
+                    </div>
+                    <p className="text-sm text-textSecondary text-center">
+                      At least 10 votes required to close and announce winner.
+                    </p>
+                  </>
+                )}
               </div>
             </div>
           </div>

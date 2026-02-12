@@ -8,6 +8,7 @@ import SprintSidebar from "./SprintSidebar";
 import SprintCountdown from "./SprintCountdown";
 import RulesOfEngagementModal from "./RulesOfEngagementModal";
 import WinnersCircle from "./WinnersCircle";
+import VotingCard from "./VotingCard";
 import { apiUrl } from "@/lib/api";
 
 interface Lead {
@@ -1588,6 +1589,11 @@ export default function AlumniDashboard() {
         </div>
       </header>
 
+      {/* Fellow Voting - collapsible card; projects auto-populate when 2+ builders have all milestones complete */}
+      <div className="max-w-7xl mx-auto px-6 pt-6">
+        <VotingCard />
+      </div>
+
       {/* Tier 1 Progression Banner */}
       {demoTier === 1 && (
         <div className="max-w-7xl mx-auto px-6 pt-6">
@@ -1609,14 +1615,14 @@ export default function AlumniDashboard() {
       {myActiveSprints.length > 0 && (
         <div className="max-w-7xl mx-auto px-6 pt-8">
           <div className="mb-6">
-            <h2 className="text-2xl font-bold text-textPrimary flex items-center gap-2">
-              <svg className="w-6 h-6 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
+            <h2 className="text-2xl font-bold text-white flex items-center gap-2">
+              <svg className="w-6 h-6 text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
               </svg>
               My Active Sprints
-              <span className="px-2 py-1 bg-emerald-600 text-white text-sm rounded-full">{myActiveSprints.length}</span>
+              <span className="px-2 py-1 bg-emerald-500 text-white text-sm rounded-full font-semibold">{myActiveSprints.length}</span>
             </h2>
-            <p className="text-sm text-textSecondary mt-1">Submit your checkpoint proofs and track your progress</p>
+            <p className="text-sm text-slate-300 mt-1">Submit your checkpoint proofs and track your progress</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
