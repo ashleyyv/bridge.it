@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import { fileURLToPath } from 'url';
@@ -6,12 +7,25 @@ import { appendFileSync } from 'fs';
 import { readFile, writeFile } from 'fs/promises';
 import jsPDF from 'jspdf';
 import nodemailer from 'nodemailer';
+import { createClient } from '@supabase/supabase-js';
+import { searchYelp } from './services/yelpService.js';
+import { fetchPageSpeedScores } from './services/pageSpeedService.js';
+import { fetchDOHMHViolations } from './services/nycOpenDataService.js';
+import { fetchReviewSentiment } from './services/outscraperService.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+
+// Supabase client for scout/DB bridge (use SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY in .env)
+const supabase = (process.env.SUPABASE_URL && (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY))
+  ? createClient(
+      process.env.SUPABASE_URL,
+      process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY
+    )
+  : null;
 
 // Mock email transporter for demo (would use real SMTP in production)
 const transporter = nodemailer.createTransport({
@@ -24,9 +38,36 @@ const transporter = nodemailer.createTransport({
   }
 });
 
+// Wrapper to forward async rejections to error handler (prevents unhandled rejection → non-JSON 500)
+const asyncHandler = (fn) => (req, res, next) => {
+  Promise.resolve(fn(req, res, next)).catch(next);
+};
+
 // Middleware
 app.use(cors());
 app.use(express.json());
+
+// #region agent log
+app.use((req, _res, next) => {
+  const p = { location: 'server/index.js:request-middleware', message: 'Incoming request', data: { method: req.method, url: req.url }, timestamp: Date.now(), hypothesisId: 'Hreq' };
+  fetch('http://127.0.0.1:7242/ingest/55c61c3c-05b2-454b-916e-a4f02d3031dc', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(p) }).catch(() => {});
+  try { appendFileSync(join(__dirname, '..', '.cursor', 'debug.log'), JSON.stringify(p) + '\n'); } catch (_) {}
+  next();
+});
+// #endregion
+
+// Root route: avoid "Cannot GET /" when opening API base URL in browser
+app.get('/', (req, res) => {
+  res.type('html').send(`
+    <!DOCTYPE html>
+    <html><head><meta charset="utf-8"><title>Bridge.it API</title></head>
+    <body style="font-family:sans-serif;max-width:40em;margin:2em auto;padding:0 1em;">
+      <h1>Bridge.it API</h1>
+      <p>This is the API server. Use the app at <strong>http://localhost:3000</strong> or <strong>http://localhost:3003</strong> (Next.js).</p>
+      <p><a href="/health">Health check</a> · <a href="/api/leads">Leads API</a></p>
+    </body></html>
+  `);
+});
 
 // Helper function to load alumni data
 async function loadAlumniData() {
@@ -79,8 +120,22 @@ async function populateActiveBuilders(lead) {
   };
 }
 
+// Calculate HFI score (0-100) from Yelp rating, review_count, and price for scout leads
+function calculateHFI(rating, review_count, price) {
+  const r = rating != null && !Number.isNaN(Number(rating)) ? Math.min(5, Math.max(0, Number(rating))) : 0;
+  const c = review_count != null && !Number.isNaN(Number(review_count)) ? Math.max(0, Number(review_count)) : 0;
+  const priceLevel = price != null && typeof price === 'string' ? price.length : 0; // $=1, $$=2, etc.
+  const ratingScore = (r / 5) * 60; // 0-60 from rating
+  const engagementScore = Math.min(25, Math.log10(c + 1) * 8); // 0-25 from log(review_count)
+  const priceScore = Math.min(15, priceLevel * 5); // 0-15 from price tier
+  return Math.round(Math.min(100, Math.max(0, ratingScore + engagementScore + priceScore)));
+}
+
 // Helper function to apply recency weights to HFI scores
 function applyRecencyWeights(lead) {
+  if (!lead.recency_data || typeof lead.recency_data !== 'object') {
+    return { ...lead, weighted_issues: 0, recency_score: 0 };
+  }
   const recent = lead.recency_data["0_30_days"] || 0;
   const supporting = lead.recency_data["31_90_days"] || 0;
   const historical = lead.recency_data["90_plus_days"] || 0;
@@ -95,56 +150,401 @@ function applyRecencyWeights(lead) {
   };
 }
 
+// Ensure lead has Supabase audit/website fields for frontend (defaults when missing)
+function ensureLeadAuditFields(lead) {
+  const safe = (v) => (v != null && typeof v === 'object') ? v : null;
+  return {
+    ...lead,
+    website_url: lead.website_url ?? null,
+    audit_status: lead.audit_status ?? 'pending',
+    technical_audit: safe(lead.technical_audit),
+    civic_audit: Array.isArray(lead.civic_audit) ? lead.civic_audit : (safe(lead.civic_audit) ?? []),
+    sentiment_audit: safe(lead.sentiment_audit) ?? (Array.isArray(lead.sentiment_audit) ? lead.sentiment_audit : null),
+  };
+}
+
 // API Routes
-app.get('/api/leads', async (req, res) => {
+app.get('/api/yelp/search', async (req, res) => {
   try {
-    const mockDataPath = join(__dirname, '..', '_architect_ref', 'MOCK_DATA.json');
-    const rawData = await readFile(mockDataPath, 'utf-8');
-    const data = JSON.parse(rawData);
-    
-    // Apply recency weighting to all leads and populate builder details
-    const processedLeads = await Promise.all(
-      data.leads.map(async (lead) => {
-        const weightedLead = applyRecencyWeights(lead);
-        return await populateActiveBuilders(weightedLead);
-      })
-    );
-    
-    res.json({
+    const { term, location, limit } = req.query;
+    const results = await searchYelp({ term, location, limit: limit ? parseInt(limit, 10) : undefined });
+    res.json(results);
+  } catch (err) {
+    console.error('Yelp search error:', err);
+    res.status(err.response?.status === 401 ? 401 : 500).json({
+      error: 'Yelp search failed',
+      message: err.message ?? String(err),
+    });
+  }
+});
+
+// Scout: Yelp → Supabase leads (upsert by business_name to avoid duplicates)
+app.post('/api/scout/yelp', async (req, res) => {
+  try {
+    // #region agent log
+    const contentType = req.headers && req.headers['content-type'];
+    const bodyKeys = req.body && typeof req.body === 'object' ? Object.keys(req.body) : [];
+    fetch('http://127.0.0.1:7242/ingest/55c61c3c-05b2-454b-916e-a4f02d3031dc',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'server/index.js:POST /api/scout/yelp',message:'Scout handler entry',data:{contentType,bodyKeys,body:req.body,hasSupabase:!!supabase},timestamp:Date.now(),hypothesisId:'H1'})}).catch(()=>{});
+    // #endregion
+    const { location, term } = req.body || {};
+    if (!location && !term) {
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/55c61c3c-05b2-454b-916e-a4f02d3031dc',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'server/index.js:scout/yelp:400',message:'Returning 400 missing body',data:{location,term},timestamp:Date.now(),hypothesisId:'H1'})}).catch(()=>{});
+      // #endregion
+      return res.status(400).json({
+        error: 'Missing required body fields',
+        message: 'Provide at least "location" or "term" in the request body.',
+      });
+    }
+    if (!supabase) {
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/55c61c3c-05b2-454b-916e-a4f02d3031dc',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'server/index.js:scout/yelp:503',message:'Returning 503 no supabase',data:{},timestamp:Date.now(),hypothesisId:'H3'})}).catch(()=>{});
+      // #endregion
+      return res.status(503).json({
+        error: 'Database not configured',
+        message: 'Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY (or SUPABASE_ANON_KEY) in .env',
+      });
+    }
+
+    const results = await searchYelp({ location, term });
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/55c61c3c-05b2-454b-916e-a4f02d3031dc',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'server/index.js:scout/yelp:afterYelp',message:'Yelp search completed',data:{resultCount:results?.length,firstKeys:results?.[0]?Object.keys(results[0]):[]},timestamp:Date.now(),hypothesisId:'H2'})}).catch(()=>{});
+    // #endregion
+    if (results.length === 0) {
+      return res.json({ count: 0 });
+    }
+
+    const batchId = crypto.randomUUID();
+    const payload = results.map((row) => {
+      const { yelp_id, yelp_alias, rating, review_count, price, ...rest } = row;
+      const hfi_score = calculateHFI(rating, review_count, price);
+      return { ...rest, hfi_score, batch_id: batchId };
+    });
+
+    // Insert leads. Use upsert with onConflict: 'business_name' only after adding
+    // UNIQUE(business_name) to the leads table in Supabase.
+    const { data, error } = await supabase
+      .from('leads')
+      .insert(payload)
+      .select();
+
+    if (error) {
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/55c61c3c-05b2-454b-916e-a4f02d3031dc',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'server/index.js:scout/yelp:insertError',message:'Supabase insert failed',data:{code:error?.code,message:error?.message,details:error?.details,hint:error?.hint},timestamp:Date.now(),hypothesisId:'H1',runId:'post-fix'})}).catch(()=>{});
+      // #endregion
+      console.error('Scout Yelp insert error:', error);
+      return res.status(500).json({
+        error: 'Failed to save leads',
+        message: error.message,
+      });
+    }
+
+    const count = data?.length ?? results.length;
+    return res.json({ count });
+  } catch (err) {
+    // #region agent log
+    const yelpStatus = err.response && err.response.status;
+    const yelpData = err.response && err.response.data;
+    fetch('http://127.0.0.1:7242/ingest/55c61c3c-05b2-454b-916e-a4f02d3031dc',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'server/index.js:scout/yelp:catch',message:'Scout Yelp catch',data:{message:err.message,stack:err.stack?.slice(0,500),yelpStatus,yelpData},timestamp:Date.now(),hypothesisId:'H5'})}).catch(()=>{});
+    // #endregion
+    console.error('Scout Yelp error:', err);
+    const body = {
+      error: 'Scout Yelp failed',
+      message: err.message ?? String(err),
+    };
+    if (err.response != null) {
+      body.yelpStatus = err.response.status;
+      body.yelpError = err.response.data;
+    }
+    res.status(500).json(body);
+  }
+});
+
+app.get('/api/leads', asyncHandler(async (req, res) => {
+  const sendJson = (status, body) => {
+    if (res.headersSent) return;
+    res.status(status).setHeader('Content-Type', 'application/json');
+    try {
+      res.send(JSON.stringify(body));
+    } catch (e) {
+      try { res.send(JSON.stringify({ error: 'Response serialization failed' })); } catch (_) {}
+    }
+  };
+  try {
+    const entryPayload = { location: 'server/index.js:GET-api-leads:entry', message: 'GET /api/leads entry', data: { hasSupabase: !!supabase }, timestamp: Date.now(), hypothesisId: 'H1' };
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/55c61c3c-05b2-454b-916e-a4f02d3031dc', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(entryPayload) }).catch(() => {});
+    try { appendFileSync(join(__dirname, '..', '.cursor', 'debug.log'), JSON.stringify(entryPayload) + '\n'); } catch (_) {}
+    // #endregion
+    if (!supabase) {
+      return sendJson(503, { error: 'Database not configured', message: 'Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY (or SUPABASE_ANON_KEY) in .env' });
+    }
+
+    const viewAll = req.query?.view === 'all';
+    let rows;
+    if (!viewAll) {
+      let query = supabase.from('leads').select('*').order('id', { ascending: false });
+      query = query.or('hfi_score.gte.75,is_priority.eq.true');
+      const { data, error: qerr } = await query;
+      if (qerr) {
+        if (qerr.code === '42703' && qerr.message?.includes('promoted')) {
+          query = supabase.from('leads').select('*').order('id', { ascending: false }).gte('hfi_score', 75);
+          const { data: fallback, error: fallbackErr } = await query;
+          if (fallbackErr) {
+            const supErr = { location: 'server/index.js:GET-api-leads:supabaseError', message: 'Supabase fetch error', data: { msg: fallbackErr.message }, timestamp: Date.now(), hypothesisId: 'H2' };
+            fetch('http://127.0.0.1:7242/ingest/55c61c3c-05b2-454b-916e-a4f02d3031dc', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(supErr) }).catch(() => {});
+            console.error('Error fetching leads from Supabase:', fallbackErr);
+            return sendJson(500, { error: 'Failed to load leads', message: fallbackErr.message });
+          }
+          rows = fallback;
+        } else {
+          const supErr = { location: 'server/index.js:GET-api-leads:supabaseError', message: 'Supabase fetch error', data: { msg: qerr.message, code: qerr.code }, timestamp: Date.now(), hypothesisId: 'H2' };
+          fetch('http://127.0.0.1:7242/ingest/55c61c3c-05b2-454b-916e-a4f02d3031dc', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(supErr) }).catch(() => {});
+          try { appendFileSync(join(__dirname, '..', '.cursor', 'debug.log'), JSON.stringify(supErr) + '\n'); } catch (_) {}
+          console.error('Error fetching leads from Supabase:', qerr);
+          return sendJson(500, { error: 'Failed to load leads', message: qerr.message });
+        }
+      } else {
+        rows = data;
+      }
+    } else {
+      const { data, error } = await supabase.from('leads').select('*').order('id', { ascending: false });
+      if (error) {
+        const supErr = { location: 'server/index.js:GET-api-leads:supabaseError', message: 'Supabase fetch error', data: { msg: error.message, code: error.code }, timestamp: Date.now(), hypothesisId: 'H2' };
+        fetch('http://127.0.0.1:7242/ingest/55c61c3c-05b2-454b-916e-a4f02d3031dc', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(supErr) }).catch(() => {});
+        try { appendFileSync(join(__dirname, '..', '.cursor', 'debug.log'), JSON.stringify(supErr) + '\n'); } catch (_) {}
+        console.error('Error fetching leads from Supabase:', error);
+        return sendJson(500, { error: 'Failed to load leads', message: error.message });
+      }
+      rows = data;
+    }
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/55c61c3c-05b2-454b-916e-a4f02d3031dc',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'server/index.js:GET-api-leads:afterSupabase',message:'Supabase fetch OK',data:{rowCount:(rows||[]).length},timestamp:Date.now(),hypothesisId:'H2b'})}).catch(()=>{});
+    // #endregion
+
+    const leads = (rows || []).map((row) => {
+      const lead = {
+        ...row,
+        business_name: row.business_name ?? row.name ?? '',
+        location: row.location && typeof row.location === 'object'
+          ? row.location
+          : { neighborhood: '', borough: '', zip: '' },
+        status: row.status ?? 'qualified',
+        hfi_score: row.hfi_score ?? 0,
+        is_priority: Boolean(row.is_priority),
+        time_on_task_estimate: row.time_on_task_estimate ?? '2-3 weeks',
+        friction_type: row.friction_type ?? 'Website / Digital Presence',
+      };
+      const withAudit = ensureLeadAuditFields(lead);
+      return applyRecencyWeights(withAudit);
+    });
+
+    // Pivot to Queens, NY: exclude Bronx leads so UI only shows Queens data
+    const borough = (l) => (l.location?.borough ?? '').toString().toLowerCase();
+    const queensOnly = leads.filter((l) => borough(l) !== 'bronx');
+
+    // Audit trigger: call NYC DOHMH for leads that don't have civic_audit yet
+    const needsCivicAudit = (l) => !Array.isArray(l.civic_audit) || l.civic_audit.length === 0;
+    const enrichCivicAudit = async (lead) => {
+      if (!needsCivicAudit(lead)) return lead;
+      const loc = lead.location && typeof lead.location === 'object' ? lead.location : {};
+      const businessName = lead.business_name ?? lead.name ?? '';
+      const addressPart = [loc.neighborhood, loc.borough, loc.zip].filter(Boolean).join(', ');
+      const searchQuery = [businessName, addressPart, 'NYC'].filter(Boolean).join(' ');
+      if (!searchQuery.trim()) return lead;
+      try {
+        const violations = await fetchDOHMHViolations({
+          businessName,
+          address: addressPart,
+          borough: loc.borough,
+          zip: loc.zip,
+          limit: 20,
+        });
+        const enriched = { ...lead, civic_audit: violations };
+        if (supabase) {
+          supabase.from('leads').update({ civic_audit: violations }).eq('id', lead.id).then(() => {}).catch((e) => console.error('Civic audit persist error:', e?.message || e));
+        }
+        return enriched;
+      } catch (e) {
+        console.error('Civic audit fetch error for', businessName, ':', e?.message || e);
+        return lead;
+      }
+    };
+    const afterEnrich = await Promise.all(queensOnly.map(enrichCivicAudit));
+
+    const processedLeads = await Promise.all(afterEnrich.map((lead) => populateActiveBuilders(lead)));
+
+    const highPriorityCount = processedLeads.filter((l) => (l.hfi_score ?? 0) >= 75 || Boolean(l.is_priority)).length;
+    const avgHfi = processedLeads.length > 0
+      ? processedLeads.reduce((sum, l) => sum + (l.hfi_score ?? 0), 0) / processedLeads.length
+      : 0;
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/55c61c3c-05b2-454b-916e-a4f02d3031dc',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'server/index.js:GET-api-leads:beforeSend',message:'About to send response',data:{processedCount:processedLeads.length},timestamp:Date.now(),hypothesisId:'H2d'})}).catch(()=>{});
+    // #endregion
+
+    const payload = {
       leads: processedLeads,
-      metadata: data.metadata
-    });
-  } catch (error) {
-    console.error('Error loading mock data:', error);
-    res.status(500).json({ 
-      error: 'Failed to load leads data',
-      message: error.message 
-    });
+      metadata: {
+        total_leads: processedLeads.length,
+        high_priority_count: highPriorityCount,
+        avg_hfi_score: Math.round(avgHfi * 10) / 10,
+      },
+    };
+    try {
+      JSON.stringify(payload);
+    } catch (serialErr) {
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/55c61c3c-05b2-454b-916e-a4f02d3031dc',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'server/index.js:GET-api-leads:serialErr',message:'Payload serialization failed',data:{msg:String(serialErr?.message||serialErr)},timestamp:Date.now(),hypothesisId:'H3b'})}).catch(()=>{});
+      // #endregion
+      console.error('Leads payload serialization error:', serialErr);
+      return sendJson(500, { error: 'Failed to serialize leads', message: 'Response data contains non-JSON-serializable values' });
+    }
+
+    return sendJson(200, payload);
+  } catch (err) {
+    const errPayload = { location: 'server/index.js:GET-api-leads:catch', message: 'GET /api/leads catch', data: { msg: String(err?.message || err), name: err?.name, stack: (err?.stack || '').slice(0, 500) }, timestamp: Date.now(), hypothesisId: 'H3' };
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/55c61c3c-05b2-454b-916e-a4f02d3031dc', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(errPayload) }).catch(() => {});
+    try { appendFileSync(join(__dirname, '..', '.cursor', 'debug.log'), JSON.stringify(errPayload) + '\n'); } catch (_) {}
+    // #endregion
+    console.error('Error loading leads:', err);
+    const msg = (err && (err.message || err.reason)) ? String(err.message || err.reason) : String(err);
+    return sendJson(500, { error: 'Failed to load leads data', message: msg });
+  }
+}));
+
+// Promote lead to Main list (MUST be before /api/leads/:id for path matching)
+app.patch('/api/leads/:id/promote', async (req, res) => {
+  try {
+    const { id } = req.params;
+    if (!supabase) {
+      return res.status(503).json({ error: 'Database not configured' });
+    }
+    const { data, error } = await supabase
+      .from('leads')
+      .update({ is_priority: true })
+      .eq('id', id)
+      .select()
+      .single();
+    if (error) {
+      if (error.code === '42703' && (String(error.message || '').includes('promoted') || String(error.message || '').includes('is_priority'))) {
+        return res.status(400).json({
+          error: 'is_priority column not found',
+          message: 'Run the migration: ALTER TABLE leads ADD COLUMN IF NOT EXISTS is_priority BOOLEAN DEFAULT false;'
+        });
+      }
+      console.error('Promote error:', error);
+      return res.status(500).json({ error: 'Failed to promote lead', message: error.message });
+    }
+    if (!data) return res.status(404).json({ error: 'Lead not found' });
+    res.json(data);
+  } catch (err) {
+    console.error('Promote error:', err);
+    res.status(500).json({ error: 'Failed to promote lead', message: err?.message ?? 'Unknown error' });
   }
 });
 
 // Get single lead by ID
 app.get('/api/leads/:id', async (req, res) => {
   try {
-    const mockDataPath = join(__dirname, '..', '_architect_ref', 'MOCK_DATA.json');
-    const rawData = await readFile(mockDataPath, 'utf-8');
-    const data = JSON.parse(rawData);
-    
-    const lead = data.leads.find(l => l.id === req.params.id);
-    
-    if (!lead) {
+    if (!supabase) {
+      return res.status(503).json({ error: 'Database not configured' });
+    }
+    const { data: row, error } = await supabase.from('leads').select('*').eq('id', req.params.id).single();
+    if (error || !row) {
       return res.status(404).json({ error: 'Lead not found' });
     }
-    
-    const weightedLead = applyRecencyWeights(lead);
+    const lead = {
+      ...row,
+      business_name: row.business_name ?? row.name ?? '',
+      location: row.location && typeof row.location === 'object' ? row.location : { neighborhood: '', borough: '', zip: '' },
+      status: row.status ?? 'qualified',
+      hfi_score: row.hfi_score ?? 0,
+      time_on_task_estimate: row.time_on_task_estimate ?? '2-3 weeks',
+      friction_type: row.friction_type ?? 'Website / Digital Presence',
+    };
+    const withAudit = ensureLeadAuditFields(lead);
+    const weightedLead = applyRecencyWeights(withAudit);
     const populatedLead = await populateActiveBuilders(weightedLead);
     res.json(populatedLead);
   } catch (error) {
     console.error('Error loading lead:', error);
-    res.status(500).json({ 
-      error: 'Failed to load lead data',
-      message: error.message 
-    });
+    res.status(500).json({ error: 'Failed to load lead data', message: error.message });
+  }
+});
+
+// Deep audit: run PageSpeed, NYC DOHMH, and Outscraper in parallel; save to technical_audit, civic_audit, sentiment_audit
+app.post('/api/leads/:id/deep-audit', async (req, res) => {
+  const sendJson = (status, body) => {
+    if (res.headersSent) return;
+    res.status(status).setHeader('Content-Type', 'application/json');
+    let payload;
+    try {
+      payload = JSON.stringify(body);
+    } catch (e) {
+      payload = JSON.stringify({ error: 'Response serialization failed', message: String(e?.message || e) });
+    }
+    res.send(payload);
+  };
+  try {
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/55c61c3c-05b2-454b-916e-a4f02d3031dc',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'server/index.js:deep-audit:entry',message:'Deep-audit route entry',data:{leadId:req.params.id,hasSupabase:!!supabase},timestamp:Date.now(),hypothesisId:'H3'})}).catch(()=>{});
+    // #endregion
+    if (!supabase) {
+      return sendJson(503, { error: 'Database not configured' });
+    }
+    const id = req.params?.id;
+    if (!id || typeof id !== 'string' || !id.trim()) {
+      return sendJson(400, { error: 'Invalid lead id' });
+    }
+    const { data: lead, error: fetchError } = await supabase.from('leads').select('*').eq('id', id).single();
+    if (fetchError || !lead) {
+      return sendJson(404, { error: 'Lead not found' });
+    }
+
+    const websiteUrl = lead.website_url && String(lead.website_url).trim() ? lead.website_url.trim() : null;
+    const businessName = lead.business_name ?? lead.name ?? '';
+    const loc = lead.location && typeof lead.location === 'object' ? lead.location : {};
+    const addressPart = [loc.neighborhood, loc.borough, loc.zip].filter(Boolean).join(', ');
+    const searchQuery = [businessName, addressPart, 'NYC'].filter(Boolean).join(' ');
+
+    const [pageSpeedResult, dohmhResult, outscraperResult] = await Promise.allSettled([
+      websiteUrl ? fetchPageSpeedScores(websiteUrl) : Promise.resolve(null),
+      searchQuery.trim() ? fetchDOHMHViolations({ businessName, address: addressPart, borough: loc.borough, zip: loc.zip, limit: 20 }) : Promise.resolve([]),
+      searchQuery.trim() ? fetchReviewSentiment({ query: searchQuery, limit: 10 }) : Promise.resolve({ data: [], reviews: [] }),
+    ]);
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/55c61c3c-05b2-454b-916e-a4f02d3031dc',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'server/index.js:deep-audit:settled',message:'Deep-audit allSettled summary',data:{leadId:id,pageSpeedStatus:pageSpeedResult.status,dohmhStatus:dohmhResult.status,outscraperStatus:outscraperResult.status},timestamp:Date.now(),hypothesisId:'H4'})}).catch(()=>{});
+    // #endregion
+
+    const updates = { audit_status: 'completed' };
+    const toJsonb = (v) => { try { return v != null ? JSON.parse(JSON.stringify(v)) : undefined; } catch (_) { return undefined; } };
+    const t = pageSpeedResult.status === 'fulfilled' && pageSpeedResult.value != null ? toJsonb(pageSpeedResult.value) : undefined;
+    if (t !== undefined) updates.technical_audit = t;
+    const c = dohmhResult.status === 'fulfilled' && Array.isArray(dohmhResult.value) ? toJsonb(dohmhResult.value) : undefined;
+    if (c !== undefined) updates.civic_audit = c;
+    const s = outscraperResult.status === 'fulfilled' && outscraperResult.value != null ? toJsonb(outscraperResult.value) : undefined;
+    if (s !== undefined) updates.sentiment_audit = s;
+
+    const { data: updated, error: updateError } = await supabase
+      .from('leads')
+      .update(updates)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (updateError) {
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/55c61c3c-05b2-454b-916e-a4f02d3031dc',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'server/index.js:deep-audit:updateError',message:'Deep-audit DB update failed',data:{leadId:id,message:updateError.message,details:updateError.details,hint:updateError.hint,code:updateError.code},timestamp:Date.now(),hypothesisId:'H5'})}).catch(()=>{});
+      // #endregion
+      console.error('Deep audit update error:', updateError);
+      return sendJson(500, { error: 'Failed to save audit', message: updateError?.message ?? 'Unknown database error' });
+    }
+    return sendJson(200, updated ?? { ok: true });
+  } catch (err) {
+    console.error('Deep audit error:', err);
+    const msg = (err && (err.message || err.reason)) ? String(err.message || err.reason) : String(err);
+    return sendJson(500, { error: 'Deep audit failed', message: msg });
   }
 });
 
@@ -266,7 +666,7 @@ function generateMarkdownBrief(lead) {
 
 **Friction Type:** ${processedLead.friction_type}
 **Status:** ${processedLead.status}
-**Discovered:** ${new Date(processedLead.discovered_at).toLocaleDateString()}
+**Discovered:** ${processedLead.discovered_at ? new Date(processedLead.discovered_at).toLocaleDateString() : '—'}
 
 ---
 
@@ -2361,8 +2761,26 @@ app.get('/health', (req, res) => {
   });
 });
 
+// Global error handler: ensure ALL errors return JSON (prevents "Unexpected token I" parse crash)
+app.use((err, req, res, _next) => {
+  if (res.headersSent) return;
+  const msg = (err && (err.message || err.reason)) ? String(err.message || err.reason) : String(err);
+  const globalErrPayload = { location: 'server/index.js:globalErrorHandler', message: 'Unhandled error', data: { path: req?.path, method: req?.method, msg, name: err?.name, stack: (err?.stack || '').slice(0, 500) }, timestamp: Date.now(), hypothesisId: 'H0' };
+  try { appendFileSync(join(__dirname, '..', '.cursor', 'debug.log'), JSON.stringify(globalErrPayload) + '\n'); } catch (_) {}
+  try {
+    res.status(500).setHeader('Content-Type', 'application/json');
+    res.send(JSON.stringify({ error: err?.message || 'Internal server error', message: msg }));
+  } catch (e) {
+    try { res.send('{"error":"Internal server error"}'); } catch (_) {}
+  }
+});
+
 app.listen(PORT, '0.0.0.0', () => {
+  // #region agent log
+  fetch('http://127.0.0.1:7242/ingest/55c61c3c-05b2-454b-916e-a4f02d3031dc',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'server/index.js:listen',message:'Express server started',data:{port:PORT},timestamp:Date.now(),hypothesisId:'H4'})}).catch(()=>{});
+  // #endregion
   console.log(`🚀 Bridge.it API Server running on port ${PORT}`);
+  console.log('🚀 Evidence Engine Wired. Outscraper Mock Mode: ACTIVE.');
   console.log(`📊 Endpoints:`);
   console.log(`   GET /api/leads                    - Fetch all restaurant leads`);
   console.log(`   GET /api/leads/:id                - Fetch single lead by ID`);
