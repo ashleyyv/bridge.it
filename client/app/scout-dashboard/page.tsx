@@ -349,11 +349,12 @@ export default function ScoutDashboard() {
   const [showLibrary, setShowLibrary] = useState(false);
   const [violationModalLead, setViolationModalLead] = useState<Lead | null>(null);
   const [violationCopyFeedback, setViolationCopyFeedback] = useState(false);
+  const [fetchError, setFetchError] = useState<string | null>(null);
 
   const handleScoutNewLeads = async () => {
     setIsScouting(true);
     setScoutSuccessMessage(null);
-    const url = 'http://localhost:3002/api/scout/yelp';
+    const url = apiUrl('/api/scout/yelp');
     const bodyStr = JSON.stringify({ location: 'Queens, NY', term: 'restaurants' });
     try {
       // #region agent log
@@ -398,7 +399,11 @@ export default function ScoutDashboard() {
   }, [isAuthenticated, user, router]);
 
   const fetchLeads = () => {
+    setFetchError(null);
     const url = apiUrl(`/api/leads${showLibrary ? '?view=all' : ''}`);
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/55c61c3c-05b2-454b-916e-a4f02d3031dc',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'scout-dashboard:fetchLeads:entry',message:'Fetching leads',data:{url,apiBase:typeof window!=='undefined'?undefined:process.env.NEXT_PUBLIC_API_URL},timestamp:Date.now(),hypothesisId:'H1'})}).catch(()=>{});
+    // #endregion
     fetchJson<LeadsData>(url)
       .then(({ ok, data, error }) => {
         setLoading(false);
@@ -412,17 +417,28 @@ export default function ScoutDashboard() {
             },
           };
           setData(payload);
+          setFetchError(null);
           if (selectedLead && payload.leads.length > 0) {
             const updatedLead = payload.leads.find((l: Lead) => l.id === selectedLead.id);
             if (updatedLead) setSelectedLead(updatedLead);
           }
         } else {
-          console.error("Failed to fetch leads:", error ?? "Unknown error");
+          const errMsg = error ?? "Unknown error";
+          setFetchError(errMsg);
+          console.error("Failed to fetch leads:", errMsg);
+          // #region agent log
+          fetch('http://127.0.0.1:7242/ingest/55c61c3c-05b2-454b-916e-a4f02d3031dc',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'scout-dashboard:fetchLeads:error',message:'Fetch failed',data:{url,error:errMsg},timestamp:Date.now(),hypothesisId:'H2'})}).catch(()=>{});
+          // #endregion
         }
       })
       .catch((err) => {
-        console.error("Failed to fetch leads:", err);
+        const errMsg = err instanceof Error ? err.message : String(err);
+        setFetchError(errMsg);
         setLoading(false);
+        console.error("Failed to fetch leads:", err);
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/55c61c3c-05b2-454b-916e-a4f02d3031dc',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'scout-dashboard:fetchLeads:catch',message:'Fetch threw',data:{url,error:errMsg},timestamp:Date.now(),hypothesisId:'H3'})}).catch(()=>{});
+        // #endregion
       });
   };
 
@@ -1954,7 +1970,18 @@ export default function ScoutDashboard() {
   if (!data) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-textPrimary text-xl font-light">No data available. Please start the server.</div>
+        <div className="text-center px-6">
+          <div className="text-textPrimary text-xl font-light mb-2">No data available.</div>
+          {fetchError && (
+            <div className="text-amber-600 text-sm max-w-lg mt-2">Error: {fetchError}</div>
+          )}
+          <button
+            onClick={() => { setLoading(true); fetchLeads(); }}
+            className="mt-4 px-4 py-2 bg-cyan-600 text-white rounded hover:bg-cyan-700"
+          >
+            Retry
+          </button>
+        </div>
       </div>
     );
   }
