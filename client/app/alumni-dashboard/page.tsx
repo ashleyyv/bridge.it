@@ -63,6 +63,10 @@ interface Lead {
     timestamp: string;
     actor: string;
   }>;
+  website_url: string | null;
+  audit_status: 'pending' | 'processing' | 'completed' | 'failed' | null;
+  technical_audit?: Record<string, unknown> | null;
+  civic_audit?: unknown | null;
 }
 
 interface LeadsData {
@@ -875,6 +879,35 @@ export default function AlumniDashboard() {
   const [selectedSprintForCheckpoint, setSelectedSprintForCheckpoint] = useState<Lead | null>(null);
   const [checkpointProofs, setCheckpointProofs] = useState<Record<number, string>>({});
   const [submittingProof, setSubmittingProof] = useState(false);
+  const [isScouting, setIsScouting] = useState(false);
+  const [scoutSuccessMessage, setScoutSuccessMessage] = useState<string | null>(null);
+  const [leadsRefreshTrigger, setLeadsRefreshTrigger] = useState(0);
+  const [activeTab, setActiveTab] = useState<'alumni' | 'scout'>('alumni');
+
+  const handleScoutNewLeads = async () => {
+    setIsScouting(true);
+    setScoutSuccessMessage(null);
+    try {
+      const res = await fetch('http://localhost:3002/api/scout/yelp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ location: 'Queens, NY', term: 'restaurants' }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        console.error('Scout Yelp error response:', { status: res.status, statusText: res.statusText, body: json });
+        throw new Error(json.message || json.error || 'Scout failed');
+      }
+      setScoutSuccessMessage(`Scouted ${json.count ?? 0} new leads!`);
+      setLeadsRefreshTrigger((prev) => prev + 1);
+      setTimeout(() => setScoutSuccessMessage(null), 5000);
+    } catch (e) {
+      setScoutSuccessMessage(null);
+      alert(e instanceof Error ? e.message : 'Failed to scout leads');
+    } finally {
+      setIsScouting(false);
+    }
+  };
 
   // Route protection - redirect if not authenticated or not alumni
   useEffect(() => {
@@ -909,28 +942,39 @@ export default function AlumniDashboard() {
   }, [logoHolding]);
 
   useEffect(() => {
-    fetch(apiUrl("/api/leads"))
-      .then((res) => res.json())
+    const url = apiUrl("/api/leads");
+    fetch(url)
+      .then((res) => {
+        const ct = res.headers.get("content-type");
+        if (!res.ok || !ct?.includes("application/json")) {
+          return null;
+        }
+        return res.json();
+      })
       .then((data) => {
-        setData(data);
+        if (data?.leads != null) setData(data);
         setLoading(false);
       })
-      .catch((err) => {
-        console.error("Failed to fetch leads:", err);
+      .catch(() => {
         setLoading(false);
       });
-  }, []);
+  }, [leadsRefreshTrigger]);
 
-  // Refresh data periodically to show live updates
+  // Refresh data periodically to show live updates (only when API is reachable)
   useEffect(() => {
+    const url = apiUrl("/api/leads");
     const interval = setInterval(() => {
-      fetch(apiUrl("/api/leads"))
-        .then((res) => res.json())
-        .then((data) => {
-          setData(data);
+      fetch(url)
+        .then((res) => {
+          const ct = res.headers.get("content-type");
+          if (!res.ok || !ct?.includes("application/json")) return;
+          return res.json();
         })
-        .catch((err) => {
-          console.error("Failed to refresh leads:", err);
+        .then((data) => {
+          if (data?.leads != null) setData(data);
+        })
+        .catch(() => {
+          // Backend unreachable (e.g. not running or wrong NEXT_PUBLIC_API_URL); avoid noisy logs
         });
     }, 5000); // Refresh every 5 seconds
 
@@ -959,11 +1003,11 @@ export default function AlumniDashboard() {
     return leads; // Tier 2+ sees all projects
   };
 
-  // Filter leads for qualified or briefed status
-  const baseProjects = data?.leads.filter(lead => 
-    lead.status.toLowerCase() === 'qualified' || 
-    lead.status.toLowerCase() === 'briefed'
-  ) || [];
+  // Filter leads for qualified or briefed status (include leads with no status for scouted leads)
+  const baseProjects = data?.leads.filter(lead => {
+    const s = lead.status?.toLowerCase() ?? '';
+    return s === 'qualified' || s === 'briefed' || s === '';
+  }) || [];
   
   const availableProjects = getTierFilteredLeads(baseProjects, demoTier);
 
@@ -1343,14 +1387,6 @@ export default function AlumniDashboard() {
     return null; // Will redirect via useEffect
   }
 
-  if (!data) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-textPrimary text-xl font-light">No data available. Please start the server.</div>
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen bg-background text-textPrimary">
       {/* Sprint Sidebar */}
@@ -1540,7 +1576,7 @@ export default function AlumniDashboard() {
                   Tier 2
                 </button>
               </div>
-              
+
               <button
                 onClick={() => demoTier === 1 ? null : router.push("/library")}
                 disabled={demoTier === 1}
@@ -1679,6 +1715,26 @@ export default function AlumniDashboard() {
         </div>
       )}
 
+      {/* View tabs: Alumni (projects) vs Scout */}
+      <div className="max-w-7xl mx-auto px-6 pt-6">
+        <div className="flex gap-2 border-b border-border pb-2 mb-2">
+          <button
+            type="button"
+            onClick={() => setActiveTab('alumni')}
+            className={`px-4 py-2 rounded-t-lg text-sm font-medium transition-colors ${activeTab === 'alumni' ? 'bg-emerald-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+          >
+            Projects
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('scout')}
+            className={`px-4 py-2 rounded-t-lg text-sm font-medium transition-colors ${activeTab === 'scout' ? 'bg-amber-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+          >
+            Scout
+          </button>
+        </div>
+      </div>
+
       {/* Stats Cards */}
       <div className="max-w-7xl mx-auto px-6 py-8">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
@@ -1686,7 +1742,41 @@ export default function AlumniDashboard() {
             <div className="text-textSecondary text-sm uppercase tracking-wide mb-2 font-medium">
               Available Projects
             </div>
-            <div className="text-4xl font-semibold text-green-700">{availableProjects.length}</div>
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="text-4xl font-semibold text-green-700">{availableProjects.length}</div>
+              {activeTab === 'scout' && (
+                <>
+                  <button
+                    onClick={handleScoutNewLeads}
+                    disabled={isScouting}
+                    className="px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-colors bg-amber-500 text-white hover:bg-amber-600 disabled:opacity-70 disabled:cursor-not-allowed text-sm"
+                    title="Scout new leads from Yelp (Queens, NY – restaurants)"
+                  >
+                    {isScouting ? (
+                      <>
+                        <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                        </svg>
+                        Scouting…
+                      </>
+                    ) : (
+                      <>
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                        Scout New Leads
+                      </>
+                    )}
+                  </button>
+                  {scoutSuccessMessage && (
+                    <span className="px-3 py-1.5 rounded-lg bg-green-100 text-green-800 text-sm font-medium animate-pulse">
+                      {scoutSuccessMessage}
+                    </span>
+                  )}
+                </>
+              )}
+            </div>
             <div className="text-sm text-green-600 mt-2">Ready to claim</div>
           </div>
           <div className="bg-gradient-to-br from-green-50 to-emerald-50 border-2 border-green-200 rounded-lg p-6 shadow-sm">
@@ -1749,12 +1839,55 @@ export default function AlumniDashboard() {
                   <div className="mb-4">
                     <div className="flex items-start justify-between mb-2">
                       <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
+                        <div className="flex items-center gap-2 mb-1 flex-wrap">
+                          {activeTab === 'scout' && (() => {
+                            const websiteUrl = lead.website_url;
+                            const hasWebsite = websiteUrl != null && String(websiteUrl).trim() !== '';
+                            const badgeLabel = !hasWebsite ? 'No Web Presence' : 'Technical Audit';
+                            return (
+                              <>
+                                {!hasWebsite ? (
+                                  <span className="px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-700 shrink-0" title="No website">
+                                    🔴 {badgeLabel}
+                                  </span>
+                                ) : (
+                                  <span className="px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700 shrink-0" title="Has website">
+                                    🔵 {badgeLabel}
+                                  </span>
+                                )}
+                                {lead.audit_status != null && (
+                                  <span
+                                    className={`px-2 py-0.5 rounded-full text-xs font-medium capitalize shrink-0 ${
+                                      lead.audit_status === 'processing'
+                                        ? 'bg-amber-100 text-amber-800 animate-pulse'
+                                        : lead.audit_status === 'completed'
+                                          ? 'bg-green-100 text-green-700'
+                                          : lead.audit_status === 'failed'
+                                            ? 'bg-red-100 text-red-700'
+                                            : 'bg-gray-100 text-gray-700'
+                                    }`}
+                                  >
+                                    {lead.audit_status}
+                                  </span>
+                                )}
+                              </>
+                            );
+                          })()}
                           <h3 className="text-xl font-semibold text-textPrimary">{lead.business_name}</h3>
                           <SlotsBadge lead={lead} />
                         </div>
                       </div>
-                      <div className="flex items-center gap-2 flex-wrap">
+                        <div className="flex items-center gap-2 flex-wrap">
+                        {(lead.technical_audit != null || lead.civic_audit != null) && (
+                          <span
+                            className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-emerald-100 text-emerald-600 shrink-0"
+                            title="Evidence available (technical & civic audit)"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                          </span>
+                        )}
                         {getHFIBadge(lead.hfi_score)}
                         {lead.winnerUserId && (
                           <span className="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-md text-xs font-semibold">
@@ -1767,7 +1900,40 @@ export default function AlumniDashboard() {
                     {(() => {
                       const projectStatus = getProjectStatus(lead);
                       return (
-                        <div className="flex items-center gap-2 mb-2">
+                        <div className="flex items-center gap-2 mb-2 flex-wrap">
+                          {activeTab === 'scout' && (() => {
+                            const websiteUrl = lead.website_url;
+                            const hasWebsite = websiteUrl != null && String(websiteUrl).trim() !== '';
+                            const badgeLabel = !hasWebsite ? 'No Web Presence' : 'Technical Audit';
+                            return (
+                              <>
+                                {!hasWebsite ? (
+                                  <span className="px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-700 shrink-0" title="No website">
+                                    🔴 {badgeLabel}
+                                  </span>
+                                ) : (
+                                  <span className="px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700 shrink-0" title="Has website">
+                                    🔵 {badgeLabel}
+                                  </span>
+                                )}
+                                {lead.audit_status != null && (
+                                  <span
+                                    className={`px-2 py-0.5 rounded-full text-xs font-medium capitalize shrink-0 ${
+                                      lead.audit_status === 'processing'
+                                        ? 'bg-amber-100 text-amber-800 animate-pulse'
+                                        : lead.audit_status === 'completed'
+                                          ? 'bg-green-100 text-green-700'
+                                          : lead.audit_status === 'failed'
+                                            ? 'bg-red-100 text-red-700'
+                                            : 'bg-gray-100 text-gray-700'
+                                    }`}
+                                  >
+                                    {lead.audit_status}
+                                  </span>
+                                )}
+                              </>
+                            );
+                          })()}
                           <span className={`px-2 py-1 rounded text-xs font-medium ${
                             projectStatus.color === 'orange' ? 'bg-orange-100 text-orange-700' :
                             projectStatus.color === 'gray' ? 'bg-gray-100 text-gray-700' :

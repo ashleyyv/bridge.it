@@ -1,0 +1,592 @@
+{"location":"server/index.js:listen","message":"Express server started","data":{"port":3001},"timestamp":1771625022214,"hypothesisId":"H4"}
+{"location":"server/index.js:listen","message":"Express server started","data":{"port":"3002"},"timestamp":1771625041272,"hypothesisId":"H4"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1771625073340,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1771625073343,"hypothesisId":"H1"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1771625073340,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1771625073343,"hypothesisId":"H1"}
+{"location":"server/index.js:GET-api-leads:afterSupabase","message":"Supabase fetch OK","data":{"rowCount":40},"timestamp":1771625074731,"hypothesisId":"H2b"}
+{"location":"server/index.js:GET-api-leads:beforeSend","message":"About to send response","data":{"processedCount":40},"timestamp":1771625074733,"hypothesisId":"H2d"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1771625074753,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1771625074755,"hypothesisId":"H1"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1771625074753,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1771625074755,"hypothesisId":"H1"}
+{"location":"server/index.js:GET-api-leads:afterSupabase","message":"Supabase fetch OK","data":{"rowCount":40},"timestamp":1771625074930,"hypothesisId":"H2b"}
+{"location":"server/index.js:GET-api-leads:beforeSend","message":"About to send response","data":{"processedCount":40},"timestamp":1771625074931,"hypothesisId":"H2d"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1771625095914,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1771625095917,"hypothesisId":"H1"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1771625095914,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1771625095917,"hypothesisId":"H1"}
+{"location":"server/index.js:GET-api-leads:afterSupabase","message":"Supabase fetch OK","data":{"rowCount":40},"timestamp":1771625096316,"hypothesisId":"H2b"}
+{"location":"server/index.js:GET-api-leads:beforeSend","message":"About to send response","data":{"processedCount":40},"timestamp":1771625096317,"hypothesisId":"H2d"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1771625096475,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1771625096477,"hypothesisId":"H1"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1771625096475,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1771625096477,"hypothesisId":"H1"}
+{"location":"server/index.js:GET-api-leads:afterSupabase","message":"Supabase fetch OK","data":{"rowCount":40},"timestamp":1771625096606,"hypothesisId":"H2b"}
+{"location":"server/index.js:GET-api-leads:beforeSend","message":"About to send response","data":{"processedCount":40},"timestamp":1771625096607,"hypothesisId":"H2d"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772062939940,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772062939956,"hypothesisId":"H1"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772062939940,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772062939956,"hypothesisId":"H1"}
+{"location":"server/index.js:GET-api-leads:afterSupabase","message":"Supabase fetch OK","data":{"rowCount":40},"timestamp":1772062941583,"hypothesisId":"H2b"}
+{"location":"server/index.js:GET-api-leads:beforeSend","message":"About to send response","data":{"processedCount":40},"timestamp":1772062941584,"hypothesisId":"H2d"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772062941619,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772062941621,"hypothesisId":"H1"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772062941619,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772062941621,"hypothesisId":"H1"}
+{"location":"server/index.js:GET-api-leads:afterSupabase","message":"Supabase fetch OK","data":{"rowCount":40},"timestamp":1772062941888,"hypothesisId":"H2b"}
+{"location":"server/index.js:GET-api-leads:beforeSend","message":"About to send response","data":{"processedCount":40},"timestamp":1772062941889,"hypothesisId":"H2d"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772062941919,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772062941920,"hypothesisId":"H1"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772062941919,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772062941920,"hypothesisId":"H1"}
+{"location":"server/index.js:GET-api-leads:afterSupabase","message":"Supabase fetch OK","data":{"rowCount":40},"timestamp":1772062942076,"hypothesisId":"H2b"}
+{"location":"server/index.js:GET-api-leads:beforeSend","message":"About to send response","data":{"processedCount":40},"timestamp":1772062942077,"hypothesisId":"H2d"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772065102384,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772065102385,"hypothesisId":"H1"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772065102385,"hypothesisId":"H1"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772065102384,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:beforeSend","message":"About to send response","data":{"processedCount":40},"timestamp":1772065103350,"hypothesisId":"H2d"}
+{"location":"server/index.js:GET-api-leads:afterSupabase","message":"Supabase fetch OK","data":{"rowCount":40},"timestamp":1772065103349,"hypothesisId":"H2b"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772065103372,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772065103374,"hypothesisId":"H1"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772065103372,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772065103374,"hypothesisId":"H1"}
+{"location":"server/index.js:GET-api-leads:afterSupabase","message":"Supabase fetch OK","data":{"rowCount":40},"timestamp":1772065103469,"hypothesisId":"H2b"}
+{"location":"server/index.js:GET-api-leads:beforeSend","message":"About to send response","data":{"processedCount":40},"timestamp":1772065103469,"hypothesisId":"H2d"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772065103481,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772065103482,"hypothesisId":"H1"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772065103482,"hypothesisId":"H1"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772065103481,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:afterSupabase","message":"Supabase fetch OK","data":{"rowCount":40},"timestamp":1772065103552,"hypothesisId":"H2b"}
+{"location":"server/index.js:GET-api-leads:beforeSend","message":"About to send response","data":{"processedCount":40},"timestamp":1772065103552,"hypothesisId":"H2d"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772065357332,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772065357334,"hypothesisId":"H1"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772065357332,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772065357334,"hypothesisId":"H1"}
+{"location":"server/index.js:GET-api-leads:afterSupabase","message":"Supabase fetch OK","data":{"rowCount":40},"timestamp":1772065357722,"hypothesisId":"H2b"}
+{"location":"server/index.js:GET-api-leads:beforeSend","message":"About to send response","data":{"processedCount":40},"timestamp":1772065357723,"hypothesisId":"H2d"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772065357739,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772065357741,"hypothesisId":"H1"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772065357739,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772065357741,"hypothesisId":"H1"}
+{"location":"server/index.js:GET-api-leads:afterSupabase","message":"Supabase fetch OK","data":{"rowCount":40},"timestamp":1772065357839,"hypothesisId":"H2b"}
+{"location":"server/index.js:GET-api-leads:beforeSend","message":"About to send response","data":{"processedCount":40},"timestamp":1772065357841,"hypothesisId":"H2d"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772065357860,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772065357861,"hypothesisId":"H1"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772065357860,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772065357861,"hypothesisId":"H1"}
+{"location":"server/index.js:GET-api-leads:beforeSend","message":"About to send response","data":{"processedCount":40},"timestamp":1772065358107,"hypothesisId":"H2d"}
+{"location":"server/index.js:GET-api-leads:afterSupabase","message":"Supabase fetch OK","data":{"rowCount":40},"timestamp":1772065358106,"hypothesisId":"H2b"}
+{"location":"server/index.js:listen","message":"Express server started","data":{"port":"3002"},"timestamp":1772065384468,"hypothesisId":"H4"}
+{"location":"server/index.js:listen","message":"Express server started","data":{"port":3001},"timestamp":1772065388848,"hypothesisId":"H4"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772066952614,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772066952620,"hypothesisId":"H1"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772066952614,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772066952620,"hypothesisId":"H1"}
+{"location":"server/index.js:GET-api-leads:supabaseError","message":"Supabase fetch error","data":{"msg":"column leads.created_at does not exist","code":"42703"},"timestamp":1772066953972,"hypothesisId":"H2"}
+{"location":"server/index.js:GET-api-leads:supabaseError","message":"Supabase fetch error","data":{"msg":"column leads.created_at does not exist","code":"42703"},"timestamp":1772066953972,"hypothesisId":"H2"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772066958198,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772066958202,"hypothesisId":"H1"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772066958198,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772066958202,"hypothesisId":"H1"}
+{"location":"server/index.js:GET-api-leads:supabaseError","message":"Supabase fetch error","data":{"msg":"column leads.created_at does not exist","code":"42703"},"timestamp":1772066958638,"hypothesisId":"H2"}
+{"location":"server/index.js:GET-api-leads:supabaseError","message":"Supabase fetch error","data":{"msg":"column leads.created_at does not exist","code":"42703"},"timestamp":1772066958638,"hypothesisId":"H2"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772066958691,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772066958693,"hypothesisId":"H1"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772066958691,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772066958693,"hypothesisId":"H1"}
+{"location":"server/index.js:GET-api-leads:supabaseError","message":"Supabase fetch error","data":{"msg":"column leads.created_at does not exist","code":"42703"},"timestamp":1772066958998,"hypothesisId":"H2"}
+{"location":"server/index.js:GET-api-leads:supabaseError","message":"Supabase fetch error","data":{"msg":"column leads.created_at does not exist","code":"42703"},"timestamp":1772066958998,"hypothesisId":"H2"}
+{"location":"server/index.js:listen","message":"Express server started","data":{"port":"3002"},"timestamp":1772067075054,"hypothesisId":"H4"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772067089091,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772067089095,"hypothesisId":"H1"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772067089091,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772067089095,"hypothesisId":"H1"}
+{"location":"server/index.js:GET-api-leads:supabaseError","message":"Supabase fetch error","data":{"msg":"column leads.discovered_at does not exist","code":"42703"},"timestamp":1772067089465,"hypothesisId":"H2"}
+{"location":"server/index.js:GET-api-leads:supabaseError","message":"Supabase fetch error","data":{"msg":"column leads.discovered_at does not exist","code":"42703"},"timestamp":1772067089465,"hypothesisId":"H2"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772067089501,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772067089502,"hypothesisId":"H1"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772067089501,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772067089502,"hypothesisId":"H1"}
+{"location":"server/index.js:GET-api-leads:supabaseError","message":"Supabase fetch error","data":{"msg":"column leads.discovered_at does not exist","code":"42703"},"timestamp":1772067089609,"hypothesisId":"H2"}
+{"location":"server/index.js:GET-api-leads:supabaseError","message":"Supabase fetch error","data":{"msg":"column leads.discovered_at does not exist","code":"42703"},"timestamp":1772067089609,"hypothesisId":"H2"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772067089639,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772067089641,"hypothesisId":"H1"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772067089641,"hypothesisId":"H1"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772067089639,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:supabaseError","message":"Supabase fetch error","data":{"msg":"column leads.discovered_at does not exist","code":"42703"},"timestamp":1772067089701,"hypothesisId":"H2"}
+{"location":"server/index.js:GET-api-leads:supabaseError","message":"Supabase fetch error","data":{"msg":"column leads.discovered_at does not exist","code":"42703"},"timestamp":1772067089701,"hypothesisId":"H2"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772067157452,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772067157455,"hypothesisId":"H1"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772067157452,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772067157455,"hypothesisId":"H1"}
+{"location":"server/index.js:GET-api-leads:supabaseError","message":"Supabase fetch error","data":{"msg":"column leads.discovered_at does not exist","code":"42703"},"timestamp":1772067157631,"hypothesisId":"H2"}
+{"location":"server/index.js:GET-api-leads:supabaseError","message":"Supabase fetch error","data":{"msg":"column leads.discovered_at does not exist","code":"42703"},"timestamp":1772067157631,"hypothesisId":"H2"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772067157990,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772067157992,"hypothesisId":"H1"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772067157990,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772067157992,"hypothesisId":"H1"}
+{"location":"server/index.js:GET-api-leads:supabaseError","message":"Supabase fetch error","data":{"msg":"column leads.discovered_at does not exist","code":"42703"},"timestamp":1772067158062,"hypothesisId":"H2"}
+{"location":"server/index.js:GET-api-leads:supabaseError","message":"Supabase fetch error","data":{"msg":"column leads.discovered_at does not exist","code":"42703"},"timestamp":1772067158062,"hypothesisId":"H2"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772067158086,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772067158088,"hypothesisId":"H1"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772067158086,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772067158088,"hypothesisId":"H1"}
+{"location":"server/index.js:GET-api-leads:supabaseError","message":"Supabase fetch error","data":{"msg":"column leads.discovered_at does not exist","code":"42703"},"timestamp":1772067158146,"hypothesisId":"H2"}
+{"location":"server/index.js:GET-api-leads:supabaseError","message":"Supabase fetch error","data":{"msg":"column leads.discovered_at does not exist","code":"42703"},"timestamp":1772067158146,"hypothesisId":"H2"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772067284606,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772067284608,"hypothesisId":"H1"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772067284606,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772067284608,"hypothesisId":"H1"}
+{"location":"server/index.js:GET-api-leads:supabaseError","message":"Supabase fetch error","data":{"msg":"column leads.discovered_at does not exist","code":"42703"},"timestamp":1772067285299,"hypothesisId":"H2"}
+{"location":"server/index.js:GET-api-leads:supabaseError","message":"Supabase fetch error","data":{"msg":"column leads.discovered_at does not exist","code":"42703"},"timestamp":1772067285299,"hypothesisId":"H2"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772067285314,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772067285315,"hypothesisId":"H1"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772067285314,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772067285315,"hypothesisId":"H1"}
+{"location":"server/index.js:GET-api-leads:supabaseError","message":"Supabase fetch error","data":{"msg":"column leads.discovered_at does not exist","code":"42703"},"timestamp":1772067285395,"hypothesisId":"H2"}
+{"location":"server/index.js:GET-api-leads:supabaseError","message":"Supabase fetch error","data":{"msg":"column leads.discovered_at does not exist","code":"42703"},"timestamp":1772067285395,"hypothesisId":"H2"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772067285437,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772067285437,"hypothesisId":"H1"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772067285437,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772067285437,"hypothesisId":"H1"}
+{"location":"server/index.js:GET-api-leads:supabaseError","message":"Supabase fetch error","data":{"msg":"column leads.discovered_at does not exist","code":"42703"},"timestamp":1772067285506,"hypothesisId":"H2"}
+{"location":"server/index.js:GET-api-leads:supabaseError","message":"Supabase fetch error","data":{"msg":"column leads.discovered_at does not exist","code":"42703"},"timestamp":1772067285506,"hypothesisId":"H2"}
+{"location":"server/index.js:listen","message":"Express server started","data":{"port":"3002"},"timestamp":1772067307359,"hypothesisId":"H4"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772067315693,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772067315698,"hypothesisId":"H1"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772067315693,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772067315698,"hypothesisId":"H1"}
+{"location":"server/index.js:GET-api-leads:supabaseError","message":"Supabase fetch error","data":{"msg":"column leads.discovered_at does not exist","code":"42703"},"timestamp":1772067316077,"hypothesisId":"H2"}
+{"location":"server/index.js:GET-api-leads:supabaseError","message":"Supabase fetch error","data":{"msg":"column leads.discovered_at does not exist","code":"42703"},"timestamp":1772067316077,"hypothesisId":"H2"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772067316114,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772067316117,"hypothesisId":"H1"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772067316117,"hypothesisId":"H1"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772067316114,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:supabaseError","message":"Supabase fetch error","data":{"msg":"column leads.discovered_at does not exist","code":"42703"},"timestamp":1772067316279,"hypothesisId":"H2"}
+{"location":"server/index.js:GET-api-leads:supabaseError","message":"Supabase fetch error","data":{"msg":"column leads.discovered_at does not exist","code":"42703"},"timestamp":1772067316279,"hypothesisId":"H2"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772067316340,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772067316342,"hypothesisId":"H1"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772067316340,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772067316342,"hypothesisId":"H1"}
+{"location":"server/index.js:GET-api-leads:supabaseError","message":"Supabase fetch error","data":{"msg":"column leads.discovered_at does not exist","code":"42703"},"timestamp":1772067316483,"hypothesisId":"H2"}
+{"location":"server/index.js:GET-api-leads:supabaseError","message":"Supabase fetch error","data":{"msg":"column leads.discovered_at does not exist","code":"42703"},"timestamp":1772067316483,"hypothesisId":"H2"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772067406911,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772067406913,"hypothesisId":"H1"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772067406913,"hypothesisId":"H1"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772067406911,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:supabaseError","message":"Supabase fetch error","data":{"msg":"column leads.discovered_at does not exist","code":"42703"},"timestamp":1772067407258,"hypothesisId":"H2"}
+{"location":"server/index.js:GET-api-leads:supabaseError","message":"Supabase fetch error","data":{"msg":"column leads.discovered_at does not exist","code":"42703"},"timestamp":1772067407258,"hypothesisId":"H2"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772067407268,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772067407269,"hypothesisId":"H1"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772067407268,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772067407269,"hypothesisId":"H1"}
+{"location":"server/index.js:GET-api-leads:supabaseError","message":"Supabase fetch error","data":{"msg":"column leads.discovered_at does not exist","code":"42703"},"timestamp":1772067407385,"hypothesisId":"H2"}
+{"location":"server/index.js:GET-api-leads:supabaseError","message":"Supabase fetch error","data":{"msg":"column leads.discovered_at does not exist","code":"42703"},"timestamp":1772067407385,"hypothesisId":"H2"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772067407404,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772067407405,"hypothesisId":"H1"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772067407404,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772067407405,"hypothesisId":"H1"}
+{"location":"server/index.js:GET-api-leads:supabaseError","message":"Supabase fetch error","data":{"msg":"column leads.discovered_at does not exist","code":"42703"},"timestamp":1772067407522,"hypothesisId":"H2"}
+{"location":"server/index.js:GET-api-leads:supabaseError","message":"Supabase fetch error","data":{"msg":"column leads.discovered_at does not exist","code":"42703"},"timestamp":1772067407522,"hypothesisId":"H2"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772067581155,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772067581156,"hypothesisId":"H1"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772067581155,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772067581156,"hypothesisId":"H1"}
+{"location":"server/index.js:GET-api-leads:supabaseError","message":"Supabase fetch error","data":{"msg":"column leads.discovered_at does not exist","code":"42703"},"timestamp":1772067581523,"hypothesisId":"H2"}
+{"location":"server/index.js:GET-api-leads:supabaseError","message":"Supabase fetch error","data":{"msg":"column leads.discovered_at does not exist","code":"42703"},"timestamp":1772067581523,"hypothesisId":"H2"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772067581540,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772067581540,"hypothesisId":"H1"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772067581540,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772067581540,"hypothesisId":"H1"}
+{"location":"server/index.js:GET-api-leads:supabaseError","message":"Supabase fetch error","data":{"msg":"column leads.discovered_at does not exist","code":"42703"},"timestamp":1772067581674,"hypothesisId":"H2"}
+{"location":"server/index.js:GET-api-leads:supabaseError","message":"Supabase fetch error","data":{"msg":"column leads.discovered_at does not exist","code":"42703"},"timestamp":1772067581674,"hypothesisId":"H2"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772067581690,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772067581691,"hypothesisId":"H1"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772067581690,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772067581691,"hypothesisId":"H1"}
+{"location":"server/index.js:GET-api-leads:supabaseError","message":"Supabase fetch error","data":{"msg":"column leads.discovered_at does not exist","code":"42703"},"timestamp":1772067581843,"hypothesisId":"H2"}
+{"location":"server/index.js:GET-api-leads:supabaseError","message":"Supabase fetch error","data":{"msg":"column leads.discovered_at does not exist","code":"42703"},"timestamp":1772067581843,"hypothesisId":"H2"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772067644555,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772067644556,"hypothesisId":"H1"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772067644555,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772067644556,"hypothesisId":"H1"}
+{"location":"server/index.js:GET-api-leads:supabaseError","message":"Supabase fetch error","data":{"msg":"column leads.discovered_at does not exist","code":"42703"},"timestamp":1772067644960,"hypothesisId":"H2"}
+{"location":"server/index.js:GET-api-leads:supabaseError","message":"Supabase fetch error","data":{"msg":"column leads.discovered_at does not exist","code":"42703"},"timestamp":1772067644960,"hypothesisId":"H2"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772067644973,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772067644974,"hypothesisId":"H1"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772067644973,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772067644974,"hypothesisId":"H1"}
+{"location":"server/index.js:GET-api-leads:supabaseError","message":"Supabase fetch error","data":{"msg":"column leads.discovered_at does not exist","code":"42703"},"timestamp":1772067645133,"hypothesisId":"H2"}
+{"location":"server/index.js:GET-api-leads:supabaseError","message":"Supabase fetch error","data":{"msg":"column leads.discovered_at does not exist","code":"42703"},"timestamp":1772067645133,"hypothesisId":"H2"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772067645172,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772067645173,"hypothesisId":"H1"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772067645173,"hypothesisId":"H1"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772067645172,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:supabaseError","message":"Supabase fetch error","data":{"msg":"column leads.discovered_at does not exist","code":"42703"},"timestamp":1772067645313,"hypothesisId":"H2"}
+{"location":"server/index.js:GET-api-leads:supabaseError","message":"Supabase fetch error","data":{"msg":"column leads.discovered_at does not exist","code":"42703"},"timestamp":1772067645313,"hypothesisId":"H2"}
+{"location":"server/index.js:listen","message":"Express server started","data":{"port":"3002"},"timestamp":1772067665314,"hypothesisId":"H4"}
+{"location":"server/index.js:listen","message":"Express server started","data":{"port":3001},"timestamp":1772067681429,"hypothesisId":"H4"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772067692026,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772067692032,"hypothesisId":"H1"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772067692026,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772067692032,"hypothesisId":"H1"}
+{"location":"server/index.js:GET-api-leads:afterSupabase","message":"Supabase fetch OK","data":{"rowCount":1},"timestamp":1772067692944,"hypothesisId":"H2b"}
+{"location":"server/index.js:GET-api-leads:beforeSend","message":"About to send response","data":{"processedCount":1},"timestamp":1772067692948,"hypothesisId":"H2d"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772067697125,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772067697129,"hypothesisId":"H1"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772067697125,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772067697129,"hypothesisId":"H1"}
+{"location":"server/index.js:GET-api-leads:beforeSend","message":"About to send response","data":{"processedCount":1},"timestamp":1772067697368,"hypothesisId":"H2d"}
+{"location":"server/index.js:GET-api-leads:afterSupabase","message":"Supabase fetch OK","data":{"rowCount":1},"timestamp":1772067697367,"hypothesisId":"H2b"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772067697430,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772067697432,"hypothesisId":"H1"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772067697432,"hypothesisId":"H1"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772067697430,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:afterSupabase","message":"Supabase fetch OK","data":{"rowCount":1},"timestamp":1772067697584,"hypothesisId":"H2b"}
+{"location":"server/index.js:GET-api-leads:beforeSend","message":"About to send response","data":{"processedCount":1},"timestamp":1772067697585,"hypothesisId":"H2d"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads?view=all"},"timestamp":1772067708675,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772067708677,"hypothesisId":"H1"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads?view=all"},"timestamp":1772067708675,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772067708677,"hypothesisId":"H1"}
+{"location":"server/index.js:GET-api-leads:afterSupabase","message":"Supabase fetch OK","data":{"rowCount":40},"timestamp":1772067708820,"hypothesisId":"H2b"}
+{"location":"server/index.js:GET-api-leads:beforeSend","message":"About to send response","data":{"processedCount":40},"timestamp":1772067708821,"hypothesisId":"H2d"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772068180711,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772068180713,"hypothesisId":"H1"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772068180711,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772068180713,"hypothesisId":"H1"}
+{"location":"server/index.js:GET-api-leads:afterSupabase","message":"Supabase fetch OK","data":{"rowCount":1},"timestamp":1772068181293,"hypothesisId":"H2b"}
+{"location":"server/index.js:GET-api-leads:beforeSend","message":"About to send response","data":{"processedCount":1},"timestamp":1772068181293,"hypothesisId":"H2d"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772068181313,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772068181314,"hypothesisId":"H1"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772068181314,"hypothesisId":"H1"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772068181313,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:afterSupabase","message":"Supabase fetch OK","data":{"rowCount":1},"timestamp":1772068181504,"hypothesisId":"H2b"}
+{"location":"server/index.js:GET-api-leads:beforeSend","message":"About to send response","data":{"processedCount":1},"timestamp":1772068181504,"hypothesisId":"H2d"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772068181519,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772068181520,"hypothesisId":"H1"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772068181519,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772068181520,"hypothesisId":"H1"}
+{"location":"server/index.js:GET-api-leads:afterSupabase","message":"Supabase fetch OK","data":{"rowCount":1},"timestamp":1772068181642,"hypothesisId":"H2b"}
+{"location":"server/index.js:GET-api-leads:beforeSend","message":"About to send response","data":{"processedCount":1},"timestamp":1772068181642,"hypothesisId":"H2d"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads?view=all"},"timestamp":1772068194425,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772068194427,"hypothesisId":"H1"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads?view=all"},"timestamp":1772068194425,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772068194427,"hypothesisId":"H1"}
+{"location":"server/index.js:GET-api-leads:afterSupabase","message":"Supabase fetch OK","data":{"rowCount":40},"timestamp":1772068194556,"hypothesisId":"H2b"}
+{"location":"server/index.js:GET-api-leads:beforeSend","message":"About to send response","data":{"processedCount":40},"timestamp":1772068194557,"hypothesisId":"H2d"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772068261759,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772068261761,"hypothesisId":"H1"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772068261759,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772068261761,"hypothesisId":"H1"}
+{"location":"server/index.js:GET-api-leads:afterSupabase","message":"Supabase fetch OK","data":{"rowCount":1},"timestamp":1772068261973,"hypothesisId":"H2b"}
+{"location":"server/index.js:GET-api-leads:beforeSend","message":"About to send response","data":{"processedCount":1},"timestamp":1772068261973,"hypothesisId":"H2d"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772068262516,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772068262517,"hypothesisId":"H1"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772068262516,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772068262517,"hypothesisId":"H1"}
+{"location":"server/index.js:GET-api-leads:afterSupabase","message":"Supabase fetch OK","data":{"rowCount":1},"timestamp":1772068262628,"hypothesisId":"H2b"}
+{"location":"server/index.js:GET-api-leads:beforeSend","message":"About to send response","data":{"processedCount":1},"timestamp":1772068262628,"hypothesisId":"H2d"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772068262653,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772068262654,"hypothesisId":"H1"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772068262653,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772068262654,"hypothesisId":"H1"}
+{"location":"server/index.js:GET-api-leads:afterSupabase","message":"Supabase fetch OK","data":{"rowCount":1},"timestamp":1772068262763,"hypothesisId":"H2b"}
+{"location":"server/index.js:GET-api-leads:beforeSend","message":"About to send response","data":{"processedCount":1},"timestamp":1772068262764,"hypothesisId":"H2d"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772068319573,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772068319575,"hypothesisId":"H1"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772068319573,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772068319575,"hypothesisId":"H1"}
+{"location":"server/index.js:GET-api-leads:afterSupabase","message":"Supabase fetch OK","data":{"rowCount":1},"timestamp":1772068319989,"hypothesisId":"H2b"}
+{"location":"server/index.js:GET-api-leads:beforeSend","message":"About to send response","data":{"processedCount":1},"timestamp":1772068319990,"hypothesisId":"H2d"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772068320004,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772068320006,"hypothesisId":"H1"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772068320004,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772068320006,"hypothesisId":"H1"}
+{"location":"server/index.js:GET-api-leads:afterSupabase","message":"Supabase fetch OK","data":{"rowCount":1},"timestamp":1772068320192,"hypothesisId":"H2b"}
+{"location":"server/index.js:GET-api-leads:beforeSend","message":"About to send response","data":{"processedCount":1},"timestamp":1772068320193,"hypothesisId":"H2d"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772068320221,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772068320223,"hypothesisId":"H1"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772068320221,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772068320223,"hypothesisId":"H1"}
+{"location":"server/index.js:GET-api-leads:afterSupabase","message":"Supabase fetch OK","data":{"rowCount":1},"timestamp":1772068320370,"hypothesisId":"H2b"}
+{"location":"server/index.js:GET-api-leads:beforeSend","message":"About to send response","data":{"processedCount":1},"timestamp":1772068320370,"hypothesisId":"H2d"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772068370977,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772068370978,"hypothesisId":"H1"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772068370977,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772068370978,"hypothesisId":"H1"}
+{"location":"server/index.js:GET-api-leads:afterSupabase","message":"Supabase fetch OK","data":{"rowCount":1},"timestamp":1772068371152,"hypothesisId":"H2b"}
+{"location":"server/index.js:GET-api-leads:beforeSend","message":"About to send response","data":{"processedCount":1},"timestamp":1772068371152,"hypothesisId":"H2d"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772068371236,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772068371237,"hypothesisId":"H1"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772068371236,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772068371237,"hypothesisId":"H1"}
+{"location":"server/index.js:GET-api-leads:afterSupabase","message":"Supabase fetch OK","data":{"rowCount":1},"timestamp":1772068371408,"hypothesisId":"H2b"}
+{"location":"server/index.js:GET-api-leads:beforeSend","message":"About to send response","data":{"processedCount":1},"timestamp":1772068371409,"hypothesisId":"H2d"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772068371464,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772068371465,"hypothesisId":"H1"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772068371464,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772068371465,"hypothesisId":"H1"}
+{"location":"server/index.js:GET-api-leads:afterSupabase","message":"Supabase fetch OK","data":{"rowCount":1},"timestamp":1772068371575,"hypothesisId":"H2b"}
+{"location":"server/index.js:GET-api-leads:beforeSend","message":"About to send response","data":{"processedCount":1},"timestamp":1772068371575,"hypothesisId":"H2d"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads?view=all"},"timestamp":1772068376893,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772068376894,"hypothesisId":"H1"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads?view=all"},"timestamp":1772068376893,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772068376894,"hypothesisId":"H1"}
+{"location":"server/index.js:GET-api-leads:afterSupabase","message":"Supabase fetch OK","data":{"rowCount":40},"timestamp":1772068377017,"hypothesisId":"H2b"}
+{"location":"server/index.js:GET-api-leads:beforeSend","message":"About to send response","data":{"processedCount":40},"timestamp":1772068377018,"hypothesisId":"H2d"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772068408297,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772068408298,"hypothesisId":"H1"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772068408297,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772068408298,"hypothesisId":"H1"}
+{"location":"server/index.js:GET-api-leads:afterSupabase","message":"Supabase fetch OK","data":{"rowCount":1},"timestamp":1772068408520,"hypothesisId":"H2b"}
+{"location":"server/index.js:GET-api-leads:beforeSend","message":"About to send response","data":{"processedCount":1},"timestamp":1772068408521,"hypothesisId":"H2d"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads?view=all"},"timestamp":1772068410267,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772068410268,"hypothesisId":"H1"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads?view=all"},"timestamp":1772068410267,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772068410268,"hypothesisId":"H1"}
+{"location":"server/index.js:GET-api-leads:afterSupabase","message":"Supabase fetch OK","data":{"rowCount":40},"timestamp":1772068410339,"hypothesisId":"H2b"}
+{"location":"server/index.js:GET-api-leads:beforeSend","message":"About to send response","data":{"processedCount":40},"timestamp":1772068410340,"hypothesisId":"H2d"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772068411229,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772068411231,"hypothesisId":"H1"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772068411229,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772068411231,"hypothesisId":"H1"}
+{"location":"server/index.js:GET-api-leads:afterSupabase","message":"Supabase fetch OK","data":{"rowCount":1},"timestamp":1772068411377,"hypothesisId":"H2b"}
+{"location":"server/index.js:GET-api-leads:beforeSend","message":"About to send response","data":{"processedCount":1},"timestamp":1772068411378,"hypothesisId":"H2d"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads?view=all"},"timestamp":1772068413641,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772068413642,"hypothesisId":"H1"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772068413642,"hypothesisId":"H1"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads?view=all"},"timestamp":1772068413641,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:afterSupabase","message":"Supabase fetch OK","data":{"rowCount":40},"timestamp":1772068413744,"hypothesisId":"H2b"}
+{"location":"server/index.js:GET-api-leads:beforeSend","message":"About to send response","data":{"processedCount":40},"timestamp":1772068413745,"hypothesisId":"H2d"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772068712205,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772068712206,"hypothesisId":"H1"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772068712205,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772068712206,"hypothesisId":"H1"}
+{"location":"server/index.js:GET-api-leads:afterSupabase","message":"Supabase fetch OK","data":{"rowCount":1},"timestamp":1772068713458,"hypothesisId":"H2b"}
+{"location":"server/index.js:GET-api-leads:beforeSend","message":"About to send response","data":{"processedCount":1},"timestamp":1772068713458,"hypothesisId":"H2d"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772068821786,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772068821787,"hypothesisId":"H1"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772068821786,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772068821787,"hypothesisId":"H1"}
+{"location":"server/index.js:GET-api-leads:afterSupabase","message":"Supabase fetch OK","data":{"rowCount":1},"timestamp":1772068822387,"hypothesisId":"H2b"}
+{"location":"server/index.js:GET-api-leads:beforeSend","message":"About to send response","data":{"processedCount":1},"timestamp":1772068822387,"hypothesisId":"H2d"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772068822401,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772068822402,"hypothesisId":"H1"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772068822402,"hypothesisId":"H1"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772068822401,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:afterSupabase","message":"Supabase fetch OK","data":{"rowCount":1},"timestamp":1772068822803,"hypothesisId":"H2b"}
+{"location":"server/index.js:GET-api-leads:beforeSend","message":"About to send response","data":{"processedCount":1},"timestamp":1772068822803,"hypothesisId":"H2d"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads?view=all"},"timestamp":1772068906067,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772068906069,"hypothesisId":"H1"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads?view=all"},"timestamp":1772068906067,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772068906069,"hypothesisId":"H1"}
+{"location":"server/index.js:GET-api-leads:beforeSend","message":"About to send response","data":{"processedCount":40},"timestamp":1772068906430,"hypothesisId":"H2d"}
+{"location":"server/index.js:GET-api-leads:afterSupabase","message":"Supabase fetch OK","data":{"rowCount":40},"timestamp":1772068906429,"hypothesisId":"H2b"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"PATCH","url":"/api/leads/d908ae3e-b4d5-4f6c-abfa-12480a03f5e5/promote"},"timestamp":1772068910984,"hypothesisId":"Hreq"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"PATCH","url":"/api/leads/d908ae3e-b4d5-4f6c-abfa-12480a03f5e5/promote"},"timestamp":1772068910984,"hypothesisId":"Hreq"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772069362054,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772069362055,"hypothesisId":"H1"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772069362055,"hypothesisId":"H1"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772069362054,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:afterSupabase","message":"Supabase fetch OK","data":{"rowCount":1},"timestamp":1772069362469,"hypothesisId":"H2b"}
+{"location":"server/index.js:GET-api-leads:beforeSend","message":"About to send response","data":{"processedCount":1},"timestamp":1772069362470,"hypothesisId":"H2d"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772069362489,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772069362489,"hypothesisId":"H1"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772069362489,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772069362489,"hypothesisId":"H1"}
+{"location":"server/index.js:GET-api-leads:afterSupabase","message":"Supabase fetch OK","data":{"rowCount":1},"timestamp":1772069362653,"hypothesisId":"H2b"}
+{"location":"server/index.js:GET-api-leads:beforeSend","message":"About to send response","data":{"processedCount":1},"timestamp":1772069362653,"hypothesisId":"H2d"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772069362669,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772069362670,"hypothesisId":"H1"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772069362670,"hypothesisId":"H1"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772069362669,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:beforeSend","message":"About to send response","data":{"processedCount":1},"timestamp":1772069362773,"hypothesisId":"H2d"}
+{"location":"server/index.js:GET-api-leads:afterSupabase","message":"Supabase fetch OK","data":{"rowCount":1},"timestamp":1772069362773,"hypothesisId":"H2b"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads?view=all"},"timestamp":1772069366183,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772069366184,"hypothesisId":"H1"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads?view=all"},"timestamp":1772069366183,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772069366184,"hypothesisId":"H1"}
+{"location":"server/index.js:GET-api-leads:afterSupabase","message":"Supabase fetch OK","data":{"rowCount":40},"timestamp":1772069366257,"hypothesisId":"H2b"}
+{"location":"server/index.js:GET-api-leads:beforeSend","message":"About to send response","data":{"processedCount":40},"timestamp":1772069366258,"hypothesisId":"H2d"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"PATCH","url":"/api/leads/d908ae3e-b4d5-4f6c-abfa-12480a03f5e5/promote"},"timestamp":1772069368264,"hypothesisId":"Hreq"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"PATCH","url":"/api/leads/d908ae3e-b4d5-4f6c-abfa-12480a03f5e5/promote"},"timestamp":1772069368264,"hypothesisId":"Hreq"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772069371322,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772069371323,"hypothesisId":"H1"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772069371322,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772069371323,"hypothesisId":"H1"}
+{"location":"server/index.js:GET-api-leads:afterSupabase","message":"Supabase fetch OK","data":{"rowCount":1},"timestamp":1772069371994,"hypothesisId":"H2b"}
+{"location":"server/index.js:GET-api-leads:beforeSend","message":"About to send response","data":{"processedCount":1},"timestamp":1772069371995,"hypothesisId":"H2d"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads?view=all"},"timestamp":1772069374335,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772069374336,"hypothesisId":"H1"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads?view=all"},"timestamp":1772069374335,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772069374336,"hypothesisId":"H1"}
+{"location":"server/index.js:GET-api-leads:afterSupabase","message":"Supabase fetch OK","data":{"rowCount":40},"timestamp":1772069374438,"hypothesisId":"H2b"}
+{"location":"server/index.js:GET-api-leads:beforeSend","message":"About to send response","data":{"processedCount":40},"timestamp":1772069374438,"hypothesisId":"H2d"}
+{"location":"server/index.js:listen","message":"Express server started","data":{"port":"3002"},"timestamp":1772069392222,"hypothesisId":"H4"}
+{"location":"server/index.js:listen","message":"Express server started","data":{"port":3001},"timestamp":1772069401357,"hypothesisId":"H4"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772069410325,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772069410327,"hypothesisId":"H1"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772069410325,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772069410327,"hypothesisId":"H1"}
+{"location":"server/index.js:GET-api-leads:afterSupabase","message":"Supabase fetch OK","data":{"rowCount":13},"timestamp":1772069410550,"hypothesisId":"H2b"}
+{"location":"server/index.js:GET-api-leads:beforeSend","message":"About to send response","data":{"processedCount":13},"timestamp":1772069410552,"hypothesisId":"H2d"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772069411048,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772069411049,"hypothesisId":"H1"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772069411048,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772069411049,"hypothesisId":"H1"}
+{"location":"server/index.js:GET-api-leads:afterSupabase","message":"Supabase fetch OK","data":{"rowCount":13},"timestamp":1772069411103,"hypothesisId":"H2b"}
+{"location":"server/index.js:GET-api-leads:beforeSend","message":"About to send response","data":{"processedCount":13},"timestamp":1772069411104,"hypothesisId":"H2d"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772069411113,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772069411114,"hypothesisId":"H1"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772069411113,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772069411114,"hypothesisId":"H1"}
+{"location":"server/index.js:GET-api-leads:afterSupabase","message":"Supabase fetch OK","data":{"rowCount":13},"timestamp":1772069411182,"hypothesisId":"H2b"}
+{"location":"server/index.js:GET-api-leads:beforeSend","message":"About to send response","data":{"processedCount":13},"timestamp":1772069411182,"hypothesisId":"H2d"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads?view=all"},"timestamp":1772069414347,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772069414348,"hypothesisId":"H1"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads?view=all"},"timestamp":1772069414347,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772069414348,"hypothesisId":"H1"}
+{"location":"server/index.js:GET-api-leads:afterSupabase","message":"Supabase fetch OK","data":{"rowCount":40},"timestamp":1772069414426,"hypothesisId":"H2b"}
+{"location":"server/index.js:GET-api-leads:beforeSend","message":"About to send response","data":{"processedCount":40},"timestamp":1772069414426,"hypothesisId":"H2d"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772069415658,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772069415659,"hypothesisId":"H1"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772069415658,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772069415659,"hypothesisId":"H1"}
+{"location":"server/index.js:GET-api-leads:afterSupabase","message":"Supabase fetch OK","data":{"rowCount":13},"timestamp":1772069415766,"hypothesisId":"H2b"}
+{"location":"server/index.js:GET-api-leads:beforeSend","message":"About to send response","data":{"processedCount":13},"timestamp":1772069415767,"hypothesisId":"H2d"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads?view=all"},"timestamp":1772069420767,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772069420769,"hypothesisId":"H1"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads?view=all"},"timestamp":1772069420767,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772069420769,"hypothesisId":"H1"}
+{"location":"server/index.js:GET-api-leads:afterSupabase","message":"Supabase fetch OK","data":{"rowCount":40},"timestamp":1772069420892,"hypothesisId":"H2b"}
+{"location":"server/index.js:GET-api-leads:beforeSend","message":"About to send response","data":{"processedCount":40},"timestamp":1772069420893,"hypothesisId":"H2d"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772069426783,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772069426785,"hypothesisId":"H1"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772069426783,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772069426785,"hypothesisId":"H1"}
+{"location":"server/index.js:GET-api-leads:beforeSend","message":"About to send response","data":{"processedCount":13},"timestamp":1772069426912,"hypothesisId":"H2d"}
+{"location":"server/index.js:GET-api-leads:afterSupabase","message":"Supabase fetch OK","data":{"rowCount":13},"timestamp":1772069426911,"hypothesisId":"H2b"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772069635159,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772069635161,"hypothesisId":"H1"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772069635159,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772069635161,"hypothesisId":"H1"}
+{"location":"server/index.js:GET-api-leads:afterSupabase","message":"Supabase fetch OK","data":{"rowCount":13},"timestamp":1772069635620,"hypothesisId":"H2b"}
+{"location":"server/index.js:GET-api-leads:beforeSend","message":"About to send response","data":{"processedCount":13},"timestamp":1772069635621,"hypothesisId":"H2d"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772069635768,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772069635770,"hypothesisId":"H1"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772069635768,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772069635770,"hypothesisId":"H1"}
+{"location":"server/index.js:GET-api-leads:afterSupabase","message":"Supabase fetch OK","data":{"rowCount":13},"timestamp":1772069635827,"hypothesisId":"H2b"}
+{"location":"server/index.js:GET-api-leads:beforeSend","message":"About to send response","data":{"processedCount":13},"timestamp":1772069635828,"hypothesisId":"H2d"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772069635839,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772069635840,"hypothesisId":"H1"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772069635839,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772069635840,"hypothesisId":"H1"}
+{"location":"server/index.js:GET-api-leads:afterSupabase","message":"Supabase fetch OK","data":{"rowCount":13},"timestamp":1772069635893,"hypothesisId":"H2b"}
+{"location":"server/index.js:GET-api-leads:beforeSend","message":"About to send response","data":{"processedCount":13},"timestamp":1772069635893,"hypothesisId":"H2d"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772069639363,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772069639364,"hypothesisId":"H1"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772069639363,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772069639364,"hypothesisId":"H1"}
+{"location":"server/index.js:GET-api-leads:afterSupabase","message":"Supabase fetch OK","data":{"rowCount":13},"timestamp":1772069639431,"hypothesisId":"H2b"}
+{"location":"server/index.js:GET-api-leads:beforeSend","message":"About to send response","data":{"processedCount":13},"timestamp":1772069639431,"hypothesisId":"H2d"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772069640450,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772069640451,"hypothesisId":"H1"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772069640450,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772069640451,"hypothesisId":"H1"}
+{"location":"server/index.js:GET-api-leads:afterSupabase","message":"Supabase fetch OK","data":{"rowCount":13},"timestamp":1772069640536,"hypothesisId":"H2b"}
+{"location":"server/index.js:GET-api-leads:beforeSend","message":"About to send response","data":{"processedCount":13},"timestamp":1772069640536,"hypothesisId":"H2d"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772069640564,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772069640565,"hypothesisId":"H1"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772069640564,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772069640565,"hypothesisId":"H1"}
+{"location":"server/index.js:GET-api-leads:afterSupabase","message":"Supabase fetch OK","data":{"rowCount":13},"timestamp":1772069640634,"hypothesisId":"H2b"}
+{"location":"server/index.js:GET-api-leads:beforeSend","message":"About to send response","data":{"processedCount":13},"timestamp":1772069640635,"hypothesisId":"H2d"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772069971747,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772069971749,"hypothesisId":"H1"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772069971747,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772069971749,"hypothesisId":"H1"}
+{"location":"server/index.js:GET-api-leads:afterSupabase","message":"Supabase fetch OK","data":{"rowCount":13},"timestamp":1772069972118,"hypothesisId":"H2b"}
+{"location":"server/index.js:GET-api-leads:beforeSend","message":"About to send response","data":{"processedCount":13},"timestamp":1772069972119,"hypothesisId":"H2d"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772069972257,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772069972259,"hypothesisId":"H1"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772069972335,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772069972337,"hypothesisId":"H1"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772069972259,"hypothesisId":"H1"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772069972257,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:afterSupabase","message":"Supabase fetch OK","data":{"rowCount":13},"timestamp":1772069972313,"hypothesisId":"H2b"}
+{"location":"server/index.js:GET-api-leads:beforeSend","message":"About to send response","data":{"processedCount":13},"timestamp":1772069972315,"hypothesisId":"H2d"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772069972337,"hypothesisId":"H1"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772069972335,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:afterSupabase","message":"Supabase fetch OK","data":{"rowCount":13},"timestamp":1772069972412,"hypothesisId":"H2b"}
+{"location":"server/index.js:GET-api-leads:beforeSend","message":"About to send response","data":{"processedCount":13},"timestamp":1772069972413,"hypothesisId":"H2d"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads?view=all"},"timestamp":1772069980788,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772069980790,"hypothesisId":"H1"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772069980790,"hypothesisId":"H1"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads?view=all"},"timestamp":1772069980788,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:beforeSend","message":"About to send response","data":{"processedCount":40},"timestamp":1772069980957,"hypothesisId":"H2d"}
+{"location":"server/index.js:GET-api-leads:afterSupabase","message":"Supabase fetch OK","data":{"rowCount":40},"timestamp":1772069980956,"hypothesisId":"H2b"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772069989350,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772069989351,"hypothesisId":"H1"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772069989351,"hypothesisId":"H1"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772069989350,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:beforeSend","message":"About to send response","data":{"processedCount":13},"timestamp":1772069989503,"hypothesisId":"H2d"}
+{"location":"server/index.js:GET-api-leads:afterSupabase","message":"Supabase fetch OK","data":{"rowCount":13},"timestamp":1772069989502,"hypothesisId":"H2b"}
+{"location":"server/index.js:listen","message":"Express server started","data":{"port":3001},"timestamp":1772070267902,"hypothesisId":"H4"}
+{"location":"server/index.js:listen","message":"Express server started","data":{"port":"3002"},"timestamp":1772070272258,"hypothesisId":"H4"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772070337674,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772070337677,"hypothesisId":"H1"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772070337674,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772070337677,"hypothesisId":"H1"}
+{"location":"server/index.js:GET-api-leads:afterSupabase","message":"Supabase fetch OK","data":{"rowCount":13},"timestamp":1772070338506,"hypothesisId":"H2b"}
+{"location":"server/index.js:GET-api-leads:beforeSend","message":"About to send response","data":{"processedCount":13},"timestamp":1772070339009,"hypothesisId":"H2d"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772070339109,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772070339110,"hypothesisId":"H1"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772070339110,"hypothesisId":"H1"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772070339109,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:afterSupabase","message":"Supabase fetch OK","data":{"rowCount":13},"timestamp":1772070339621,"hypothesisId":"H2b"}
+{"location":"server/index.js:GET-api-leads:beforeSend","message":"About to send response","data":{"processedCount":13},"timestamp":1772070339886,"hypothesisId":"H2d"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772070339908,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772070339909,"hypothesisId":"H1"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772070339909,"hypothesisId":"H1"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772070339908,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:afterSupabase","message":"Supabase fetch OK","data":{"rowCount":13},"timestamp":1772070340057,"hypothesisId":"H2b"}
+{"location":"server/index.js:GET-api-leads:beforeSend","message":"About to send response","data":{"processedCount":13},"timestamp":1772070340060,"hypothesisId":"H2d"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772070820467,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772070820468,"hypothesisId":"H1"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772070820467,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772070820468,"hypothesisId":"H1"}
+{"location":"server/index.js:GET-api-leads:afterSupabase","message":"Supabase fetch OK","data":{"rowCount":13},"timestamp":1772070820933,"hypothesisId":"H2b"}
+{"location":"server/index.js:GET-api-leads:beforeSend","message":"About to send response","data":{"processedCount":13},"timestamp":1772070820934,"hypothesisId":"H2d"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772070860433,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772070860435,"hypothesisId":"H1"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772070860433,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772070860435,"hypothesisId":"H1"}
+{"location":"server/index.js:GET-api-leads:afterSupabase","message":"Supabase fetch OK","data":{"rowCount":13},"timestamp":1772070860747,"hypothesisId":"H2b"}
+{"location":"server/index.js:GET-api-leads:beforeSend","message":"About to send response","data":{"processedCount":13},"timestamp":1772070860748,"hypothesisId":"H2d"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772070919355,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772070919356,"hypothesisId":"H1"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772070919355,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772070919356,"hypothesisId":"H1"}
+{"location":"server/index.js:GET-api-leads:afterSupabase","message":"Supabase fetch OK","data":{"rowCount":13},"timestamp":1772070919496,"hypothesisId":"H2b"}
+{"location":"server/index.js:GET-api-leads:beforeSend","message":"About to send response","data":{"processedCount":13},"timestamp":1772070919498,"hypothesisId":"H2d"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772070919984,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772070919985,"hypothesisId":"H1"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772070919985,"hypothesisId":"H1"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772070919984,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:beforeSend","message":"About to send response","data":{"processedCount":13},"timestamp":1772070920076,"hypothesisId":"H2d"}
+{"location":"server/index.js:GET-api-leads:afterSupabase","message":"Supabase fetch OK","data":{"rowCount":13},"timestamp":1772070920076,"hypothesisId":"H2b"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772070920097,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772070920098,"hypothesisId":"H1"}
+{"location":"server/index.js:request-middleware","message":"Incoming request","data":{"method":"GET","url":"/api/leads"},"timestamp":1772070920097,"hypothesisId":"Hreq"}
+{"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772070920098,"hypothesisId":"H1"}
+{"location":"server/index.js:GET-api-leads:afterSupabase","message":"Supabase fetch OK","data":{"rowCount":13},"timestamp":1772070920188,"hypothesisId":"H2b"}
+{"location":"server/index.js:GET-api-leads:beforeSend","message":"About to send response","data":{"processedCount":13},"timestamp":1772070920188,"hypothesisId":"H2d"}
+{"location":"scout-dashboard/page.tsx:handleLaunchSprint:auditRes","message":"Deep-audit response metadata","data":{"leadId":"0a2d36f1-6eeb-4895-a96b-5102f15a424d","ok":false,"status":500,"statusText":"Internal Server Error","contentType":null,"bodyPreview":"Internal Server Error"},"timestamp":1772072199944,"hypothesisId":"H1"}
+{"location":"scout-dashboard/page.tsx:handleLaunchSprint:launchRes","message":"Launch-sprint response metadata","data":{"leadId":"0a2d36f1-6eeb-4895-a96b-5102f15a424d","ok":false,"status":500,"statusText":"Internal Server Error","contentType":null,"bodyPreview":"Internal Server Error"},"timestamp":1772072200799,"hypothesisId":"H2"}
+{"location":"scout-dashboard/page.tsx:handleLaunchSprint:auditRes","message":"Deep-audit response metadata","data":{"leadId":"0a2d36f1-6eeb-4895-a96b-5102f15a424d","ok":false,"status":500,"statusText":"Internal Server Error","contentType":null,"bodyPreview":"Internal Server Error"},"timestamp":1772072449654,"hypothesisId":"H1"}
+{"location":"scout-dashboard/page.tsx:handleLaunchSprint:launchRes","message":"Launch-sprint response metadata","data":{"leadId":"0a2d36f1-6eeb-4895-a96b-5102f15a424d","ok":false,"status":500,"statusText":"Internal Server Error","contentType":null,"bodyPreview":"Internal Server Error"},"timestamp":1772072449742,"hypothesisId":"H2"}
+{"location":"server/index.js:listen","message":"Express server started","data":{"port":3001},"timestamp":1772074943392,"hypothesisId":"H4"}
+{"location":"server/index.js:listen","message":"Express server started","data":{"port":"3002"},"timestamp":1772074989523,"hypothesisId":"H4"}

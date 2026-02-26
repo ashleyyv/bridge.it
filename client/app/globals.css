@@ -107,6 +107,11 @@ body {
   animation: pulse-glow 2s ease-in-out infinite;
 }
 
+/* Pulsing-red: apply when lead has no website (prioritize for Launch Sprint) */
+.pulsing-red {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
 /* B. Card Border Glow for HFI > 80 cards */
 .card-critical-border {
   border: 2px solid rgba(0, 212, 255, 0.5) !important;
