@@ -4,7 +4,8 @@ import React, { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { useAuth } from "../context/AuthContext";
-import { apiUrl } from "@/lib/api";
+import { apiUrl, fetchJson } from "@/lib/api";
+import { getBuildTier } from "@/services/scoutService";
 
 interface ActiveBuilder {
   userId: string;
@@ -33,6 +34,8 @@ interface ActiveBuilder {
     reviewedAt?: string;
   };
 }
+
+type AuditStatus = "pending" | "processing" | "completed" | "failed";
 
 interface Lead {
   id: string;
@@ -70,12 +73,18 @@ interface Lead {
     owner_name: string;
   };
   sprintActive?: boolean;
+  promoted?: boolean;
+  is_priority?: boolean;
   maxSlots?: number;
   sprintDuration?: number; // in weeks
   sprintStartedAt?: string;
   sprintDeadline?: string;
   isPaused?: boolean;
   voting_open?: boolean;
+  website_url?: string | null;
+  audit_status?: AuditStatus | null;
+  technical_audit?: Record<string, unknown> | null;
+  civic_audit?: Record<string, unknown>[] | Record<string, unknown> | null;
   auditLog?: {
     action: string;
     performedBy: string;
@@ -107,6 +116,9 @@ const generateStrategicAnalysis = (
   recencyData: Lead['recency_data'],
   frictionType: string
 ): string => {
+  if (!recencyData || typeof recencyData !== 'object' || !frictionClusters?.length) {
+    return 'Strategic analysis requires recency and friction data. This lead may be newly scouted and awaiting audit.';
+  }
   // Calculate weighted impact: prioritize recent friction (0-30 days = 1.0x, 31-90 days = 0.5x)
   const recentWeight = recencyData["0_30_days"] * 1.0;
   const supportingWeight = recencyData["31_90_days"] * 0.5;
@@ -146,13 +158,15 @@ const generateStrategicAnalysis = (
 };
 
 // Launch Sprint Configuration Component
+type LaunchLoadingStatus = 'idle' | 'gathering' | 'launching';
 interface LaunchSprintConfigProps {
   lead: Lead;
   onLaunch: (lead: Lead, maxSlots: number, duration: number, e: React.MouseEvent) => void;
-  isLoading: boolean;
+  loadingStatus: LaunchLoadingStatus;
 }
 
-const LaunchSprintConfig: React.FC<LaunchSprintConfigProps> = ({ lead, onLaunch, isLoading }) => {
+const LaunchSprintConfig: React.FC<LaunchSprintConfigProps> = ({ lead, onLaunch, loadingStatus }) => {
+  const isLoading = loadingStatus !== 'idle';
   const [showConfig, setShowConfig] = useState(false);
   const [maxSlots, setMaxSlots] = useState(2);
   const [duration, setDuration] = useState(3);
@@ -188,14 +202,14 @@ const LaunchSprintConfig: React.FC<LaunchSprintConfigProps> = ({ lead, onLaunch,
           setShowConfig(!showConfig);
         }}
         disabled={isLoading}
-        className={`px-3 py-1.5 text-xs font-medium text-white rounded-md transition-all shadow-sm ${
+        className={`px-4 py-2 text-sm font-semibold text-white rounded-lg transition-all shadow-md ring-2 ring-cyan-500/30 focus:ring-2 focus:ring-cyan-500 focus:ring-offset-1 ${
           isLoading
             ? 'bg-slate-400 cursor-not-allowed'
-            : 'bg-cyan-600 hover:bg-cyan-700'
+            : 'bg-cyan-600 hover:bg-cyan-700 hover:shadow-lg'
         }`}
         title="Launch Sprint"
       >
-        {isLoading ? 'Launching...' : 'Launch Sprint'}
+        {loadingStatus === 'gathering' ? 'Gathering Evidence...' : loadingStatus === 'launching' ? 'Launching...' : 'Launch Sprint'}
       </button>
 
       {showConfig && (
@@ -319,6 +333,8 @@ export default function ScoutDashboard() {
   const [winnerConfirmLoading, setWinnerConfirmLoading] = useState(false);
   const [sprintFilter, setSprintFilter] = useState<"all" | "urgent" | "finalist" | "needs-review">("all");
   const [sortByHFI, setSortByHFI] = useState(false);
+  const [neighborhoodFilter, setNeighborhoodFilter] = useState<string | null>(null);
+  const [sortMode, setSortMode] = useState<'highest-priority' | 'closest-neighborhood'>('highest-priority');
   const [expandedBuilders, setExpandedBuilders] = useState<Set<string>>(new Set());
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [confirmAction, setConfirmAction] = useState<{
@@ -327,6 +343,52 @@ export default function ScoutDashboard() {
     callback?: () => void;
   } | null>(null);
   const [votingStatus, setVotingStatus] = useState<{ totalVotes: number; minVotesRequired: number } | null>(null);
+  const [isScouting, setIsScouting] = useState(false);
+  const [scoutSuccessMessage, setScoutSuccessMessage] = useState<string | null>(null);
+  const [gatheringEvidenceLeadIds, setGatheringEvidenceLeadIds] = useState<Set<string>>(new Set());
+  const [showLibrary, setShowLibrary] = useState(false);
+  const [violationModalLead, setViolationModalLead] = useState<Lead | null>(null);
+  const [violationCopyFeedback, setViolationCopyFeedback] = useState(false);
+
+  const handleScoutNewLeads = async () => {
+    setIsScouting(true);
+    setScoutSuccessMessage(null);
+    const url = 'http://localhost:3002/api/scout/yelp';
+    const bodyStr = JSON.stringify({ location: 'Queens, NY', term: 'restaurants' });
+    try {
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/55c61c3c-05b2-454b-916e-a4f02d3031dc',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'scout-dashboard/page.tsx:handleScoutNewLeads:beforeFetch',message:'Scout request',data:{url,method:'POST',bodyLength:bodyStr.length,bodyPreview:bodyStr.slice(0,80)},timestamp:Date.now(),hypothesisId:'H1'})}).catch(()=>{});
+      // #endregion
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: bodyStr,
+      });
+      const rawText = await res.text();
+      let json: { count?: number; message?: string; error?: string; yelpError?: unknown } = {};
+      try {
+        json = rawText ? JSON.parse(rawText) : {};
+      } catch {
+        json = {};
+      }
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/55c61c3c-05b2-454b-916e-a4f02d3031dc',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'scout-dashboard/page.tsx:handleScoutNewLeads:afterFetch',message:'Scout response',data:{ok:res.ok,status:res.status,statusText:res.statusText,rawTextLength:rawText.length,rawTextPreview:rawText.slice(0,200),parsedJson:json},timestamp:Date.now(),hypothesisId:'H2'})}).catch(()=>{});
+      // #endregion
+      if (!res.ok) {
+        const detail = json.yelpError ? JSON.stringify(json.yelpError) : (json.message || json.error || 'Scout failed');
+        console.error('Scout Yelp error response:', res.status, res.statusText, json);
+        throw new Error(typeof detail === 'string' ? detail : JSON.stringify(detail));
+      }
+      setScoutSuccessMessage(`Scouted ${json.count ?? 0} new leads!`);
+      fetchLeads();
+      setTimeout(() => setScoutSuccessMessage(null), 5000);
+    } catch (e) {
+      setScoutSuccessMessage(null);
+      alert(e instanceof Error ? e.message : 'Failed to scout leads');
+    } finally {
+      setIsScouting(false);
+    }
+  };
 
   // Route protection: Check if user is authenticated and has scout role
   useEffect(() => {
@@ -336,23 +398,45 @@ export default function ScoutDashboard() {
   }, [isAuthenticated, user, router]);
 
   const fetchLeads = () => {
-    fetch(apiUrl("/api/leads"))
-      .then((res) => res.json())
-      .then((data) => {
-        setData(data);
+    const url = apiUrl(`/api/leads${showLibrary ? '?view=all' : ''}`);
+    fetchJson<LeadsData>(url)
+      .then(({ ok, data, error }) => {
         setLoading(false);
-        // Update selectedLead if it's still open
-        if (selectedLead) {
-          const updatedLead = data.leads.find((l: Lead) => l.id === selectedLead.id);
-          if (updatedLead) {
-            setSelectedLead(updatedLead);
+        if (ok && data) {
+          const payload: LeadsData = {
+            leads: data.leads ?? [],
+            metadata: data.metadata ?? {
+              total_leads: 0,
+              high_priority_count: 0,
+              avg_hfi_score: 0,
+            },
+          };
+          setData(payload);
+          if (selectedLead && payload.leads.length > 0) {
+            const updatedLead = payload.leads.find((l: Lead) => l.id === selectedLead.id);
+            if (updatedLead) setSelectedLead(updatedLead);
           }
+        } else {
+          console.error("Failed to fetch leads:", error ?? "Unknown error");
         }
       })
       .catch((err) => {
         console.error("Failed to fetch leads:", err);
         setLoading(false);
       });
+  };
+
+  const handlePromote = async (leadId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const res = await fetchJson<Lead>(apiUrl(`/api/leads/${leadId}/promote`), {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    if (res.ok && res.data) {
+      fetchLeads();
+    } else {
+      console.error('Failed to promote lead:', res.error);
+    }
   };
 
   // Handler for pause/resume sprint
@@ -493,6 +577,12 @@ export default function ScoutDashboard() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Refetch when View Library toggle changes
+  useEffect(() => {
+    if (data !== null) fetchLeads();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showLibrary]);
+
   // Auto-refresh every 10 seconds for Live Sprints view
   useEffect(() => {
     if (viewTab === "live-sprints") {
@@ -579,6 +669,23 @@ export default function ScoutDashboard() {
     return lead.activeBuilders?.some(b => b.userId === userId) || false;
   };
 
+  // Filter by neighborhood and status, then sort
+  const getFilteredAndSortedLeads = (leads: Lead[]) => {
+    let filtered = filterLeadsByStatus(leads);
+    if (neighborhoodFilter) {
+      filtered = filtered.filter((l) => getGroupingNeighborhood(l) === neighborhoodFilter);
+    }
+    if (sortMode === 'highest-priority') {
+      return [...filtered].sort((a, b) => (b.hfi_score ?? 0) - (a.hfi_score ?? 0));
+    }
+    return [...filtered].sort((a, b) => {
+      const na = getGroupingNeighborhood(a).toLowerCase();
+      const nb = getGroupingNeighborhood(b).toLowerCase();
+      if (na !== nb) return na.localeCompare(nb);
+      return (b.hfi_score ?? 0) - (a.hfi_score ?? 0);
+    });
+  };
+
   // Filter leads based on status filter
   const filterLeadsByStatus = (leads: Lead[]) => {
     if (statusFilter === "all") return leads;
@@ -621,20 +728,51 @@ export default function ScoutDashboard() {
     return grouped;
   };
 
-  // Calculate neighborhood distribution
+  // Normalize neighborhood for grouping: use borough or zip-derived name when value looks like a street address
+  const QUEENS_ZIP_NEIGHBORHOOD: Record<string, string> = {
+    '11101': 'Astoria', '11102': 'Astoria', '11103': 'Astoria', '11104': 'Astoria', '11105': 'Astoria', '11106': 'Astoria',
+    '11354': 'Flushing', '11355': 'Flushing', '11358': 'Flushing', '11367': 'Flushing',
+    '11374': 'Rego Park', '11375': 'Forest Hills', '11379': 'Middle Village',
+    '11426': 'Bayside', '11427': 'Bayside', '11357': 'Whitestone', '11360': 'Bayside',
+    '11361': 'Bayside', '11362': 'Little Neck', '11363': 'Little Neck', '11364': 'Oakland Gardens',
+  };
+  const getGroupingNeighborhood = (lead: Lead): string => {
+    const n = (lead.location?.neighborhood ?? '').trim();
+    const zip = (lead.location?.zip ?? '').toString().trim();
+    const borough = (lead.location?.borough ?? '').trim();
+    if (!n) return borough || QUEENS_ZIP_NEIGHBORHOOD[zip] || 'Unknown';
+    if (/^\d+[\s,.]/.test(n) || /\b(St|Ave|Blvd|Rd|Dr|Ln|Pl|Ct|Pkwy)\b/i.test(n) || n.length > 40) {
+      return QUEENS_ZIP_NEIGHBORHOOD[zip] || borough || 'Other';
+    }
+    return n;
+  };
+
+  // Calculate neighborhood distribution with average HFI (heat) per neighborhood
   const getNeighborhoodDistribution = (leads: Lead[]) => {
-    const distribution: { [key: string]: number } = {};
+    const byNeighborhood: { [key: string]: { count: number; totalHfi: number } } = {};
     leads.forEach((lead) => {
-      const neighborhood = lead.location.neighborhood;
-      distribution[neighborhood] = (distribution[neighborhood] || 0) + 1;
+      const neighborhood = getGroupingNeighborhood(lead);
+      if (!byNeighborhood[neighborhood]) byNeighborhood[neighborhood] = { count: 0, totalHfi: 0 };
+      byNeighborhood[neighborhood].count += 1;
+      byNeighborhood[neighborhood].totalHfi += lead.hfi_score ?? 0;
     });
-    // Sort by count descending, then alphabetically
-    return Object.entries(distribution)
+    return Object.entries(byNeighborhood)
       .sort((a, b) => {
-        if (b[1] !== a[1]) return b[1] - a[1];
+        if (b[1].count !== a[1].count) return b[1].count - a[1].count;
         return a[0].localeCompare(b[0]);
       })
-      .map(([neighborhood, count]) => ({ neighborhood, count }));
+      .map(([neighborhood, { count, totalHfi }]) => ({
+        neighborhood,
+        count,
+        avgHeat: count > 0 ? Math.round(totalHfi / count) : 0,
+      }));
+  };
+
+  const getHeatDotColor = (avgHeat: number) => {
+    if (avgHeat >= 80) return 'bg-red-500';
+    if (avgHeat >= 75) return 'bg-orange-500';
+    if (avgHeat >= 60) return 'bg-amber-400';
+    return 'bg-slate-300';
   };
 
   // Calculate average HFI for a cluster
@@ -643,9 +781,9 @@ export default function ScoutDashboard() {
     return (sum / leads.length).toFixed(1);
   };
 
-  const getHFIBadge = (score: number, showInfoIcon: boolean = false) => {
+  const getHFIBadge = (score: number, showInfoIcon: boolean = false, noWebsite?: boolean) => {
     const badge = (className: string) => (
-      <span className={`${className} inline-flex items-center gap-1.5`}>
+      <span className={`${className} ${noWebsite ? 'pulsing-red' : ''} inline-flex items-center gap-1.5`}>
         <span>{score}</span>
         {showInfoIcon && (
           <span 
@@ -1347,12 +1485,39 @@ export default function ScoutDashboard() {
     return lead.sprintActive === true || !!(lead.activeBuilders && lead.activeBuilders.length > 0);
   };
 
-  // Handle launching a sprint
+  // Handle launching a sprint: run deep-audit first, then launch
   const handleLaunchSprint = async (lead: Lead, maxSlots: number, sprintDuration: number, e: React.MouseEvent) => {
     e.stopPropagation();
-    
+
+    setGatheringEvidenceLeadIds((prev) => new Set(prev).add(lead.id));
+
+    try {
+      const auditRes = await fetch(apiUrl(`/api/leads/${lead.id}/deep-audit`), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      // #region agent log
+      const auditCt = auditRes.headers.get('content-type');
+      const auditPreview = await auditRes.clone().text().then((t) => t.slice(0, 200)).catch(() => '');
+      fetch('http://127.0.0.1:7242/ingest/55c61c3c-05b2-454b-916e-a4f02d3031dc',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'scout-dashboard/page.tsx:handleLaunchSprint:auditRes',message:'Deep-audit response metadata',data:{leadId:lead.id,ok:auditRes.ok,status:auditRes.status,statusText:auditRes.statusText,contentType:auditCt,bodyPreview:auditPreview},timestamp:Date.now(),hypothesisId:'H1'})}).catch(()=>{});
+      // #endregion
+      if (auditRes.ok) {
+        const leadsResponse = await fetch(apiUrl("/api/leads"));
+        const leadsData = await leadsResponse.json();
+        setData(leadsData);
+      }
+    } catch (auditErr) {
+      console.error('Deep audit error:', auditErr);
+    } finally {
+      setGatheringEvidenceLeadIds((prev) => {
+        const next = new Set(prev);
+        next.delete(lead.id);
+        return next;
+      });
+    }
+
     setSprintLoadingStates((prev) => new Set(prev).add(lead.id));
-    
+
     try {
       const response = await fetch(apiUrl(`/api/leads/${lead.id}/launch-sprint`), {
         method: 'POST',
@@ -1364,6 +1529,11 @@ export default function ScoutDashboard() {
           sprintDuration,
         }),
       });
+      // #region agent log
+      const launchCt = response.headers.get('content-type');
+      const launchPreview = await response.clone().text().then((t) => t.slice(0, 200)).catch(() => '');
+      fetch('http://127.0.0.1:7242/ingest/55c61c3c-05b2-454b-916e-a4f02d3031dc',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'scout-dashboard/page.tsx:handleLaunchSprint:launchRes',message:'Launch-sprint response metadata',data:{leadId:lead.id,ok:response.ok,status:response.status,statusText:response.statusText,contentType:launchCt,bodyPreview:launchPreview},timestamp:Date.now(),hypothesisId:'H2'})}).catch(()=>{});
+      // #endregion
 
       if (!response.ok) {
         const error = await response.json();
@@ -1371,12 +1541,11 @@ export default function ScoutDashboard() {
       }
 
       const updatedLead = await response.json();
-      
-      // Refresh data
+
       const leadsResponse = await fetch(apiUrl("/api/leads"));
       const leadsData = await leadsResponse.json();
       setData(leadsData);
-      
+
       alert('Sprint launched successfully!');
     } catch (error: any) {
       console.error('Error launching sprint:', error);
@@ -1846,7 +2015,49 @@ export default function ScoutDashboard() {
             <div className="text-textSecondary text-sm uppercase tracking-wide mb-2 font-medium">
               Total Leads
             </div>
-            <div className="text-4xl font-semibold text-textPrimary">{data.metadata.total_leads}</div>
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="text-4xl font-semibold text-textPrimary">{data.metadata.total_leads}</div>
+              <button
+                onClick={handleScoutNewLeads}
+                disabled={isScouting}
+                className="px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-colors bg-amber-500 text-white hover:bg-amber-600 disabled:opacity-70 disabled:cursor-not-allowed text-sm"
+                title="Scout new leads from Yelp (Queens, NY – restaurants)"
+              >
+                {isScouting ? (
+                  <>
+                    <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                    Scouting…
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                    Scout New Leads
+                  </>
+                )}
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowLibrary((v) => !v)}
+                className={`px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-colors text-sm ${
+                  showLibrary
+                    ? 'bg-slate-200 text-slate-700 hover:bg-slate-300'
+                    : 'bg-slate-100 text-textSecondary hover:bg-slate-200'
+                }`}
+                title={showLibrary ? 'Back to Main (HFI≥75 or priority)' : 'View full library (all leads)'}
+              >
+                {showLibrary ? 'Back to Main' : 'View Library'}
+              </button>
+              {scoutSuccessMessage && (
+                <span className="px-3 py-1.5 rounded-lg bg-green-100 text-green-800 text-sm font-medium animate-pulse">
+                  {scoutSuccessMessage}
+                </span>
+              )}
+            </div>
           </div>
           <div className="bg-card border border-border rounded-lg p-6 shadow-sm">
             <div className="text-textSecondary text-sm uppercase tracking-wide mb-2 font-medium">
@@ -1864,20 +2075,38 @@ export default function ScoutDashboard() {
 
         {/* Geographic Distribution */}
         <div className="bg-card border border-border rounded-lg p-6 shadow-sm mb-8">
-          <div className="text-textSecondary text-sm uppercase tracking-wide mb-4 font-medium">
-            Geographic Distribution
+          <div className="flex items-center justify-between mb-4">
+            <div className="text-textSecondary text-sm uppercase tracking-wide font-medium">
+              Geographic Distribution
+            </div>
+            {neighborhoodFilter && (
+              <button
+                onClick={() => setNeighborhoodFilter(null)}
+                className="text-sm font-medium text-cyan-600 hover:text-cyan-700 underline"
+              >
+                Clear Filter
+              </button>
+            )}
           </div>
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+          <div className="flex flex-wrap items-center gap-x-1 gap-y-2">
             {getNeighborhoodDistribution(data.leads).map((item, index) => (
-              <div key={item.neighborhood} className="flex items-center gap-2">
-                <span className={`text-textPrimary text-base ${item.count >= 5 ? 'font-bold' : 'font-semibold'}`} style={item.count >= 5 ? { fontWeight: 700 } : {}}>{item.neighborhood}</span>
-                <span className="text-textSecondary">:</span>
-                <span className="text-[#00d4ff] font-bold text-lg">{item.count}</span>
-                <span className="text-textSecondary text-sm font-medium">lead{item.count !== 1 ? 's' : ''}</span>
-                {index < getNeighborhoodDistribution(data.leads).length - 1 && (
-                  <span className="text-slate-300 mx-1 font-light">|</span>
-                )}
-              </div>
+              <span key={item.neighborhood} className="flex items-center gap-1">
+                {index > 0 && <span className="text-slate-300 mx-1 font-light">|</span>}
+                <button
+                  type="button"
+                  onClick={() => setNeighborhoodFilter(neighborhoodFilter === item.neighborhood ? null : item.neighborhood)}
+                  className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                    neighborhoodFilter === item.neighborhood
+                      ? 'bg-cyan-600 text-white ring-2 ring-cyan-400'
+                      : 'bg-slate-100 hover:bg-slate-200 text-textPrimary'
+                  }`}
+                >
+                  <span className={`w-2 h-2 rounded-full shrink-0 ${getHeatDotColor(item.avgHeat)}`} title={`Avg HFI: ${item.avgHeat}`} />
+                  <span className={item.count >= 5 ? 'font-bold' : 'font-semibold'}>{item.neighborhood}</span>
+                  <span className={neighborhoodFilter === item.neighborhood ? 'text-cyan-100' : 'text-[#00d4ff]'}>{item.count}</span>
+                  <span className={neighborhoodFilter === item.neighborhood ? 'text-cyan-200' : 'text-textSecondary'}>lead{item.count !== 1 ? 's' : ''}</span>
+                </button>
+              </span>
             ))}
           </div>
         </div>
@@ -1908,9 +2137,9 @@ export default function ScoutDashboard() {
           </div>
         </div>
 
-        {/* Status Filter Bar - Only show in Discovery view */}
+        {/* Status Filter Bar & Sort - Only show in Discovery view */}
         {viewTab === "discovery" && (
-          <div className="mb-6">
+          <div className="mb-6 space-y-3">
             <div className="flex items-center gap-3 bg-card border border-border rounded-lg p-2">
               <span className="text-sm font-medium text-textSecondary px-2">Filter:</span>
               <button
@@ -1943,6 +2172,25 @@ export default function ScoutDashboard() {
               >
                 Active Projects
               </button>
+              <div className="ml-4 pl-4 border-l border-border flex items-center gap-2">
+                <span className="text-sm font-medium text-textSecondary">Sort:</span>
+                <button
+                  onClick={() => setSortMode("highest-priority")}
+                  className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                    sortMode === "highest-priority" ? "bg-cyan-600 text-white" : "text-textSecondary hover:bg-slate-100"
+                  }`}
+                >
+                  Highest Priority
+                </button>
+                <button
+                  onClick={() => setSortMode("closest-neighborhood")}
+                  className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                    sortMode === "closest-neighborhood" ? "bg-cyan-600 text-white" : "text-textSecondary hover:bg-slate-100"
+                  }`}
+                >
+                  Closest Neighborhood
+                </button>
+              </div>
             </div>
           </div>
         )}
@@ -2325,155 +2573,140 @@ export default function ScoutDashboard() {
             </div>
           </div>
 
-          {/* List View */}
+          {/* List View - Slim Row (alert-first, strict grid) */}
           {viewMode === "list" && (
-            <div className="grid grid-cols-1 gap-3">
-              {filterLeadsByStatus(data.leads)
-                .sort((a, b) => b.hfi_score - a.hfi_score)
-                .map((lead) => {
-                  const leader = getLeader(lead.activeBuilders || []);
-                  const filledSlots = lead.activeBuilders?.length || 0;
-                  const maxSlots = lead.maxSlots || 4;
+            <div className="flex flex-col gap-1">
+              {!showLibrary && getFilteredAndSortedLeads(data.leads).length === 0 ? (
+                <div className="py-12 px-4 text-center text-textSecondary bg-card border border-border rounded-lg">
+                  No priority leads—Promote some from Library
+                </div>
+              ) : (
+              getFilteredAndSortedLeads(data.leads).map((lead) => {
                   const isActive = hasActiveSprint(lead);
-                  const totalCheckpoints = 4;
-                  
+                  const isAuditProcessing = lead.audit_status === "processing";
+                  const violationCount = Array.isArray(lead.civic_audit) ? lead.civic_audit.length : 0;
+                  const noWebsite = !(lead.website_url != null && String(lead.website_url).trim() !== '');
                   return (
                     <div
                       key={lead.id}
-                      className={`bg-card border rounded-lg p-4 hover:shadow-md transition-all cursor-pointer ${
-                        lead.hfi_score >= 80 
-                          ? 'border-l-4 border-l-[#00d4ff] border-border hover:border-gray-300' 
-                          : 'border-border hover:border-gray-300'
+                      className={`relative grid grid-cols-[32px_40px_1fr_150px_80px_140px] items-center gap-2 py-2 px-3 rounded border bg-card cursor-pointer hover:bg-slate-50 transition-all ${
+                        lead.hfi_score >= 80
+                          ? 'border-l-4 border-l-[#00d4ff] border-border'
+                          : 'border-border'
                       }`}
                       onClick={(e) => {
-                        // Don't open modal if clicking checkbox or button
                         const target = e.target as HTMLElement;
                         if (target.tagName !== "INPUT" && target.tagName !== "BUTTON" && !target.closest("button")) {
                           setSelectedLead(lead);
                         }
                       }}
                     >
-                      {/* Header Row */}
-                      <div className="flex items-start justify-between mb-3">
-                        <div className="flex items-start gap-2.5 flex-1 min-w-0">
-                          <input
-                            type="checkbox"
-                            checked={selectedLeadIds.has(lead.id)}
-                            onChange={() => toggleLeadSelection(lead.id)}
-                            onClick={(e) => e.stopPropagation()}
-                            className="mt-0.5 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer flex-shrink-0"
-                          />
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-                              <h3 className="text-lg font-semibold text-textPrimary truncate">{lead.business_name}</h3>
-                              {getHFIBadge(lead.hfi_score)}
-                              {getStatusBadge(lead.status)}
-                              {(() => {
-                                const compactTag = getCompactTechTag(lead.friction_type, lead.id, lead.business_name);
-                                return compactTag ? (
-                                  <span className="text-xs font-medium text-slate-600 bg-slate-100 px-2 py-0.5 rounded">{compactTag}</span>
-                                ) : null;
-                              })()}
-                            </div>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-1.5 ml-2 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
-                          {isActive && canReviewSprint(lead) && (
-                            <button
-                              onClick={(e) => handleOpenFinalistComparison(lead, e)}
-                              className="px-2 py-1 text-xs font-medium text-white bg-cyan-600 hover:bg-cyan-700 rounded transition-colors"
-                              title="Review Sprint"
-                            >
-                              Review
-                            </button>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Sprint Activity Section */}
-                      {isActive && leader ? (
-                        <div className="mb-3 pb-3 border-b border-border">
-                          <div className="flex items-center justify-between mb-2">
-                            <div className="flex items-center gap-2">
-                              <div className="w-7 h-7 rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center text-white text-xs font-semibold">
-                                {getBuilderInitials(leader.name)}
-                              </div>
-                              <div>
-                                <div className="text-sm font-medium text-textPrimary">{leader.name}</div>
-                                <div className="text-xs text-textSecondary">
-                                  {Math.round((leader.checkpointsCompleted / totalCheckpoints) * 100)}% • {leader.checkpointsCompleted}/{totalCheckpoints} Checkpoints
-                                </div>
-                              </div>
-                            </div>
-                            {getCapacityBadge(filledSlots, maxSlots)}
-                          </div>
-                          {/* Progress Bar */}
-                          <div className="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden relative">
-                            <div
-                              className="h-full bg-gradient-to-r from-cyan-500 to-blue-600 transition-all relative"
-                              style={{ width: `${(leader.checkpointsCompleted / totalCheckpoints) * 100}%` }}
-                            >
-                              {/* Tooltip segments */}
-                              {Array.from({ length: totalCheckpoints }).map((_, checkpoint) => {
-                                const milestoneNames = [
-                                  'Milestone 1: Architecture',
-                                  'Milestone 2: Core Logic',
-                                  'Milestone 3: API Integration',
-                                  'Milestone 4: Demo Ready'
-                                ];
-                                const milestoneName = milestoneNames[checkpoint] || `Milestone ${checkpoint + 1}`;
-                                const isCompleted = leader.checkpointsCompleted > checkpoint;
-                                return (
-                                  <div
-                                    key={checkpoint}
-                                    className={`absolute top-0 bottom-0 ${isCompleted ? 'bg-gradient-to-r from-cyan-500 to-blue-600' : ''}`}
-                                    style={{
-                                      left: `${(checkpoint / totalCheckpoints) * 100}%`,
-                                      width: `${(1 / totalCheckpoints) * 100}%`
-                                    }}
-                                    title={milestoneName}
-                                  />
-                                );
-                              })}
-                            </div>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="mb-3 pb-3 border-b border-border">
-                          <div className="flex items-center justify-between">
-                            <span className="text-xs text-textSecondary">No active sprint</span>
-                            {getCapacityBadge(0, maxSlots)}
-                          </div>
+                      {isAuditProcessing && (
+                        <div className="absolute inset-0 bg-white/80 rounded flex items-center justify-center z-10">
+                          <div className="w-5 h-5 border-2 border-cyan-600 border-t-transparent rounded-full animate-spin" />
                         </div>
                       )}
-
-                      {/* Action Buttons Row */}
-                      <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                      {/* Col 0: Promote Icon (Library only, far left) */}
+                      <div className="flex items-center justify-center min-w-0 w-8">
+                        {showLibrary && !lead.is_priority ? (
+                          <button
+                            type="button"
+                            onClick={(e) => handlePromote(lead.id, e)}
+                            className="p-1 rounded text-cyan-600 hover:bg-cyan-50 hover:text-cyan-700 text-base font-bold leading-none"
+                            title="Promote to Main"
+                          >
+                            ↑
+                          </button>
+                        ) : (
+                          <span className="text-transparent select-none text-sm">—</span>
+                        )}
+                      </div>
+                      {/* Col 1: 🚩 Alert Flag — clickable to open Violation Inspector */}
+                      <div className="flex items-center min-w-0">
+                        <button
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); setViolationModalLead(lead); }}
+                          className={`text-sm font-medium cursor-pointer hover:underline focus:outline-none focus:ring-1 focus:ring-cyan-500 rounded ${violationCount > 0 ? 'text-red-600' : 'text-gray-400'}`}
+                          title={`${violationCount} DOHMH violation(s) — Click to view`}
+                        >
+                          🚩 {violationCount}
+                        </button>
+                      </div>
+                      {/* Col 2: Business Name */}
+                      <div className="flex items-center gap-2 min-w-0">
+                        <input
+                          type="checkbox"
+                          checked={selectedLeadIds.has(lead.id)}
+                          onChange={() => toggleLeadSelection(lead.id)}
+                          onClick={(e) => e.stopPropagation()}
+                          className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer shrink-0"
+                        />
+                        <h3 className="font-semibold text-textPrimary truncate text-sm flex-1 min-w-0">{lead.business_name}</h3>
+                      </div>
+                      {/* Col 3: Neighborhood (Town) — 150px fixed for alignment */}
+                      <div className="flex items-center w-[150px] min-w-[150px] max-w-[150px]">
+                        <button
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); const g = getGroupingNeighborhood(lead); setNeighborhoodFilter(g === neighborhoodFilter ? null : g); }}
+                          className="text-xs font-medium text-cyan-600 hover:text-cyan-700 hover:underline text-left truncate w-full"
+                        >
+                          {getGroupingNeighborhood(lead) || '—'}
+                        </button>
+                      </div>
+                      {/* Col 4: HFI */}
+                      <div className="flex items-center min-w-0" onClick={(e) => e.stopPropagation()}>
+                        {getHFIBadge(lead.hfi_score, false, noWebsite)}
+                      </div>
+                      {/* Col 5: Launch Sprint */}
+                      <div className="flex items-center gap-2 min-w-0" onClick={(e) => e.stopPropagation()}>
                         {!isActive ? (
-                          <LaunchSprintConfig 
+                          <LaunchSprintConfig
                             lead={lead}
                             onLaunch={handleLaunchSprint}
-                            isLoading={sprintLoadingStates.has(lead.id)}
+                            loadingStatus={
+                              gatheringEvidenceLeadIds.has(lead.id)
+                                ? 'gathering'
+                                : sprintLoadingStates.has(lead.id)
+                                  ? 'launching'
+                                  : 'idle'
+                            }
                           />
                         ) : (
-                          <button
-                            onClick={(e) => handleOpenReview(lead, e)}
-                            className="px-3 py-1.5 text-xs font-medium text-textSecondary bg-gray-100 hover:bg-gray-200 border border-gray-300 rounded transition-colors"
-                          >
-                            Manage Sprint
-                          </button>
+                          <>
+                            {canReviewSprint(lead) && (
+                              <button
+                                onClick={(e) => handleOpenFinalistComparison(lead, e)}
+                                className="px-2 py-1 text-xs font-medium text-white bg-cyan-600 hover:bg-cyan-700 rounded"
+                                title="Review Sprint"
+                              >
+                                Review
+                              </button>
+                            )}
+                            <button
+                              onClick={(e) => handleOpenReview(lead, e)}
+                              className="px-2 py-1 text-xs font-medium text-textSecondary bg-gray-100 hover:bg-gray-200 border border-gray-300 rounded"
+                            >
+                              Manage Sprint
+                            </button>
+                          </>
                         )}
                       </div>
                     </div>
                   );
-                })}
+                })
+              )}
             </div>
           )}
 
           {/* Cluster View */}
           {viewMode === "cluster" && (
             <div className="space-y-8">
-              {Object.entries(groupLeadsByFriction(filterLeadsByStatus(data.leads)))
+              {!showLibrary && getFilteredAndSortedLeads(data.leads).length === 0 ? (
+                <div className="py-12 px-4 text-center text-textSecondary bg-card border border-border rounded-lg">
+                  No priority leads—Promote some from Library
+                </div>
+              ) : (
+              Object.entries(groupLeadsByFriction(getFilteredAndSortedLeads(data.leads)))
                 .sort(([, leadsA], [, leadsB]) => {
                   // Sort clusters by highest HFI in cluster
                   const maxA = Math.max(...leadsA.map(l => l.hfi_score));
@@ -2522,143 +2755,122 @@ export default function ScoutDashboard() {
                       </div>
                     </div>
 
-                    {/* Cluster Leads */}
-                    <div className="grid grid-cols-1 gap-3 pl-4">
-                      {clusterLeads
-                        .sort((a, b) => b.hfi_score - a.hfi_score)
+                    {/* Cluster Leads - Slim rows */}
+                    <div className="flex flex-col gap-1 pl-4">
+                      {[...clusterLeads]
+                        .sort((a, b) => {
+                          if (sortMode === 'closest-neighborhood') {
+                            const na = getGroupingNeighborhood(a).toLowerCase();
+                            const nb = getGroupingNeighborhood(b).toLowerCase();
+                            if (na !== nb) return na.localeCompare(nb);
+                          }
+                          return (b.hfi_score ?? 0) - (a.hfi_score ?? 0);
+                        })
                         .map((lead) => {
-                          const leader = getLeader(lead.activeBuilders || []);
-                          const filledSlots = lead.activeBuilders?.length || 0;
-                          const maxSlots = lead.maxSlots || 4;
                           const isActive = hasActiveSprint(lead);
-                          const totalCheckpoints = 4;
-                          
+                          const isAuditProcessingCluster = lead.audit_status === "processing";
+                          const violationCount = Array.isArray(lead.civic_audit) ? lead.civic_audit.length : 0;
+                          const noWebsite = !(lead.website_url != null && String(lead.website_url).trim() !== '');
                           return (
                             <div
                               key={lead.id}
-                              className={`bg-card border rounded-lg p-4 hover:shadow-md transition-all cursor-pointer ${
-                                lead.hfi_score >= 80 
-                                  ? 'border-l-4 border-l-[#00d4ff] border-border hover:border-gray-300' 
-                                  : 'border-border hover:border-gray-300'
+                              className={`relative grid grid-cols-[32px_40px_1fr_150px_80px_140px] items-center gap-2 py-2 px-3 rounded border bg-card cursor-pointer hover:bg-slate-50 transition-all ${
+                                lead.hfi_score >= 80
+                                  ? 'border-l-4 border-l-[#00d4ff] border-border'
+                                  : 'border-border'
                               }`}
                               onClick={(e) => {
-                                // Don't open modal if clicking checkbox
-                                if ((e.target as HTMLElement).tagName !== "INPUT") {
+                                const target = e.target as HTMLElement;
+                                if (target.tagName !== "INPUT" && target.tagName !== "BUTTON" && !target.closest("button")) {
                                   setSelectedLead(lead);
                                 }
                               }}
                             >
-                              {/* Header Row */}
-                              <div className="flex items-start justify-between mb-3">
-                                <div className="flex items-start gap-2.5 flex-1 min-w-0">
-                                  <input
-                                    type="checkbox"
-                                    checked={selectedLeadIds.has(lead.id)}
-                                    onChange={() => toggleLeadSelection(lead.id)}
-                                    onClick={(e) => e.stopPropagation()}
-                                    className="mt-0.5 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer flex-shrink-0"
-                                  />
-                                  <div className="flex-1 min-w-0">
-                                    <div className="flex items-center gap-2 mb-1.5 flex-wrap">
-                                      <h3 className="text-lg font-semibold text-textPrimary truncate">
-                                        {lead.business_name}
-                                      </h3>
-                                      {getHFIBadge(lead.hfi_score)}
-                                      {getStatusBadge(lead.status)}
-                                      {(() => {
-                                        const compactTag = getCompactTechTag(lead.friction_type, lead.id, lead.business_name);
-                                        return compactTag ? (
-                                          <span className="text-xs font-medium text-slate-600 bg-slate-100 px-2 py-0.5 rounded">{compactTag}</span>
-                                        ) : null;
-                                      })()}
-                                    </div>
-                                  </div>
-                                </div>
-                                <div className="flex items-center gap-1.5 ml-2 flex-shrink-0" onClick={(e) => e.stopPropagation()}>
-                                  {isActive && canReviewSprint(lead) && (
-                                    <button
-                                      onClick={(e) => handleOpenFinalistComparison(lead, e)}
-                                      className="px-2 py-1 text-xs font-medium text-white bg-cyan-600 hover:bg-cyan-700 rounded transition-colors"
-                                      title="Review Sprint"
-                                    >
-                                      Review
-                                    </button>
-                                  )}
-                                </div>
-                              </div>
-
-                              {/* Sprint Activity Section */}
-                              {isActive && leader ? (
-                                <div className="mb-3 pb-3 border-b border-border">
-                                  <div className="flex items-center justify-between mb-2">
-                                    <div className="flex items-center gap-2">
-                                      <div className="w-7 h-7 rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center text-white text-xs font-semibold">
-                                        {getBuilderInitials(leader.name)}
-                                      </div>
-                                      <div>
-                                        <div className="text-sm font-medium text-textPrimary">{leader.name}</div>
-                                        <div className="text-xs text-textSecondary">
-                                          {Math.round((leader.checkpointsCompleted / totalCheckpoints) * 100)}% • {leader.checkpointsCompleted}/{totalCheckpoints} Checkpoints
-                                        </div>
-                                      </div>
-                                    </div>
-                                    {getCapacityBadge(filledSlots, maxSlots)}
-                                  </div>
-                                  {/* Progress Bar */}
-                                  <div className="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden relative">
-                                    <div
-                                      className="h-full bg-gradient-to-r from-cyan-500 to-blue-600 transition-all relative"
-                                      style={{ width: `${(leader.checkpointsCompleted / totalCheckpoints) * 100}%` }}
-                                    >
-                                      {/* Tooltip segments */}
-                                      {Array.from({ length: totalCheckpoints }).map((_, checkpoint) => {
-                                        const milestoneNames = [
-                                          'Milestone 1: Architecture',
-                                          'Milestone 2: Core Logic',
-                                          'Milestone 3: API Integration',
-                                          'Milestone 4: Demo Ready'
-                                        ];
-                                        const milestoneName = milestoneNames[checkpoint] || `Milestone ${checkpoint + 1}`;
-                                        const isCompleted = leader.checkpointsCompleted > checkpoint;
-                                        return (
-                                          <div
-                                            key={checkpoint}
-                                            className={`absolute top-0 bottom-0 ${isCompleted ? 'bg-gradient-to-r from-cyan-500 to-blue-600' : ''}`}
-                                            style={{
-                                              left: `${(checkpoint / totalCheckpoints) * 100}%`,
-                                              width: `${(1 / totalCheckpoints) * 100}%`
-                                            }}
-                                            title={milestoneName}
-                                          />
-                                        );
-                                      })}
-                                    </div>
-                                  </div>
-                                </div>
-                              ) : (
-                                <div className="mb-3 pb-3 border-b border-border">
-                                  <div className="flex items-center justify-between">
-                                    <span className="text-xs text-textSecondary">No active sprint</span>
-                                    {getCapacityBadge(0, maxSlots)}
-                                  </div>
+                              {isAuditProcessingCluster && (
+                                <div className="absolute inset-0 bg-white/80 rounded flex items-center justify-center z-10">
+                                  <div className="w-5 h-5 border-2 border-cyan-600 border-t-transparent rounded-full animate-spin" />
                                 </div>
                               )}
-
-                              {/* Action Buttons Row */}
-                              <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                              {/* Col 1: Violation Flag */}
+                              <div className="flex items-center min-w-0">
+                                <button
+                                  type="button"
+                                  onClick={(e) => { e.stopPropagation(); setViolationModalLead(lead); }}
+                                  className={`text-sm font-medium cursor-pointer hover:underline focus:outline-none focus:ring-1 focus:ring-cyan-500 rounded ${violationCount > 0 ? 'text-red-600' : 'text-gray-400'}`}
+                                  title={`${violationCount} DOHMH violation(s) — Click to view`}
+                                >
+                                  🚩 {violationCount}
+                                </button>
+                              </div>
+                              {/* Col 2: Business Name + Promote (Library only) */}
+                              <div className="flex items-center gap-2 min-w-0">
+                                <input
+                                  type="checkbox"
+                                  checked={selectedLeadIds.has(lead.id)}
+                                  onChange={() => toggleLeadSelection(lead.id)}
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer shrink-0"
+                                />
+                                <h3 className="font-semibold text-textPrimary truncate text-sm flex-1 min-w-0">{lead.business_name}</h3>
+                                {showLibrary && !lead.is_priority && (
+                                  <button
+                                    type="button"
+                                    onClick={(e) => handlePromote(lead.id, e)}
+                                    className="shrink-0 p-1 rounded text-cyan-600 hover:bg-cyan-50 hover:text-cyan-700"
+                                    title="Push to Main"
+                                  >
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                                    </svg>
+                                  </button>
+                                )}
+                              </div>
+                              {/* Col 3: Neighborhood (Town) — 150px fixed for alignment */}
+                              <div className="flex items-center w-[150px] min-w-[150px] max-w-[150px]">
+                        <button
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); const g = getGroupingNeighborhood(lead); setNeighborhoodFilter(g === neighborhoodFilter ? null : g); }}
+                          className="text-xs font-medium text-cyan-600 hover:text-cyan-700 hover:underline text-left truncate w-full"
+                        >
+                          {getGroupingNeighborhood(lead) || '—'}
+                        </button>
+                      </div>
+                              {/* Col 4: HFI */}
+                              <div className="flex items-center min-w-0" onClick={(e) => e.stopPropagation()}>
+                                {getHFIBadge(lead.hfi_score, false, noWebsite)}
+                              </div>
+                              {/* Col 5: Launch Sprint */}
+                              <div className="flex items-center gap-2 min-w-0" onClick={(e) => e.stopPropagation()}>
                                 {!isActive ? (
-                                  <LaunchSprintConfig 
+                                  <LaunchSprintConfig
                                     lead={lead}
                                     onLaunch={handleLaunchSprint}
-                                    isLoading={sprintLoadingStates.has(lead.id)}
+                                    loadingStatus={
+                                      gatheringEvidenceLeadIds.has(lead.id)
+                                        ? 'gathering'
+                                        : sprintLoadingStates.has(lead.id)
+                                          ? 'launching'
+                                          : 'idle'
+                                    }
                                   />
                                 ) : (
-                                  <button
-                                    onClick={(e) => handleOpenReview(lead, e)}
-                                    className="px-3 py-1.5 text-xs font-medium text-white bg-cyan-600 hover:bg-cyan-700 rounded transition-colors"
-                                  >
-                                    Manage Sprint
-                                  </button>
+                                  <>
+                                    {canReviewSprint(lead) && (
+                                      <button
+                                        onClick={(e) => handleOpenFinalistComparison(lead, e)}
+                                        className="px-2 py-1 text-xs font-medium text-white bg-cyan-600 hover:bg-cyan-700 rounded"
+                                        title="Review Sprint"
+                                      >
+                                        Review
+                                      </button>
+                                    )}
+                                    <button
+                                      onClick={(e) => handleOpenReview(lead, e)}
+                                      className="px-2 py-1 text-xs font-medium text-textSecondary bg-gray-100 hover:bg-gray-200 border border-gray-300 rounded"
+                                    >
+                                      Manage Sprint
+                                    </button>
+                                  </>
                                 )}
                               </div>
                             </div>
@@ -2666,12 +2878,121 @@ export default function ScoutDashboard() {
                         })}
                     </div>
                   </div>
-                ))}
+                ))
+              )}
             </div>
           )}
           </div>
           )}
       </div>
+
+      {/* Violation Inspector Modal */}
+      {violationModalLead && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-[60]"
+          onClick={() => { setViolationModalLead(null); setViolationCopyFeedback(false); }}
+        >
+          <div
+            className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[85vh] flex flex-col border border-gray-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="p-6 border-b border-gray-200 flex-shrink-0">
+              <div className="flex items-start justify-between">
+                <h2 className="text-xl font-semibold text-gray-900">
+                  City Compliance Audit: {violationModalLead.business_name}
+                </h2>
+                <button
+                  onClick={() => { setViolationModalLead(null); setViolationCopyFeedback(false); }}
+                  className="text-gray-400 hover:text-gray-600 text-2xl leading-none"
+                >
+                  ×
+                </button>
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-6">
+              {violationModalLead.audit_status === "processing" ? (
+                <div className="space-y-4">
+                  <div className="h-4 bg-gray-200 rounded animate-pulse w-3/4" />
+                  <div className="h-4 bg-gray-200 rounded animate-pulse w-full" />
+                  <div className="h-4 bg-gray-200 rounded animate-pulse w-5/6" />
+                  <div className="h-4 bg-gray-200 rounded animate-pulse w-full" />
+                  <div className="h-4 bg-gray-200 rounded animate-pulse w-2/3" />
+                  <div className="flex justify-center py-8">
+                    <div className="w-8 h-8 border-2 border-cyan-600 border-t-transparent rounded-full animate-spin" />
+                  </div>
+                </div>
+              ) : (
+                <>
+                  {Array.isArray(violationModalLead.civic_audit) && violationModalLead.civic_audit.length > 0 ? (
+                    <ul className="space-y-4">
+                      {(violationModalLead.civic_audit as Record<string, unknown>[]).map((v, idx) => {
+                        const code = (v.violation_code ?? v.code ?? "—") as string;
+                        const desc = (v.violation_description ?? v.description ?? "—") as string;
+                        const flag = String(v.critical_flag ?? v.critical ?? "").toLowerCase();
+                        const isCritical = flag.includes("critical") && !flag.includes("not");
+                        return (
+                          <li key={idx} className="p-4 rounded-lg border border-gray-200 bg-gray-50">
+                            <div className="flex items-start gap-3">
+                              <span
+                                className={`shrink-0 px-2 py-0.5 text-xs font-semibold rounded ${
+                                  isCritical ? "bg-red-100 text-red-700" : "bg-amber-100 text-amber-800"
+                                }`}
+                              >
+                                {code}
+                              </span>
+                              <div className="min-w-0 flex-1">
+                                <p className="text-sm text-gray-700">{desc}</p>
+                                <span
+                                  className={`inline-block mt-2 text-xs font-medium ${
+                                    isCritical ? "text-red-600" : "text-amber-600"
+                                  }`}
+                                >
+                                  {isCritical ? "Critical" : "Not Critical"}
+                                </span>
+                              </div>
+                            </div>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  ) : (
+                    <p className="text-gray-500 text-center py-8">No violations on record.</p>
+                  )}
+                </>
+              )}
+            </div>
+
+            {violationModalLead.audit_status !== "processing" &&
+              Array.isArray(violationModalLead.civic_audit) &&
+              violationModalLead.civic_audit.length > 0 && (
+                <div className="p-4 border-t border-gray-200 bg-gray-50 rounded-b-lg flex-shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const violations = (Array.isArray(violationModalLead.civic_audit) ? violationModalLead.civic_audit : []) as Record<string, unknown>[];
+                      const lines = violations.map((v) => {
+                        const code = (v.violation_code ?? v.code ?? "?") as string;
+                        const desc = (v.violation_description ?? v.description ?? "—") as string;
+                        const flag = String(v.critical_flag ?? v.critical ?? "").toLowerCase();
+                        const isCritical = flag.includes("critical") && !flag.includes("not");
+                        return `• [${code}] ${desc} (${isCritical ? "Critical" : "Not Critical"})`;
+                      });
+                      const text = `City Compliance Audit – ${violationModalLead.business_name}\n\nDOHMH violations (last 24 months):\n\n${lines.join("\n")}\n\n— Bridge.it Scout`;
+                      navigator.clipboard.writeText(text).then(() => {
+                        setViolationCopyFeedback(true);
+                        setTimeout(() => setViolationCopyFeedback(false), 2000);
+                      }).catch(() => {});
+                    }}
+                    className="w-full px-4 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 font-medium text-sm disabled:opacity-70"
+                  >
+                    {violationCopyFeedback ? "Copied!" : "Copy for Pitch"}
+                  </button>
+                </div>
+              )}
+          </div>
+        </div>
+      )}
 
       {/* Lead Detail Modal */}
       {selectedLead && (
@@ -2707,12 +3028,23 @@ export default function ScoutDashboard() {
 
             <div className="space-y-6">
               {/* Header Info */}
-              <div className="flex items-center gap-4 text-sm text-textSecondary pb-4 border-b border-border">
+              <div className="flex items-center gap-4 text-sm text-textSecondary pb-4 border-b border-border flex-wrap">
                 <div>
-                  <span className="font-medium">Location:</span> {selectedLead.location.neighborhood}, {selectedLead.location.borough}
+                  <span className="font-medium">Location:</span>{' '}
+                  <button
+                    type="button"
+                    onClick={() => { const g = getGroupingNeighborhood(selectedLead); setNeighborhoodFilter(g === neighborhoodFilter ? null : g); setSelectedLead(null); }}
+                    className="text-cyan-600 hover:text-cyan-700 hover:underline"
+                  >
+                    {getGroupingNeighborhood(selectedLead) || '—'}
+                  </button>
+                  , {selectedLead.location?.borough || ''}
                 </div>
                 <div>
                   <span className="font-medium">HFI:</span> {selectedLead.hfi_score}
+                </div>
+                <div>
+                  <span className="font-medium">Build tier:</span> {getBuildTier(selectedLead)}
                 </div>
               </div>
 

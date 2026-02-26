@@ -10,6 +10,7 @@ interface Lead {
   voting_open?: boolean;
   winnerUserId?: string | null;
   firstCompletionAt?: string | null;
+  winnerAverageScore?: number | null;
   activeBuilders?: Array<{
     userId: string;
     name: string;
@@ -269,7 +270,7 @@ const WinnersCircle: React.FC<WinnersCircleProps> = () => {
                           <div className="font-semibold text-gray-900">{lead.business_name}</div>
                           <div className="text-sm text-green-700 font-medium">
                             Winner: {winnerName}
-                            {lead.winnerAverageScore != null && (
+                            {lead?.winnerAverageScore != null && (
                               <span className="text-gray-500 ml-1">(avg: {lead.winnerAverageScore})</span>
                             )}
                           </div>
