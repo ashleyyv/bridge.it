@@ -279,3 +279,5 @@
 {"location":"server/index.js:GET-api-leads:entry","message":"GET /api/leads entry","data":{"hasSupabase":true},"timestamp":1772758483545,"hypothesisId":"H1"}
 {"location":"server/index.js:GET-api-leads:afterSupabase","message":"Supabase fetch OK","data":{"rowCount":13},"timestamp":1772758484222,"hypothesisId":"H2b"}
 {"location":"server/index.js:GET-api-leads:beforeSend","message":"About to send response","data":{"processedCount":13},"timestamp":1772758484225,"hypothesisId":"H2d"}
+{"location":"scout-dashboard:fetchLeads:entry","message":"Fetching leads","data":{"url":"/api/leads"},"timestamp":1772759157326,"hypothesisId":"H1"}
+{"location":"scout-dashboard:fetchLeads:entry","message":"Fetching leads","data":{"url":"/api/leads"},"timestamp":1772759938361,"hypothesisId":"H1"}
