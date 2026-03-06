@@ -67,6 +67,8 @@ interface Lead {
   audit_status: 'pending' | 'processing' | 'completed' | 'failed' | null;
   technical_audit?: Record<string, unknown> | null;
   civic_audit?: unknown | null;
+  suggestedDeliverables?: string[] | null;
+  sprintActive?: boolean;
 }
 
 interface LeadsData {
@@ -1006,7 +1008,7 @@ export default function AlumniDashboard() {
   // Filter leads for qualified or briefed status (include leads with no status for scouted leads)
   const baseProjects = data?.leads.filter(lead => {
     const s = lead.status?.toLowerCase() ?? '';
-    return s === 'qualified' || s === 'briefed' || s === '';
+    return lead.sprintActive === true || s === 'qualified' || s === 'briefed' || s === 'sprinting' || s === '';
   }) || [];
   
   const availableProjects = getTierFilteredLeads(baseProjects, demoTier);
@@ -1795,10 +1797,10 @@ export default function AlumniDashboard() {
             .map((lead) => {
               const hours = parseHoursFromEstimate(lead.time_on_task_estimate);
               const recoverableHours = Math.round(hours * 0.75); // 75% efficiency gain
-              const proposedSolutions = seededShuffle(
-                getProposedSolutions(lead.friction_type),
-                lead.id
-              );
+              const proposedSolutions = (lead.suggestedDeliverables && lead.suggestedDeliverables.length > 0)
+                ? lead.suggestedDeliverables
+                : seededShuffle(getProposedSolutions(lead.friction_type), lead.id);
+              const violationCount = Array.isArray(lead.civic_audit) ? lead.civic_audit.length : 0;
               const techStack = getTechStackTag(lead.friction_type, lead.id, lead.business_name);
               
               // Calculate strategic match score for Ashley Vigo
@@ -1878,14 +1880,12 @@ export default function AlumniDashboard() {
                         </div>
                       </div>
                         <div className="flex items-center gap-2 flex-wrap">
-                        {(lead.technical_audit != null || lead.civic_audit != null) && (
+                        {violationCount > 0 && (
                           <span
-                            className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-emerald-100 text-emerald-600 shrink-0"
-                            title="Evidence available (technical & civic audit)"
+                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-bold bg-red-100 text-red-700 shrink-0"
+                            title={`${violationCount} NYC Health violation${violationCount !== 1 ? 's' : ''}`}
                           >
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                            </svg>
+                            🚩 {violationCount}
                           </span>
                         )}
                         {getHFIBadge(lead.hfi_score)}
@@ -2451,9 +2451,9 @@ export default function AlumniDashboard() {
                     Technical Deliverables
                   </div>
                   <ul className="space-y-2.5 mb-4">
-                    {seededShuffle(
-                      getProposedSolutions(selectedLead.friction_type),
-                      selectedLead.id
+                    {((selectedLead.suggestedDeliverables && selectedLead.suggestedDeliverables.length > 0)
+                      ? selectedLead.suggestedDeliverables
+                      : seededShuffle(getProposedSolutions(selectedLead.friction_type), selectedLead.id)
                     ).map((deliverable, idx) => (
                       <li key={idx} className="flex items-start gap-3">
                         <svg 
@@ -2733,8 +2733,17 @@ export default function AlumniDashboard() {
       {showDeliverableModal && pendingLeadId && (() => {
         const lead = data?.leads.find(l => l.id === pendingLeadId);
         if (!lead) return null;
-        
-        const deliverables = getDeliverables(lead.friction_type, pendingLeadId);
+
+        // Use live suggestedDeliverables from Supabase if available, else fall back to derived
+        const liveDeliverables: Deliverable[] = (lead.suggestedDeliverables && lead.suggestedDeliverables.length > 0)
+          ? lead.suggestedDeliverables.map((title, index) => ({
+              id: `${pendingLeadId}_deliverable_${index + 1}`,
+              title,
+              description: `Implement ${title} to address the identified friction points.`,
+              complexity: 3,
+            }))
+          : getDeliverables(lead.friction_type, pendingLeadId);
+        const deliverables = liveDeliverables;
         const allDeliverableIds = deliverables.map(d => d.id);
         const hasDeliverables = deliverables.length > 0;
         

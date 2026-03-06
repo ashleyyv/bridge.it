@@ -8,7 +8,8 @@ import { readFile, writeFile } from 'fs/promises';
 import jsPDF from 'jspdf';
 import nodemailer from 'nodemailer';
 import { createClient } from '@supabase/supabase-js';
-import { searchYelp } from './services/yelpService.js';
+import { searchYelp, getYelpBusinessDetails, findYelpAlias } from './services/yelpService.js';
+import enterpriseRouter from './routes/enterprise.routes.js';
 import { fetchPageSpeedScores } from './services/pageSpeedService.js';
 import { fetchDOHMHViolations } from './services/nycOpenDataService.js';
 import { fetchReviewSentiment } from './services/outscraperService.js';
@@ -43,9 +44,11 @@ const asyncHandler = (fn) => (req, res, next) => {
   Promise.resolve(fn(req, res, next)).catch(next);
 };
 
-// Middleware
-app.use(cors());
+// Middleware - CORS before routes (allow Next.js dev ports)
+app.use(cors({ origin: ['http://localhost:3000', 'http://localhost:3003'] }));
 app.use(express.json());
+
+app.use('/api/enterprise', enterpriseRouter);
 
 // #region agent log
 app.use((req, _res, next) => {
@@ -502,11 +505,45 @@ app.post('/api/leads/:id/deep-audit', async (req, res) => {
       return sendJson(404, { error: 'Lead not found' });
     }
 
-    const websiteUrl = lead.website_url && String(lead.website_url).trim() ? lead.website_url.trim() : null;
+    let websiteUrl = lead.website_url && String(lead.website_url).trim() ? lead.website_url.trim() : null;
     const businessName = lead.business_name ?? lead.name ?? '';
     const loc = lead.location && typeof lead.location === 'object' ? lead.location : {};
     const addressPart = [loc.neighborhood, loc.borough, loc.zip].filter(Boolean).join(', ');
     const searchQuery = [businessName, addressPart, 'NYC'].filter(Boolean).join(' ');
+
+    // Fetch real website_url from Yelp business details if not already stored
+    if (!websiteUrl) {
+      try {
+        const yelpAlias = lead.yelp_alias || lead.yelp_id || null;
+        let alias = yelpAlias;
+        if (!alias) {
+          const locationStr = [loc.borough, loc.zip, 'NY'].filter(Boolean).join(', ') || 'Queens, NY';
+          alias = await findYelpAlias(businessName, locationStr);
+          if (alias) {
+            await supabase.from('leads').update({ yelp_alias: alias }).eq('id', id);
+          }
+        }
+        if (alias) {
+          const details = await getYelpBusinessDetails(alias);
+          if (details.website_url) {
+            // Business has a real website
+            websiteUrl = details.website_url;
+            await supabase.from('leads').update({ website_url: websiteUrl }).eq('id', id);
+            console.log(`✅ Found real website for ${businessName}: ${websiteUrl}`);
+          } else if (details.yelp_listing_url) {
+            // Yelp free tier: use the Yelp listing URL as the website_url so build tier
+            // shows 'Technical Optimization' (they have a digital presence via Yelp)
+            websiteUrl = details.yelp_listing_url;
+            await supabase.from('leads').update({ website_url: websiteUrl }).eq('id', id);
+            console.log(`ℹ️  Using Yelp listing as website for ${businessName}: ${websiteUrl}`);
+          } else {
+            console.log(`ℹ️  No web presence found on Yelp for ${businessName}`);
+          }
+        }
+      } catch (yelpErr) {
+        console.error(`Yelp details fetch error for ${businessName}:`, yelpErr?.message || yelpErr);
+      }
+    }
 
     const [pageSpeedResult, dohmhResult, outscraperResult] = await Promise.allSettled([
       websiteUrl ? fetchPageSpeedScores(websiteUrl) : Promise.resolve(null),
@@ -525,6 +562,47 @@ app.post('/api/leads/:id/deep-audit', async (req, res) => {
     if (c !== undefined) updates.civic_audit = c;
     const s = outscraperResult.status === 'fulfilled' && outscraperResult.value != null ? toJsonb(outscraperResult.value) : undefined;
     if (s !== undefined) updates.sentiment_audit = s;
+
+    // Recalculate hfi_score whenever a website_url is now known (whether newly found or not)
+    if (websiteUrl) {
+      const yelp_rating = typeof lead.rating === 'number' ? lead.rating : 0;
+      const yelp_reviews = typeof lead.review_count === 'number' ? lead.review_count : 0;
+      const violations = c && Array.isArray(c) ? c : (Array.isArray(lead.civic_audit) ? lead.civic_audit : []);
+      const recalculated = calculateHFI(yelp_rating, yelp_reviews, lead.price ?? null);
+      const violationPenalty = Math.min(20, violations.length * 4);
+      updates.hfi_score = Math.max(10, recalculated - violationPenalty);
+      console.log(`📊 HFI recalculated for ${businessName}: ${updates.hfi_score} (violations: ${violations.length})`);
+    }
+
+    // Derive and persist suggested_deliverables from sentiment — always run, even with mock data
+    const existingSentiment = lead.sentiment_audit;
+    const resolvedSentiment = s !== undefined ? s : existingSentiment;
+    const sentimentArr = resolvedSentiment && Array.isArray(resolvedSentiment) ? resolvedSentiment
+      : resolvedSentiment && typeof resolvedSentiment === 'object' && Array.isArray(resolvedSentiment.reviews) ? resolvedSentiment.reviews
+      : resolvedSentiment && typeof resolvedSentiment === 'object' && Array.isArray(resolvedSentiment.data) ? resolvedSentiment.data
+      : [];
+    // Always derive deliverables — use civic_audit violations as additional signal
+    const reviewTexts = sentimentArr.slice(0, 3).map((r) => String(r?.text || '')).filter(Boolean);
+    const painPointsList = [...new Set(sentimentArr.map((r) => r?.pain_point).filter(Boolean))].slice(0, 5);
+    const civicViolations = c && Array.isArray(c) ? c : (Array.isArray(lead.civic_audit) ? lead.civic_audit : []);
+    if (civicViolations.length > 0) {
+      painPointsList.push('compliance violations');
+    }
+    const sentimentSummary = painPointsList.join('; ');
+    const derived = deriveSuggestedDeliverablesFromReviews(
+      reviewTexts.length > 0 ? reviewTexts : [lead.friction_type || 'online ordering'],
+      sentimentSummary || lead.friction_type || ''
+    );
+    if (derived) {
+      if (civicViolations.length > 0 && !derived.includes('Compliance Monitor')) {
+        derived.push('Compliance Monitor');
+      }
+      if ((updates.hfi_score ?? lead.hfi_score ?? 0) > 90 && !derived.includes('Digital Launchpad')) {
+        derived.push('Digital Launchpad');
+      }
+      updates.suggested_deliverables = derived;
+      console.log(`🎯 Suggested deliverables for ${businessName}:`, derived);
+    }
 
     const { data: updated, error: updateError } = await supabase
       .from('leads')
@@ -1042,61 +1120,184 @@ async function saveBuildVotes(votes) {
   await writeFile(path, JSON.stringify(votes, null, 2), 'utf-8');
 }
 
+// Derive suggested deliverables from review text (Yelp/Outscraper sentiment)
+function deriveSuggestedDeliverablesFromReviews(topReviews = [], sentimentSummary = '') {
+  const text = [
+    ...(Array.isArray(topReviews) ? topReviews : []).map(String),
+    sentimentSummary || '',
+  ].join(' ').toLowerCase();
+  if (!text.trim()) return null;
+
+  if (/wait\s*time|queue|booking|reservation|waitlist/.test(text)) {
+    return ['Queue Management System', 'Real-time SMS Waitlist', 'React Booking Dashboard', 'Automated Confirmation & Reminders'];
+  }
+  if (/phone|call|ivr|transfer/.test(text)) {
+    return ['Twilio Voice API Integration', 'PostgreSQL Call Queue System', 'Automated Call Routing & IVR'];
+  }
+  if (/delivery|logistics|tracking|route|driver/.test(text)) {
+    return ['Route Optimization API', 'Delivery Tracking Portal', 'Real-time GPS Integration'];
+  }
+  if (/order|checkout|online\s*ordering|pre-order/.test(text)) {
+    return ['React Order Management Dashboard', 'Stripe Payment Integration', 'Order Status API & Webhooks'];
+  }
+  if (/notification|confirm|reminder/.test(text)) {
+    return ['Automated Confirmation & Reminders', 'Customer Notification Service', 'SMS Notification Service'];
+  }
+  if (/inventory|stock|supply/.test(text)) {
+    return ['PostgreSQL Inventory DB', 'Low-Stock Notification API', 'Charts.js Analytics Dashboard'];
+  }
+  return ['Custom API Integration', 'React Admin Dashboard', 'Database Schema Design'];
+}
+
 // POST /api/leads/:id/launch-sprint - Scout launches a sprint
 app.post('/api/leads/:id/launch-sprint', async (req, res) => {
   try {
     const { id } = req.params;
-    const { maxSlots, duration } = req.body;
-    
+    const { maxSlots, duration: bodyDuration, sprintDuration, top_reviews, sentiment_summary } = req.body;
+    const duration = bodyDuration ?? sprintDuration;
+
     if (!maxSlots || !duration) {
       return res.status(400).json({ error: 'maxSlots and duration are required' });
     }
-    
+
     if (maxSlots < 1 || maxSlots > 4) {
       return res.status(400).json({ error: 'maxSlots must be between 1 and 4' });
     }
-    
+
     if (duration < 2 || duration > 4) {
       return res.status(400).json({ error: 'duration must be between 2 and 4 weeks' });
     }
-    
+
+    // Derive suggested deliverables from Yelp reviews
+    const suggestedDeliverables = deriveSuggestedDeliverablesFromReviews(top_reviews, sentiment_summary);
+
+    // Try Supabase first (real scouted leads), fall back to MOCK_DATA (legacy sprint leads)
+    if (supabase) {
+      const { data: sbLead, error: sbErr } = await supabase.from('leads').select('*').eq('id', id).single();
+      if (!sbErr && sbLead) {
+        if (sbLead.sprintActive) {
+          return res.status(400).json({ error: 'Sprint is already active for this lead' });
+        }
+        const sprintStartedAt = new Date().toISOString();
+        const updates = {
+          sprintActive: true,
+          maxSlots,
+          sprintDuration: duration,
+          sprintStartedAt,
+          status: sbLead.status ?? 'qualified',
+        };
+        if (suggestedDeliverables) updates.suggestedDeliverables = suggestedDeliverables;
+
+        const { data: updated, error: updateErr } = await supabase
+          .from('leads')
+          .update(updates)
+          .eq('id', id)
+          .select()
+          .single();
+        if (updateErr) {
+          console.error('launch-sprint Supabase update error:', updateErr);
+          return res.status(500).json({ error: 'Failed to launch sprint', message: updateErr.message });
+        }
+        const merged = ensureLeadAuditFields({ ...sbLead, ...updated });
+        const weighted = applyRecencyWeights(merged);
+        const populated = await populateActiveBuilders(weighted);
+        return res.json(populated);
+      }
+    }
+
+    // Fall back to MOCK_DATA for legacy IDs
     const data = await loadData();
     const leadIndex = data.leads.findIndex(l => l.id === id);
-    
+
     if (leadIndex === -1) {
       return res.status(404).json({ error: 'Lead not found' });
     }
-    
+
     const lead = data.leads[leadIndex];
-    
-    // Check if sprint is already active
+
     if (lead.sprintActive) {
       return res.status(400).json({ error: 'Sprint is already active for this lead' });
     }
-    
-    // Initialize activeBuilders if it doesn't exist
-    if (!lead.activeBuilders) {
-      lead.activeBuilders = [];
-    }
-    
-    // Set sprint configuration
+
+    if (!lead.activeBuilders) lead.activeBuilders = [];
+    if (suggestedDeliverables) lead.suggestedDeliverables = suggestedDeliverables;
+
     lead.sprintActive = true;
     lead.maxSlots = maxSlots;
     lead.sprintDuration = duration;
     lead.sprintStartedAt = new Date().toISOString();
-    
+
     await saveData(data);
-    
+
     const weightedLead = applyRecencyWeights(lead);
     const populatedLead = await populateActiveBuilders(weightedLead);
     res.json(populatedLead);
-    
+
   } catch (error) {
     console.error('Error launching sprint:', error);
     res.status(500).json({ 
       error: 'Failed to launch sprint',
       message: error.message 
     });
+  }
+});
+
+// POST /api/leads/:id/reset-sprint - Reset sprint for demo (preserves intelligence data)
+app.post('/api/leads/:id/reset-sprint', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Fields to clear (sprint state only) — intentionally preserve intelligence columns
+    const resetFields = {
+      sprintActive: false,
+      activeBuilders: [],
+      maxSlots: null,
+      sprintDuration: null,
+      sprintStartedAt: null,
+      sprintDeadline: null,
+      isPaused: false,
+      winnerUserId: null,
+      firstCompletionAt: null,
+      submissionWindowOpen: false,
+      voting_open: false,
+      status: 'qualified',
+    };
+
+    // Try Supabase first
+    if (supabase) {
+      const { data: sbLead, error: sbErr } = await supabase.from('leads').select('id').eq('id', id).single();
+      if (!sbErr && sbLead) {
+        const { data: updated, error: updateErr } = await supabase
+          .from('leads')
+          .update(resetFields)
+          .eq('id', id)
+          .select()
+          .single();
+        if (updateErr) {
+          console.error('reset-sprint Supabase error:', updateErr);
+          return res.status(500).json({ error: 'Failed to reset sprint', message: updateErr.message });
+        }
+        const merged = ensureLeadAuditFields(updated);
+        return res.json({ success: true, lead: applyRecencyWeights(merged) });
+      }
+    }
+
+    // Fall back to MOCK_DATA for legacy IDs
+    const data = await loadData();
+    const leadIndex = data.leads.findIndex(l => l.id === id);
+    if (leadIndex === -1) {
+      return res.status(404).json({ error: 'Lead not found' });
+    }
+    const lead = data.leads[leadIndex];
+    Object.assign(lead, resetFields);
+    await saveData(data);
+    const weighted = applyRecencyWeights(lead);
+    const populated = await populateActiveBuilders(weighted);
+    return res.json({ success: true, lead: populated });
+
+  } catch (error) {
+    console.error('reset-sprint error:', error);
+    res.status(500).json({ error: 'Failed to reset sprint', message: error.message });
   }
 });
 

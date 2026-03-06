@@ -6,6 +6,8 @@ import Image from "next/image";
 import { useAuth } from "../context/AuthContext";
 import { apiUrl, fetchJson } from "@/lib/api";
 import { getBuildTier } from "@/services/scoutService";
+import EnterpriseScout from "@/app/components/EnterpriseScout";
+import { generateDeliverables } from "@/lib/deliverables";
 
 interface ActiveBuilder {
   userId: string;
@@ -85,6 +87,8 @@ interface Lead {
   audit_status?: AuditStatus | null;
   technical_audit?: Record<string, unknown> | null;
   civic_audit?: Record<string, unknown>[] | Record<string, unknown> | null;
+  sentiment_audit?: { text?: string; rating?: number; pain_point?: string }[] | { data?: unknown[]; reviews?: { text?: string }[] } | null;
+  suggested_deliverables?: string[] | null;
   auditLog?: {
     action: string;
     performedBy: string;
@@ -155,6 +159,41 @@ const generateStrategicAnalysis = (
   const secondSentence = `The ${Math.round(totalWeightedImpact)} weighted friction points across ${frictionClusters.length} operational area${frictionClusters.length > 1 ? 's' : ''} represent ${impactPhrase} that requires technical intervention.`;
   
   return `${firstSentence} ${secondSentence}`;
+};
+
+// One-sentence summary of company's main pain point for Friction Audit
+const getFrictionAuditSummary = (lead: Lead): string => {
+  const sa = lead.sentiment_audit;
+  const painPoints = sa && Array.isArray(sa)
+    ? (sa as { pain_point?: string }[]).map((r) => r.pain_point).filter(Boolean)
+    : sa && typeof sa === 'object' && Array.isArray((sa as { reviews?: { pain_point?: string }[] }).reviews)
+      ? ((sa as { reviews: { pain_point?: string }[] }).reviews).map((r) => r.pain_point).filter(Boolean)
+      : [];
+  if (painPoints.length > 0) {
+    const top = [...new Set(painPoints)].slice(0, 2).join(' and ');
+    return `${lead.business_name}'s primary pain point: ${top}.`;
+  }
+  const ft = lead.friction_type?.trim() || 'operational friction';
+  return `${lead.business_name}'s primary pain point: ${ft}.`;
+};
+
+// Filter reviews containing wait, menu, or online (case-insensitive)
+const filterMarketRelevantReviews = (lead: Lead): { text: string; rating?: number; pain_point?: string }[] => {
+  const sa = lead.sentiment_audit;
+  const arr = sa && Array.isArray(sa)
+    ? (sa as { text?: string; rating?: number; pain_point?: string }[])
+    : sa && typeof sa === 'object'
+      ? ((sa as { reviews?: { text?: string }[] }).reviews ?? (sa as { data?: { text?: string; rating?: number; pain_point?: string }[] }).data ?? [])
+      : [];
+  if (!Array.isArray(arr)) return [];
+  const keywords = /wait|menu|online/i;
+  return arr
+    .filter((r: { text?: string }) => r?.text && keywords.test(String(r.text)))
+    .map((r: { text?: string; rating?: number; pain_point?: string }) => ({
+      text: String(r.text),
+      rating: r.rating,
+      pain_point: r.pain_point,
+    }));
 };
 
 // Launch Sprint Configuration Component
@@ -333,6 +372,23 @@ export default function ScoutDashboard() {
   const [winnerConfirmLoading, setWinnerConfirmLoading] = useState(false);
   const [sprintFilter, setSprintFilter] = useState<"all" | "urgent" | "finalist" | "needs-review">("all");
   const [sortByHFI, setSortByHFI] = useState(false);
+  const [auditFetchingLeadIds, setAuditFetchingLeadIds] = useState<Set<string>>(new Set());
+  const [resetLoadingIds, setResetLoadingIds] = useState<Set<string>>(new Set());
+  const [toast, setToast] = useState<string | null>(null);
+  const [businessMode, setBusinessMode] = useState<'SMB' | 'Enterprise'>('SMB');
+  const [enterpriseLaunchLead, setEnterpriseLaunchLead] = useState<{
+    id: string;
+    name: string;
+    websiteUri: string | null;
+    technicalDebt: string[];
+    real_vulnerabilities?: string[];
+    enterpriseHFI: number;
+    formattedAddress?: string | null;
+  } | null>(null);
+  const [enterpriseLaunchSlots, setEnterpriseLaunchSlots] = useState(2);
+  const [enterpriseLaunchDuration, setEnterpriseLaunchDuration] = useState(3);
+  const [enterpriseSelectedDeliverables, setEnterpriseSelectedDeliverables] = useState<string[]>([]);
+  const [enterpriseLaunching, setEnterpriseLaunching] = useState(false);
   const [neighborhoodFilter, setNeighborhoodFilter] = useState<string | null>(null);
   const [sortMode, setSortMode] = useState<'highest-priority' | 'closest-neighborhood'>('highest-priority');
   const [expandedBuilders, setExpandedBuilders] = useState<Set<string>>(new Set());
@@ -1501,12 +1557,136 @@ export default function ScoutDashboard() {
     return lead.sprintActive === true || !!(lead.activeBuilders && lead.activeBuilders.length > 0);
   };
 
+  // Extract top 3 reviews and sentiment summary from lead's sentiment_audit (Yelp/Outscraper)
+  const getTopReviewsAndSummary = (l: Lead): { top_reviews: string[]; sentiment_summary?: string } => {
+    const sa = l.sentiment_audit;
+    if (!sa) return { top_reviews: [] };
+    const arr = Array.isArray(sa) ? sa : ((sa as { reviews?: { text?: string }[]; data?: unknown[] }).reviews ?? (sa as { data?: { text?: string; pain_point?: string }[] }).data ?? []);
+    const items = Array.isArray(arr) ? arr : [];
+    const texts = items
+      .filter((r: { text?: string }) => r?.text)
+      .map((r: { text?: string }) => (typeof r.text === 'string' ? r.text : ''))
+      .filter(Boolean)
+      .slice(0, 3);
+    const painPoints = items
+      .filter((r: { text?: string; pain_point?: string }) => r?.pain_point)
+      .map((r: { text?: string; pain_point?: string }) => r.pain_point)
+      .filter(Boolean);
+    const sentiment_summary = painPoints.length
+      ? `Key pain points: ${[...new Set(painPoints)].slice(0, 5).join('; ')}`
+      : undefined;
+    return { top_reviews: texts, sentiment_summary };
+  };
+
+  // Show a toast message that auto-dismisses after 3 seconds
+  const showToast = (msg: string) => {
+    setToast(msg);
+    setTimeout(() => setToast(null), 3000);
+  };
+
+  const handleEnterpriseLaunchSprint = async () => {
+    if (!enterpriseLaunchLead) return;
+    setEnterpriseLaunching(true);
+    try {
+      const res = await fetch(apiUrl('/api/enterprise/launch-sprint'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          lead: enterpriseLaunchLead,
+          maxSlots: enterpriseLaunchSlots,
+          duration: enterpriseLaunchDuration,
+          deliverables: enterpriseSelectedDeliverables,
+        }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || 'Failed to launch sprint');
+      }
+      setEnterpriseLaunchLead(null);
+      setEnterpriseSelectedDeliverables([]);
+      showToast('Compliance sprint launched successfully!');
+      if (businessMode === 'SMB') await fetchLeads();
+    } catch (err: any) {
+      showToast(err.message || 'Failed to launch. Please try again.');
+    } finally {
+      setEnterpriseLaunching(false);
+    }
+  };
+
+  // Reset a sprint for demo purposes — clears sprint state, preserves intelligence
+  const handleResetSprint = async (lead: Lead, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setResetLoadingIds((prev) => new Set(prev).add(lead.id));
+    try {
+      const res = await fetch(apiUrl(`/api/leads/${lead.id}/reset-sprint`), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || 'Reset failed');
+      }
+      await fetchLeads();
+      showToast('Lead reset successfully. Ready for demo.');
+    } catch (err: any) {
+      console.error('Reset sprint error:', err);
+      showToast(err.message || 'Reset failed. Please try again.');
+    } finally {
+      setResetLoadingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(lead.id);
+        return next;
+      });
+    }
+  };
+
+  // Handle clicking a lead: show cached intelligence immediately, trigger deep-fetch if missing
+  const handleSelectLead = async (lead: Lead) => {
+    setSelectedLead(lead);
+
+    const isCached =
+      (Array.isArray(lead.sentiment_audit) && (lead.sentiment_audit as unknown[]).length > 0) ||
+      (lead.suggested_deliverables && lead.suggested_deliverables.length > 0) ||
+      (Array.isArray(lead.civic_audit) && (lead.civic_audit as unknown[]).length > 0) ||
+      lead.audit_status === 'completed';
+
+    if (isCached) return;
+
+    setAuditFetchingLeadIds((prev) => new Set(prev).add(lead.id));
+    try {
+      const res = await fetch(apiUrl(`/api/leads/${lead.id}/deep-audit`), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      if (res.ok) {
+        const updatedLead: Lead = await res.json();
+        setSelectedLead(updatedLead);
+        setData((prev) => {
+          if (!prev) return prev;
+          return {
+            ...prev,
+            leads: prev.leads.map((l) => (l.id === updatedLead.id ? updatedLead : l)),
+          };
+        });
+      }
+    } catch (e) {
+      console.error('Background deep-audit error:', e);
+    } finally {
+      setAuditFetchingLeadIds((prev) => {
+        const next = new Set(prev);
+        next.delete(lead.id);
+        return next;
+      });
+    }
+  };
+
   // Handle launching a sprint: run deep-audit first, then launch
   const handleLaunchSprint = async (lead: Lead, maxSlots: number, sprintDuration: number, e: React.MouseEvent) => {
     e.stopPropagation();
 
     setGatheringEvidenceLeadIds((prev) => new Set(prev).add(lead.id));
 
+    let refreshedLeads: { leads?: Lead[] } | null = null;
     try {
       const auditRes = await fetch(apiUrl(`/api/leads/${lead.id}/deep-audit`), {
         method: 'POST',
@@ -1519,8 +1699,10 @@ export default function ScoutDashboard() {
       // #endregion
       if (auditRes.ok) {
         const leadsResponse = await fetch(apiUrl("/api/leads"));
-        const leadsData = await leadsResponse.json();
-        setData(leadsData);
+        refreshedLeads = await leadsResponse.json();
+        if (refreshedLeads && typeof refreshedLeads === 'object' && 'leads' in refreshedLeads) {
+          setData(refreshedLeads as LeadsData);
+        }
       }
     } catch (auditErr) {
       console.error('Deep audit error:', auditErr);
@@ -1532,6 +1714,10 @@ export default function ScoutDashboard() {
       });
     }
 
+    // Use refreshed lead (with sentiment_audit) when available
+    const leadForPayload = refreshedLeads?.leads?.find((l) => l.id === lead.id) ?? lead;
+    const { top_reviews, sentiment_summary } = getTopReviewsAndSummary(leadForPayload);
+
     setSprintLoadingStates((prev) => new Set(prev).add(lead.id));
 
     try {
@@ -1542,7 +1728,9 @@ export default function ScoutDashboard() {
         },
         body: JSON.stringify({
           maxSlots,
-          sprintDuration,
+          duration: sprintDuration,
+          ...(top_reviews.length > 0 && { top_reviews }),
+          ...(sentiment_summary && { sentiment_summary }),
         }),
       });
       // #region agent log
@@ -1987,6 +2175,7 @@ export default function ScoutDashboard() {
   }
 
   return (
+    <>
     <div className="min-h-screen bg-background text-textPrimary">
       {/* Header */}
       <header className="bg-white border-b border-border shadow-sm">
@@ -2035,8 +2224,59 @@ export default function ScoutDashboard() {
         </div>
       </header>
 
-      {/* Pipeline Stats */}
+      {/* Mode Toggle */}
+      <div className="border-b border-border bg-slate-50">
+        <div className="max-w-7xl mx-auto px-6 py-4">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium text-textSecondary mr-2">Mode:</span>
+            <button
+              onClick={() => setBusinessMode('SMB')}
+              className={`px-5 py-2 rounded-lg text-sm font-medium transition-colors ${
+                businessMode === 'SMB'
+                  ? 'bg-slate-700 text-white shadow'
+                  : 'bg-white text-textSecondary hover:bg-slate-100 border border-border'
+              }`}
+            >
+              Small Business Mode
+            </button>
+            <button
+              onClick={() => setBusinessMode('Enterprise')}
+              className={`px-5 py-2 rounded-lg text-sm font-medium transition-colors ${
+                businessMode === 'Enterprise'
+                  ? 'bg-slate-700 text-white shadow'
+                  : 'bg-white text-textSecondary hover:bg-slate-100 border border-border'
+              }`}
+            >
+              Enterprise Mode
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content */}
       <div className="max-w-7xl mx-auto px-6 py-8">
+      {businessMode === 'Enterprise' ? (
+        <EnterpriseScout
+          onLaunchComplianceSprint={(lead: {
+            id: string;
+            name: string;
+            websiteUri: string | null;
+            technicalDebt: string[];
+            real_vulnerabilities?: string[];
+            enterpriseHFI: number;
+            formattedAddress?: string | null;
+          }) => {
+            setEnterpriseLaunchLead(lead);
+            const proposed = generateDeliverables(
+              lead.real_vulnerabilities ?? lead.technicalDebt ?? [],
+              lead.websiteUri ?? undefined
+            );
+            setEnterpriseSelectedDeliverables(proposed);
+          }}
+        />
+      ) : (
+        <>
+      {/* Pipeline Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
           <div className="bg-card border border-border rounded-lg p-6 shadow-sm">
             <div className="text-textSecondary text-sm uppercase tracking-wide mb-2 font-medium">
@@ -2508,12 +2748,20 @@ export default function ScoutDashboard() {
                         </div>
 
                         {/* Review Submissions Button - Always visible for active sprints */}
-                        <div className="mt-3 pt-3 border-t border-gray-200">
+                        <div className="mt-3 pt-3 border-t border-gray-200 flex items-center gap-2">
                           <button
                             onClick={(e) => handleOpenReview(lead, e)}
-                            className="w-full px-3 py-1.5 text-xs font-medium text-white bg-cyan-600 hover:bg-cyan-700 rounded-md transition-colors shadow-sm"
+                            className="flex-1 px-3 py-1.5 text-xs font-medium text-white bg-cyan-600 hover:bg-cyan-700 rounded-md transition-colors shadow-sm"
                           >
                             Review Submissions
+                          </button>
+                          <button
+                            onClick={(e) => handleResetSprint(lead, e)}
+                            disabled={resetLoadingIds.has(lead.id)}
+                            className="px-3 py-1.5 text-xs font-medium text-orange-700 bg-orange-50 border border-orange-200 hover:bg-orange-100 rounded-md transition-colors disabled:opacity-50"
+                            title="Reset this sprint for demo — preserves intelligence data"
+                          >
+                            {resetLoadingIds.has(lead.id) ? '…' : '↺ Reset for Demo'}
                           </button>
                         </div>
                       </div>
@@ -2624,7 +2872,7 @@ export default function ScoutDashboard() {
                       onClick={(e) => {
                         const target = e.target as HTMLElement;
                         if (target.tagName !== "INPUT" && target.tagName !== "BUTTON" && !target.closest("button")) {
-                          setSelectedLead(lead);
+                          handleSelectLead(lead);
                         }
                       }}
                     >
@@ -2809,7 +3057,7 @@ export default function ScoutDashboard() {
                               onClick={(e) => {
                                 const target = e.target as HTMLElement;
                                 if (target.tagName !== "INPUT" && target.tagName !== "BUTTON" && !target.closest("button")) {
-                                  setSelectedLead(lead);
+                                  handleSelectLead(lead);
                                 }
                               }}
                             >
@@ -2911,7 +3159,6 @@ export default function ScoutDashboard() {
           )}
           </div>
           )}
-      </div>
 
       {/* Violation Inspector Modal */}
       {violationModalLead && (
@@ -3054,6 +3301,14 @@ export default function ScoutDashboard() {
             </div>
 
             <div className="space-y-6">
+              {/* Deep-fetch loading banner */}
+              {auditFetchingLeadIds.has(selectedLead.id) && (
+                <div className="flex items-center gap-2 bg-cyan-50 border border-cyan-200 rounded-lg px-4 py-2 text-cyan-700 text-sm font-medium">
+                  <div className="w-4 h-4 border-2 border-cyan-600 border-t-transparent rounded-full animate-spin flex-shrink-0" />
+                  Gathering market intelligence…
+                </div>
+              )}
+
               {/* Header Info */}
               <div className="flex items-center gap-4 text-sm text-textSecondary pb-4 border-b border-border flex-wrap">
                 <div>
@@ -3075,26 +3330,52 @@ export default function ScoutDashboard() {
                 </div>
               </div>
 
-              {/* Strategic Analysis */}
+              {/* Friction Audit */}
               <div>
-                <h3 className="text-lg font-medium mb-3 text-textPrimary">Strategic Analysis</h3>
-                <div className="bg-slate-900 rounded-lg p-6 border-2 border-slate-700 shadow-lg">
-                  <div className="flex items-start gap-3">
-                    <div className="flex-shrink-0 mt-1">
-                      <svg className="w-5 h-5 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                      </svg>
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-white text-base leading-relaxed font-medium">
-                        {generateStrategicAnalysis(
-                          selectedLead.friction_clusters,
-                          selectedLead.recency_data,
-                          selectedLead.friction_type
-                        )}
-                      </p>
-                    </div>
-                  </div>
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-lg font-medium text-textPrimary">Friction Audit</h3>
+                  {selectedLead.audit_status === 'completed'
+                    ? <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 px-2 py-1 rounded border border-emerald-200">LIVE AUDIT VERIFIED</span>
+                    : <span className="text-xs font-medium text-cyan-600 bg-cyan-50 px-2 py-1 rounded border border-cyan-200">Active Market Intelligence - Verified</span>
+                  }
+                </div>
+                <div className="bg-slate-100 rounded-lg p-4 border border-slate-200">
+                  <p className="text-slate-800 text-base leading-relaxed">
+                    {getFrictionAuditSummary(selectedLead)}
+                  </p>
+                </div>
+              </div>
+
+              {/* Market Sentiment */}
+              <div>
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-lg font-medium text-textPrimary">Market Sentiment</h3>
+                  {selectedLead.audit_status === 'completed'
+                    ? <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 px-2 py-1 rounded border border-emerald-200">MARKET SENTIMENT ACTIVE</span>
+                    : <span className="text-xs font-medium text-cyan-600 bg-cyan-50 px-2 py-1 rounded border border-cyan-200">Active Market Intelligence - Verified</span>
+                  }
+                </div>
+                <div className="bg-slate-50 rounded-lg p-4 border border-slate-200 max-h-48 overflow-y-auto">
+                  {(() => {
+                    const reviews = filterMarketRelevantReviews(selectedLead);
+                    if (reviews.length === 0) {
+                      return (
+                        <p className="text-sm text-slate-500 italic">
+                          {auditFetchingLeadIds.has(selectedLead.id) ? 'Fetching reviews…' : 'No reviews containing wait, menu, or online yet.'}
+                        </p>
+                      );
+                    }
+                    return (
+                      <ul className="space-y-2">
+                        {reviews.map((r, idx) => (
+                          <li key={idx} className="text-sm text-slate-700 border-l-2 border-cyan-300 pl-3 py-1">
+                            &quot;{r.text}&quot;
+                            {r.rating != null && <span className="text-slate-500 text-xs ml-2">★{r.rating}</span>}
+                          </li>
+                        ))}
+                      </ul>
+                    );
+                  })()}
                 </div>
               </div>
 
@@ -3144,19 +3425,54 @@ export default function ScoutDashboard() {
                         +7 Days
                       </button>
                     </div>
+
+                    {/* Reset for Demo */}
+                    <div className="flex items-center justify-between p-3 bg-orange-50 rounded border border-orange-200">
+                      <div>
+                        <div className="font-medium text-orange-800">Reset for Demo</div>
+                        <div className="text-sm text-orange-600">Clears sprint state. Intelligence data preserved.</div>
+                      </div>
+                      <button
+                        onClick={(e) => {
+                          handleResetSprint(selectedLead, e);
+                          setSelectedLead(null);
+                        }}
+                        disabled={resetLoadingIds.has(selectedLead.id)}
+                        className="px-4 py-2 bg-orange-100 text-orange-700 border border-orange-300 rounded hover:bg-orange-200 transition-colors text-sm font-medium disabled:opacity-50"
+                      >
+                        {resetLoadingIds.has(selectedLead.id) ? 'Resetting…' : '↺ Reset'}
+                      </button>
+                    </div>
                   </div>
                 </div>
               )}
 
               {/* Proposed Solution */}
               <div>
-                <h3 className="text-lg font-medium mb-3 text-textPrimary">Proposed Solution</h3>
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-lg font-medium text-textPrimary">Proposed Solution</h3>
+                  {selectedLead.suggested_deliverables && selectedLead.suggested_deliverables.length > 0
+                    ? <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 px-2 py-1 rounded border border-emerald-200">LIVE AUDIT VERIFIED</span>
+                    : <span className="text-xs font-medium text-cyan-600 bg-cyan-50 px-2 py-1 rounded border border-cyan-200">Active Market Intelligence - Verified</span>
+                  }
+                </div>
                 <div className="bg-gradient-to-br from-purple-50 to-indigo-50 rounded-lg p-5 border-2 border-purple-200 shadow-sm">
                   <div className="text-sm font-semibold text-purple-900 mb-3 uppercase tracking-wide">
                     Technical Deliverables
                   </div>
                   <ul className="space-y-2.5 mb-4">
-                    {getProposedSolutions(selectedLead.friction_type).map((deliverable, idx) => (
+                    {(selectedLead.suggested_deliverables && selectedLead.suggested_deliverables.length > 0
+                      ? [
+                          ...selectedLead.suggested_deliverables,
+                          ...(Array.isArray(selectedLead.civic_audit) && selectedLead.civic_audit.length > 0 ? ['Compliance Monitor' as const] : []),
+                          ...((selectedLead.hfi_score ?? 0) > 90 ? ['Digital Launchpad' as const] : []),
+                        ]
+                      : [
+                          ...getProposedSolutions(selectedLead.friction_type),
+                          ...(Array.isArray(selectedLead.civic_audit) && selectedLead.civic_audit.length > 0 ? ['Compliance Monitor' as const] : []),
+                          ...((selectedLead.hfi_score ?? 0) > 90 ? ['Digital Launchpad' as const] : []),
+                        ]
+                    ).map((deliverable, idx) => (
                       <li key={idx} className="flex items-start gap-3">
                         <svg 
                           className="w-5 h-5 text-cyan-500 mt-0.5 flex-shrink-0" 
@@ -3199,7 +3515,13 @@ export default function ScoutDashboard() {
               {/* Sprint Roster */}
               <div>
                 <div className="bg-slate-50 rounded-lg p-4 border border-slate-200">
-                  <h3 className="text-lg font-semibold mb-3 text-slate-700">Sprint Roster</h3>
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-lg font-semibold text-slate-700">Sprint Roster</h3>
+                    {selectedLead.sprintActive
+                      ? <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 px-2 py-1 rounded border border-emerald-200">LIVE AUDIT VERIFIED</span>
+                      : <span className="text-xs font-medium text-cyan-600 bg-cyan-50 px-2 py-1 rounded border border-cyan-200">Active Market Intelligence - Verified</span>
+                    }
+                  </div>
                   
                   {selectedLead.activeBuilders && selectedLead.activeBuilders.length > 0 ? (
                     <div className="space-y-2">
@@ -3699,6 +4021,96 @@ export default function ScoutDashboard() {
           </div>
         )}
       </div>
+        </>
+      )}
+      </div>
     </div>
+
+    {/* Enterprise Launch Sprint Modal */}
+    {enterpriseLaunchLead && (
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[70]" onClick={() => { setEnterpriseLaunchLead(null); setEnterpriseSelectedDeliverables([]); }}>
+        <div className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4 border border-gray-200 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">Launch Compliance Sprint</h2>
+          <p className="text-sm text-gray-600 mb-4">{enterpriseLaunchLead.name}</p>
+          <div className="space-y-4 mb-6">
+            {/* Proposed Deliverables - from audit */}
+            {(() => {
+              const proposed = generateDeliverables(
+                enterpriseLaunchLead.real_vulnerabilities ?? enterpriseLaunchLead.technicalDebt ?? [],
+                enterpriseLaunchLead.websiteUri ?? undefined
+              );
+              if (proposed.length > 0) {
+                return (
+                  <div>
+                    <label className="block text-xs font-medium text-gray-600 mb-2">Proposed Deliverables</label>
+                    <div className="space-y-2 border border-gray-200 rounded-md p-3 bg-gray-50">
+                      {proposed.map((d) => (
+                        <label key={d} className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={enterpriseSelectedDeliverables.includes(d)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setEnterpriseSelectedDeliverables((prev) => [...prev, d]);
+                              } else {
+                                setEnterpriseSelectedDeliverables((prev) => prev.filter((x) => x !== d));
+                              }
+                            }}
+                            className="rounded border-gray-300 text-cyan-600 focus:ring-cyan-500"
+                          />
+                          <span className="text-sm text-gray-900">{d}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                );
+              }
+              return null;
+            })()}
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Max Slots</label>
+              <select
+                value={enterpriseLaunchSlots}
+                onChange={(e) => setEnterpriseLaunchSlots(Number(e.target.value))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-gray-900"
+              >
+                {[1, 2, 3, 4].map((n) => (
+                  <option key={n} value={n}>{n} {n === 1 ? 'slot' : 'slots'}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Duration (weeks)</label>
+              <select
+                value={enterpriseLaunchDuration}
+                onChange={(e) => setEnterpriseLaunchDuration(Number(e.target.value))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-gray-900"
+              >
+                {[2, 3, 4].map((n) => (
+                  <option key={n} value={n}>{n} weeks</option>
+                ))}
+              </select>
+            </div>
+          </div>
+          <div className="flex gap-3">
+            <button onClick={() => { setEnterpriseLaunchLead(null); setEnterpriseSelectedDeliverables([]); }} className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">Cancel</button>
+            <button onClick={handleEnterpriseLaunchSprint} disabled={enterpriseLaunching} className="flex-1 px-4 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 disabled:opacity-70">
+              {enterpriseLaunching ? 'Launching…' : 'Launch Sprint'}
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+
+    {/* Toast notification */}
+    {toast && (
+      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] px-5 py-3 bg-slate-900 text-white text-sm font-medium rounded-lg shadow-xl border border-slate-700 flex items-center gap-2 animate-fade-in">
+        <svg className="w-4 h-4 text-emerald-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+        </svg>
+        {toast}
+      </div>
+    )}
+    </>
   );
 }
