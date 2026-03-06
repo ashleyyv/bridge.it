@@ -33,6 +33,7 @@ export default function EnterpriseScout({ onLaunchComplianceSprint }) {
   const [dossierLead, setDossierLead] = useState(null);
   const [pursuitDefinitions, setPursuitDefinitions] = useState({ entries: [] });
   const [copyFeedback, setCopyFeedback] = useState(false);
+  const [briefingLoading, setBriefingLoading] = useState(false);
 
   const runDeepAudit = async (lead) => {
     const uri = lead?.websiteUri;
@@ -47,6 +48,7 @@ export default function EnterpriseScout({ onLaunchComplianceSprint }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ domain }),
         mode: 'cors',
+        credentials: 'include',
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data?.error || 'Audit failed');
@@ -74,7 +76,10 @@ export default function EnterpriseScout({ onLaunchComplianceSprint }) {
   useEffect(() => {
     const fetchPursuitDefinitions = async () => {
       try {
-        const res = await fetch(`${API_BASE}/api/enterprise/pursuit-internal-definitions`, { mode: 'cors' });
+        const res = await fetch(`${API_BASE}/api/enterprise/pursuit-internal-definitions`, {
+          mode: 'cors',
+          credentials: 'include',
+        });
         const data = await res.json();
         setPursuitDefinitions({ entries: data?.entries ?? [] });
       } catch {
@@ -86,14 +91,23 @@ export default function EnterpriseScout({ onLaunchComplianceSprint }) {
 
   // Refetch pursuit definitions when modal opens to ensure fresh data for the lead
   useEffect(() => {
-    if (!dossierLead) return;
+    if (!dossierLead) {
+      setBriefingLoading(false);
+      return;
+    }
     const fetchForModal = async () => {
+      setBriefingLoading(true);
       try {
-        const res = await fetch(`${API_BASE}/api/enterprise/pursuit-internal-definitions`, { mode: 'cors' });
+        const res = await fetch(`${API_BASE}/api/enterprise/pursuit-internal-definitions`, {
+          mode: 'cors',
+          credentials: 'include',
+        });
         const data = await res.json();
         setPursuitDefinitions({ entries: data?.entries ?? [] });
       } catch {
-        // keep existing definitions on error
+        setPursuitDefinitions((prev) => prev);
+      } finally {
+        setBriefingLoading(false);
       }
     };
     fetchForModal();
@@ -104,7 +118,11 @@ export default function EnterpriseScout({ onLaunchComplianceSprint }) {
       try {
         setLoading(true);
         setError(null);
-        const res = await fetch(`${API_BASE}/api/enterprise/audit?query=Law%20Firms%20in%20NYC`, { mode: 'cors' });
+        const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002';
+        const res = await fetch(`${API_BASE}/api/enterprise/audit?query=Law%20Firms%20in%20NYC`, {
+          mode: 'cors',
+          credentials: 'include',
+        });
         const data = await res.json();
         if (!res.ok) {
           setError(data?.error || 'Failed to fetch enterprise leads');
@@ -449,7 +467,14 @@ export default function EnterpriseScout({ onLaunchComplianceSprint }) {
 
               {/* Diagnostic Cards - one per vulnerability, full width */}
               <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                {items.length === 0 ? (
+                {briefingLoading ? (
+                  <div className="flex items-center justify-center py-12">
+                    <div className="flex flex-col items-center gap-3">
+                      <div className="w-8 h-8 border-2 border-slate-500 border-t-cyan-500 rounded-full animate-spin" />
+                      <span className="text-slate-500 text-sm">Loading briefing…</span>
+                    </div>
+                  </div>
+                ) : items.length === 0 ? (
                   <div className="border border-slate-700 rounded p-4 text-slate-500 text-sm">No technical findings.</div>
                 ) : (
                   items.map(({ title, proof, triage, deliverable }, i) => (

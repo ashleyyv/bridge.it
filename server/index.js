@@ -44,8 +44,20 @@ const asyncHandler = (fn) => (req, res, next) => {
   Promise.resolve(fn(req, res, next)).catch(next);
 };
 
-// Middleware - CORS before routes (allow Next.js dev ports)
-app.use(cors({ origin: ['http://localhost:3000', 'http://localhost:3003'] }));
+// CORS: allow Vercel production + local dev; credentials + methods for deployment
+const corsOrigins = [
+  'https://bridge-it-omega.vercel.app',
+  'http://localhost:3000',
+  'http://localhost:3003',
+  'http://127.0.0.1:3000',
+  'http://127.0.0.1:3003',
+];
+app.use(cors({
+  origin: corsOrigins,
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}));
 app.use(express.json());
 
 app.use('/api/enterprise', enterpriseRouter);
@@ -59,17 +71,9 @@ app.use((req, _res, next) => {
 });
 // #endregion
 
-// Root route: avoid "Cannot GET /" when opening API base URL in browser
+// Health check (for Render / deployment verification)
 app.get('/', (req, res) => {
-  res.type('html').send(`
-    <!DOCTYPE html>
-    <html><head><meta charset="utf-8"><title>Bridge.it API</title></head>
-    <body style="font-family:sans-serif;max-width:40em;margin:2em auto;padding:0 1em;">
-      <h1>Bridge.it API</h1>
-      <p>This is the API server. Use the app at <strong>http://localhost:3000</strong> or <strong>http://localhost:3003</strong> (Next.js).</p>
-      <p><a href="/health">Health check</a> · <a href="/api/leads">Leads API</a></p>
-    </body></html>
-  `);
+  res.json({ status: 'Surgical Engine Online' });
 });
 
 // Helper function to load alumni data

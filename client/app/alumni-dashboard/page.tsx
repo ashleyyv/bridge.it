@@ -890,7 +890,7 @@ export default function AlumniDashboard() {
     setIsScouting(true);
     setScoutSuccessMessage(null);
     try {
-      const res = await fetch('http://localhost:3002/api/scout/yelp', {
+      const res = await fetch(apiUrl('/api/scout/yelp'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ location: 'Queens, NY', term: 'restaurants' }),
