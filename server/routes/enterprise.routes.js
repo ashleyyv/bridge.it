@@ -7,6 +7,16 @@ const supabase = (process.env.SUPABASE_URL && (process.env.SUPABASE_SERVICE_ROLE
   ? createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY)
   : null;
 
+/** Insert into leads with backward-compatible fallback when newer columns are missing. */
+async function insertLeadSafe(payload) {
+  let { data, error } = await supabase.from('leads').insert(payload).select().single();
+  if (error?.code === 'PGRST204' && String(error?.message || '').includes('friction_type')) {
+    const { friction_type, ...withoutFriction } = payload;
+    ({ data, error } = await supabase.from('leads').insert(withoutFriction).select().single());
+  }
+  return { data, error };
+}
+
 /**
  * GET /api/enterprise/audit-knowledge-base
  * @deprecated Use pursuit-internal-definitions for Pursuit Technical Briefing.
@@ -71,6 +81,7 @@ router.get('/leads', async (req, res) => {
       return {
         id: row.id,
         name: row.business_name ?? row.name ?? 'Enterprise Lead',
+        location: loc,
         formattedAddress: addr || null,
         websiteUri: row.website_url ?? null,
         reviewCount: row.review_count ?? 0,
@@ -135,7 +146,7 @@ router.post('/scout', async (req, res) => {
         security_debt_score: null,
         industry_type: industry,
       };
-      const { data: created, error: insertErr } = await supabase.from('leads').insert(payload).select().single();
+      const { data: created, error: insertErr } = await insertLeadSafe(payload);
       if (insertErr) {
         console.error('Enterprise scout insert error:', insertErr);
         continue;
@@ -145,6 +156,7 @@ router.post('/scout', async (req, res) => {
       saved.push({
         id: created.id,
         name: created.business_name ?? name,
+        location: loc,
         formattedAddress: addr || null,
         websiteUri: created.website_url ?? null,
         reviewCount: 0,
@@ -360,19 +372,27 @@ router.post('/launch-sprint', async (req, res) => {
       lead.real_vulnerabilities ?? lead.technicalDebt ?? [],
       lead.websiteUri ?? ''
     );
-    const suggestedDeliverables = Array.isArray(deliverables) && deliverables.length > 0
-      ? deliverables
-      : generated.length > 0
-        ? generated
-        : lead.real_vulnerabilities ?? lead.technicalDebt ?? ['Compliance & Security Review'];
-    const frictionType = lead.friction_type ?? 'Compliance & Security';
+    const matrixPreferred = Array.isArray(lead?.proposedDeliverables) ? lead.proposedDeliverables : [];
+    const suggestedDeliverables = Array.from(new Set(
+      (Array.isArray(deliverables) && deliverables.length > 0
+        ? deliverables
+        : matrixPreferred.length > 0
+          ? matrixPreferred
+          : generated.length > 0
+            ? generated
+            : lead.real_vulnerabilities ?? lead.technicalDebt ?? ['Compliance & Security Review'])
+        .map((d) => String(d ?? '').trim())
+        .filter(Boolean)
+    ));
+    const frictionType = lead.friction_type ?? lead.recommendedVertical ?? 'Compliance & Security';
     const payload = {
       business_name: lead.name ?? 'Enterprise Lead',
       website_url: lead.websiteUri ?? null,
       location: lead.location ?? { neighborhood: '', borough: '', zip: '' },
-      hfi_score: lead.enterpriseHFI ?? 0,
+      hfi_score: Math.max(lead.enterpriseHFI ?? 0, 80),
       friction_type: frictionType,
       industry_type: lead.industry_type ?? null,
+      is_priority: true,
       status: 'qualified',
       suggested_deliverables: suggestedDeliverables,
       tech_audit_status: lead.tech_audit_status ?? null,
@@ -384,7 +404,7 @@ router.post('/launch-sprint', async (req, res) => {
       sprintStartedAt: new Date().toISOString(),
       audit_status: 'completed',
     };
-    const { data: created, error } = await supabase.from('leads').insert(payload).select().single();
+    const { data: created, error } = await insertLeadSafe(payload);
     if (error) {
       console.error('Enterprise launch-sprint insert error:', error);
       return res.status(500).json({ error: 'Failed to create lead', message: error.message });

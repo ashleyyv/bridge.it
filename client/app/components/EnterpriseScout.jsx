@@ -200,63 +200,155 @@ export default function EnterpriseScout({ onLaunchComplianceSprint }) {
     return bySlug;
   }, [pursuitDefinitions?.entries]);
 
-  /** Primary vertical for a lead (first vuln's vertical or Compliance). */
-  const getLeadPrimaryVertical = useCallback((lead) => {
+  const getVerticalTheme = useCallback((verticalName) => {
+    const v = String(verticalName ?? '').toUpperCase();
+    if (v.includes('ACCESSIBILITY')) {
+      return {
+        chip: 'bg-emerald-500/80 text-emerald-950',
+        button: 'bg-emerald-600 hover:bg-emerald-500 text-white',
+      };
+    }
+    if (v.includes('PERFORMANCE')) {
+      return {
+        chip: 'bg-amber-500/90 text-amber-950',
+        button: 'bg-amber-500 hover:bg-amber-400 text-black',
+      };
+    }
+    if (v.includes('INFRASTRUCTURE')) {
+      return {
+        chip: 'bg-indigo-500/80 text-indigo-50',
+        button: 'bg-indigo-600 hover:bg-indigo-500 text-white',
+      };
+    }
+    if (v.includes('IDENTITY')) {
+      return {
+        chip: 'bg-violet-500/80 text-violet-50',
+        button: 'bg-violet-600 hover:bg-violet-500 text-white',
+      };
+    }
+    if (v.includes('SECURITY')) {
+      return {
+        chip: 'bg-cyan-500/80 text-cyan-950',
+        button: 'bg-cyan-600 hover:bg-cyan-500 text-white',
+      };
+    }
+    return {
+      chip: 'bg-slate-500/80 text-slate-50',
+      button: 'bg-cyan-600 hover:bg-cyan-500 text-white',
+    };
+  }, []);
+
+  const normalizeVertical = useCallback((verticalName) => {
+    const v = String(verticalName ?? '').toUpperCase();
+    if (v.includes('SECURITY')) return 'SECURITY & COMPLIANCE';
+    if (v.includes('IDENTITY')) return 'IDENTITY & TRUST';
+    if (v.includes('INFRASTRUCTURE')) return 'INFRASTRUCTURE & DEBT';
+    if (v.includes('PERFORMANCE')) return 'PERFORMANCE & SPEED';
+    if (v.includes('ACCESSIBILITY')) return 'ACCESSIBILITY (A11Y)';
+    return 'TECHNICAL MISSION';
+  }, []);
+
+  const getVerticalGuide = useCallback((verticalName) => {
+    const v = normalizeVertical(verticalName);
+    const guides = {
+      'SECURITY & COMPLIANCE': {
+        why: 'Data leaks, protocol downgrades, and policy gaps create regulatory and business risk.',
+        deliverable: 'Harden security posture: HSTS/CSP/SSL and baseline policy enforcement.',
+        goal: 'Reduce immediate compliance exposure and unblock trusted operations.',
+      },
+      'IDENTITY & TRUST': {
+        why: 'Identity gaps increase impersonation risk and reduce brand trust.',
+        deliverable: 'Implement DMARC/SPF and domain trust controls with verified branding.',
+        goal: 'Improve external trust signals for partners, clients, and procurement.',
+      },
+      'INFRASTRUCTURE & DEBT': {
+        why: 'Legacy libraries/CMS and debt-heavy infrastructure increase fragility and maintenance cost.',
+        deliverable: 'Execute debt-reduction sprint: platform updates, dependency remediation, and hardening.',
+        goal: 'Stabilize platform reliability and lower long-term engineering drag.',
+      },
+      'PERFORMANCE & SPEED': {
+        why: 'Slow response times and weak Core Web Vitals reduce conversion and user confidence.',
+        deliverable: 'Performance sprint: asset optimization, caching/CDN, and Core Web Vitals fixes.',
+        goal: 'Increase conversion and responsiveness for critical user journeys.',
+      },
+      'ACCESSIBILITY (A11Y)': {
+        why: 'Accessibility gaps can create legal exposure and block key user cohorts.',
+        deliverable: 'A11Y sprint: ARIA semantics, keyboard navigation, and screen-reader parity.',
+        goal: 'Improve compliance and usability for all users.',
+      },
+    };
+    return guides[v] ?? {
+      why: 'Technical debt and platform risk detected.',
+      deliverable: 'Deliver a focused remediation sprint with measurable acceptance criteria.',
+      goal: 'Reduce operational and delivery risk.',
+    };
+  }, [normalizeVertical]);
+
+  const getLeadMatrixItems = useCallback((lead) => {
     const vulns = lead?.real_vulnerabilities ?? lead?.technicalDebt ?? [];
     const bySlug = getPursuitBySlug();
+    const fb = (slug) => SLUG_FALLBACKS?.[slug];
+    const items = [];
+    const seenVerticals = new Set();
+
+    const pushItem = (slug, rawEvidence) => {
+      const e = bySlug?.[slug];
+      const vertical = normalizeVertical(e?.vertical_name ?? getVerticalStyle?.(slug));
+      if (!vertical || seenVerticals.has(vertical)) return;
+      seenVerticals.add(vertical);
+      const guide = getVerticalGuide(vertical);
+      items.push({
+        slug,
+        verticalName: vertical,
+        title: vertical,
+        proof: e?.technical_proof ?? fb?.(slug)?.technical_proof ?? rawEvidence ?? 'Pattern signal detected from technical evidence.',
+        triage: e?.technical_why ?? fb?.(slug)?.technical_why ?? guide.why,
+        deliverable: e?.alumni_deliverable ?? fb?.(slug)?.alumni_deliverable ?? guide.deliverable,
+        goal: guide.goal,
+      });
+    };
+
     for (const v of vulns) {
       if (/verified stable|no debt found|established|pass$/i.test(String(v))) continue;
       const slug = vulnerabilityToSlug?.(v, lead?.websiteUri);
-      if (slug) {
-        const vert = bySlug[slug]?.vertical_name ?? getVerticalStyle?.(slug);
-        if (vert) return vert;
-      }
+      if (slug) pushItem(slug, String(v));
     }
     const httpSlug = getHttpSlugIfInsecure?.(lead?.websiteUri);
-    if (httpSlug) return bySlug[httpSlug]?.vertical_name ?? getVerticalStyle?.(httpSlug);
-    return 'Compliance';
-  }, [getPursuitBySlug]);
+    if (httpSlug) pushItem(httpSlug, 'Site served over HTTP (insecure transport).');
+
+    return items;
+  }, [getPursuitBySlug, normalizeVertical, getVerticalGuide]);
+
+  /** Vertical priority lookup. For low-risk leads, prefer non-security verticals first. */
+  const getLeadPrimaryVertical = useCallback((lead) => {
+    const items = getLeadMatrixItems(lead);
+    if (items.length === 0) return 'TECHNICAL MISSION';
+    const verticals = items.map((i) => i.verticalName);
+    const isLowRisk = (lead?.security_debt_score ?? 0) <= 2;
+    const lowRiskPriority = ['PERFORMANCE & SPEED', 'INFRASTRUCTURE & DEBT', 'IDENTITY & TRUST', 'ACCESSIBILITY (A11Y)', 'SECURITY & COMPLIANCE'];
+    const defaultPriority = ['SECURITY & COMPLIANCE', 'INFRASTRUCTURE & DEBT', 'IDENTITY & TRUST', 'PERFORMANCE & SPEED', 'ACCESSIBILITY (A11Y)'];
+    const priority = isLowRisk ? lowRiskPriority : defaultPriority;
+    for (const p of priority) {
+      if (verticals.includes(p)) return p;
+    }
+    return verticals[0] ?? 'TECHNICAL MISSION';
+  }, [getLeadMatrixItems]);
 
   const buildSprintBriefMarkdown = useCallback((lead) => {
-    const vulns = lead?.real_vulnerabilities ?? lead?.technicalDebt ?? [];
-    const bySlug = getPursuitBySlug?.() ?? {};
-    const fb = (slug) => SLUG_FALLBACKS?.[slug];
-    const PENDING = (slug) => `Briefing Pending for ${slug ?? 'unknown'}`;
-
-    const items = [];
-    const seenSlugs = new Set();
-    for (const v of vulns) {
-      if (/verified stable|no debt found|established|pass$/i.test(String(v))) continue;
-      const slug = vulnerabilityToSlug?.(v, lead?.websiteUri);
-      if (slug && !seenSlugs.has(slug)) {
-        seenSlugs.add(slug);
-        const e = bySlug?.[slug];
-        const headerText = e?.vertical_name ?? getVerticalStyle?.(slug) ?? 'TECHNICAL MISSION';
-        items.push({
-          title: headerText,
-          triage: e?.technical_why ?? fb?.(slug)?.technical_why ?? PENDING?.(slug),
-          deliverable: e?.alumni_deliverable ?? fb?.(slug)?.alumni_deliverable ?? PENDING?.(slug),
-        });
-      }
-    }
-    const httpSlug = getHttpSlugIfInsecure?.(lead?.websiteUri);
-    if (httpSlug && !seenSlugs.has(httpSlug)) {
-      const e = bySlug?.[httpSlug];
-      const headerText = e?.vertical_name ?? getVerticalStyle?.(httpSlug) ?? 'TECHNICAL MISSION';
-      items.push({
-        title: headerText,
-        triage: e?.technical_why ?? fb?.(httpSlug)?.technical_why ?? PENDING?.(httpSlug),
-        deliverable: e?.alumni_deliverable ?? fb?.(httpSlug)?.alumni_deliverable ?? PENDING?.(httpSlug),
-      });
-    }
+    const items = getLeadMatrixItems(lead);
+    const primary = getLeadPrimaryVertical(lead);
 
     let md = `### SPRINT ASSIGNMENT: ${lead?.name ?? 'Enterprise Lead'}\n\n`;
-    for (const { triage, deliverable } of items) {
+    md += `**Recommendation:** Launch ${primary} Sprint\n`;
+    md += `**Rationale:** ${items.length} prioritized matrix findings detected across enterprise risk verticals.\n\n`;
+    for (const { verticalName, triage, deliverable, goal } of items) {
+      md += `**Vertical:** ${verticalName}\n`;
       md += `**Triage Note:** ${triage}\n`;
       md += `**Fellow Deliverable:** ${deliverable}\n\n`;
+      md += `**Build Goal:** ${goal}\n\n`;
     }
     return md.trim();
-  }, [getPursuitBySlug]);
+  }, [getLeadMatrixItems, getLeadPrimaryVertical]);
 
   if (loading) {
     return (
@@ -284,7 +376,15 @@ export default function EnterpriseScout({ onLaunchComplianceSprint }) {
       else if (l.friction_type.startsWith('Medical')) lt = 'Medical';
       else if (l.friction_type.startsWith('E-commerce')) lt = 'E-commerce';
     }
-    return (lt ?? 'Legal') === (industry ?? 'Legal');
+    const selectedIndustry = industry ?? 'Legal';
+    if ((lt ?? 'Legal') !== selectedIndustry) return false;
+    if (selectedIndustry === 'Legal') {
+      const ft = String(l?.friction_type ?? '');
+      const nm = String(l?.name ?? '').toLowerCase();
+      const isLawLike = /law|attorney|legal|llp|esq/.test(nm);
+      return ft.startsWith('Legal') || isLawLike;
+    }
+    return true;
   });
 
   return (
@@ -348,6 +448,10 @@ export default function EnterpriseScout({ onLaunchComplianceSprint }) {
             : null;
 
           const isAudited = !isPreAudit;
+          const matrixItems = getLeadMatrixItems?.(lead) ?? [];
+          const matrixDeliverables = matrixItems.map((i) => i?.deliverable).filter(Boolean);
+          const primaryVertical = getLeadPrimaryVertical?.(lead) ?? 'TECHNICAL MISSION';
+          const verticalTheme = getVerticalTheme?.(primaryVertical);
           return (
             <div
               key={lead.id}
@@ -358,6 +462,9 @@ export default function EnterpriseScout({ onLaunchComplianceSprint }) {
               <div className="px-5 py-4 border-b border-slate-700">
                 <div className="flex items-start justify-between gap-3">
                   <h3 className="font-semibold text-white text-lg truncate">{lead.name}</h3>
+                  <span className={`px-2 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wider ${verticalTheme?.chip}`}>
+                    {primaryVertical}
+                  </span>
                 </div>
                 {lead.websiteUri && (
                   <a
@@ -412,10 +519,14 @@ export default function EnterpriseScout({ onLaunchComplianceSprint }) {
 
               {/* Proposed Deliverables - from audit (shown on card and in Launch modal) */}
               {(() => {
-                const deliverables = generateDeliverables?.(
-                  lead?.real_vulnerabilities ?? lead?.technicalDebt ?? [],
-                  lead?.websiteUri ?? undefined
-                ) ?? [];
+                const matrixItems = getLeadMatrixItems?.(lead) ?? [];
+                const matrixDeliverables = matrixItems.map((i) => i.deliverable).filter(Boolean);
+                const deliverables = matrixDeliverables.length > 0
+                  ? matrixDeliverables
+                  : (generateDeliverables?.(
+                    lead?.real_vulnerabilities ?? lead?.technicalDebt ?? [],
+                    lead?.websiteUri ?? undefined
+                  ) ?? []);
                 if (!deliverables?.length) return null;
                 return (
                   <div className="px-5 py-3 bg-slate-900/60 border-t border-slate-700">
@@ -481,14 +592,22 @@ export default function EnterpriseScout({ onLaunchComplianceSprint }) {
                 <button
                   onClick={() => {
                     if (typeof onLaunchComplianceSprint === 'function') {
-                      onLaunchComplianceSprint?.(lead);
+                      const launchLead = {
+                        ...lead,
+                        friction_type: primaryVertical,
+                        recommendedVertical: primaryVertical,
+                        proposedDeliverables: matrixDeliverables,
+                        matrixItems,
+                        sprintRationale: `${matrixItems.length} prioritized matrix finding${matrixItems.length === 1 ? '' : 's'} support this sprint.`,
+                      };
+                      onLaunchComplianceSprint?.(launchLead);
                     } else {
                       console.warn?.('EnterpriseScout: onLaunchComplianceSprint not provided');
                     }
                   }}
-                  className="w-full py-2.5 px-4 bg-cyan-600 hover:bg-cyan-500 text-white font-medium rounded-lg transition-colors"
+                  className={`w-full py-2.5 px-4 font-medium rounded-lg transition-colors ${verticalTheme?.button}`}
                 >
-                  Launch {getLeadPrimaryVertical?.(lead) ?? 'Compliance'} Sprint
+                  Launch {primaryVertical} Sprint
                 </button>
               </div>
             </div>
@@ -505,43 +624,9 @@ export default function EnterpriseScout({ onLaunchComplianceSprint }) {
 
       {/* Pursuit Technical Briefing Modal - internal diagnostic UI */}
       {dossierLead && (() => {
-        const vulns = dossierLead.real_vulnerabilities ?? dossierLead.technicalDebt ?? [];
-        const bySlug = getPursuitBySlug();
+        const items = getLeadMatrixItems(dossierLead);
+        const recommendedVertical = getLeadPrimaryVertical(dossierLead);
         const score = dossierLead.security_debt_score ?? 0;
-
-        const items = [];
-        const seenSlugs = new Set();
-        const fb = (slug) => SLUG_FALLBACKS[slug];
-        const PENDING = (slug) => `Briefing Pending for ${slug}`;
-
-        for (const v of vulns) {
-          if (/verified stable|no debt found|established|pass$/i.test(String(v))) continue;
-          const slug = vulnerabilityToSlug?.(v, dossierLead?.websiteUri);
-          if (slug && !seenSlugs.has(slug)) {
-            seenSlugs.add(slug);
-            const e = bySlug?.[slug];
-            const verticalName = e?.vertical_name ?? getVerticalStyle?.(slug) ?? 'TECHNICAL MISSION';
-            items.push({
-              title: verticalName,
-              verticalName,
-              proof: fb?.(slug)?.technical_proof ?? v,
-              triage: e?.technical_why ?? fb?.(slug)?.technical_why ?? PENDING?.(slug),
-              deliverable: e?.alumni_deliverable ?? fb?.(slug)?.alumni_deliverable ?? PENDING?.(slug),
-            });
-          }
-        }
-        const httpSlug = getHttpSlugIfInsecure?.(dossierLead?.websiteUri);
-        if (httpSlug && !seenSlugs.has(httpSlug)) {
-          const e = bySlug?.[httpSlug];
-          const verticalName = e?.vertical_name ?? getVerticalStyle?.(httpSlug) ?? 'TECHNICAL MISSION';
-          items.push({
-            title: verticalName,
-            verticalName,
-            proof: fb?.(httpSlug)?.technical_proof ?? 'Site served over HTTP (insecure)',
-            triage: e?.technical_why ?? fb?.(httpSlug)?.technical_why ?? PENDING?.(httpSlug),
-            deliverable: e?.alumni_deliverable ?? fb?.(httpSlug)?.alumni_deliverable ?? PENDING?.(httpSlug),
-          });
-        }
 
         return (
           <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-[80] p-4" onClick={() => setDossierLead(null)}>
@@ -571,6 +656,15 @@ export default function EnterpriseScout({ onLaunchComplianceSprint }) {
 
               {/* Diagnostic Cards - one per vulnerability, full width */}
               <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                <div className="border border-slate-700 rounded-lg bg-slate-900/60 p-4">
+                  <div className="text-slate-300 text-xs uppercase tracking-wider mb-2">Launch Recommendation</div>
+                  <p className="text-slate-100 text-sm">
+                    {`Recommended sprint: ${recommendedVertical}.`}
+                  </p>
+                  <p className="text-slate-400 text-sm mt-1">
+                    {`Conclusion generated from ${items.length} prioritized matrix finding${items.length === 1 ? '' : 's'} and mapped deliverables.`}
+                  </p>
+                </div>
                 {briefingLoading ? (
                   <div className="flex items-center justify-center py-12">
                     <div className="flex flex-col items-center gap-3">
@@ -581,7 +675,7 @@ export default function EnterpriseScout({ onLaunchComplianceSprint }) {
                 ) : items.length === 0 ? (
                   <div className="border border-slate-700 rounded p-4 text-slate-500 text-sm">No technical findings.</div>
                 ) : (
-                  items.map(({ title, verticalName, proof, triage, deliverable }, i) => (
+                  items.map(({ title, verticalName, proof, triage, deliverable, goal }, i) => (
                     <div key={i} className="border border-slate-600 rounded-lg bg-slate-900/50 overflow-hidden w-full">
                       <div className="px-4 py-2 border-b border-slate-600 bg-slate-800/60">
                         <span className="text-cyan-400 text-xs uppercase tracking-wider">{verticalName ?? 'TECHNICAL MISSION'}</span>
@@ -598,6 +692,11 @@ export default function EnterpriseScout({ onLaunchComplianceSprint }) {
                           <div className="text-emerald-400 text-xs font-semibold uppercase tracking-wider mb-1">What (Fellow Deliverable)</div>
                           <p className="text-slate-100 text-sm leading-relaxed">{deliverable}</p>
                         </div>
+                        <div className="border border-blue-500/50 rounded bg-blue-950/20 p-3">
+                          <div className="text-blue-300 text-xs font-semibold uppercase tracking-wider mb-1">Build Goal</div>
+                          <p className="text-slate-100 text-sm leading-relaxed">{goal}</p>
+                        </div>
+                        <div className="text-slate-400 text-xs uppercase tracking-wider pt-1">How We Concluded</div>
                         <pre className="text-slate-500 text-xs font-mono overflow-x-auto pt-1" style={{ fontFamily: '"Courier New", Courier, monospace' }}>{proof}</pre>
                       </div>
                     </div>

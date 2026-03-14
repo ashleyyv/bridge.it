@@ -384,10 +384,23 @@ export default function ScoutDashboard() {
     real_vulnerabilities?: string[];
     enterpriseHFI: number;
     formattedAddress?: string | null;
+    friction_type?: string;
+    recommendedVertical?: string;
+    proposedDeliverables?: string[];
+    sprintRationale?: string;
+    matrixItems?: Array<{
+      slug?: string;
+      verticalName?: string;
+      deliverable?: string;
+      triage?: string;
+      goal?: string;
+      proof?: string;
+    }>;
   } | null>(null);
   const [enterpriseLaunchSlots, setEnterpriseLaunchSlots] = useState(2);
   const [enterpriseLaunchDuration, setEnterpriseLaunchDuration] = useState(3);
   const [enterpriseSelectedDeliverables, setEnterpriseSelectedDeliverables] = useState<string[]>([]);
+  const [enterpriseVerticalFilter, setEnterpriseVerticalFilter] = useState<string>('All');
   const [enterpriseLaunching, setEnterpriseLaunching] = useState(false);
   const [neighborhoodFilter, setNeighborhoodFilter] = useState<string | null>(null);
   const [sortMode, setSortMode] = useState<'highest-priority' | 'closest-neighborhood'>('highest-priority');
@@ -2265,12 +2278,27 @@ export default function ScoutDashboard() {
             real_vulnerabilities?: string[];
             enterpriseHFI: number;
             formattedAddress?: string | null;
+            friction_type?: string;
+            recommendedVertical?: string;
+            proposedDeliverables?: string[];
+            sprintRationale?: string;
+            matrixItems?: Array<{
+              slug?: string;
+              verticalName?: string;
+              deliverable?: string;
+              triage?: string;
+              goal?: string;
+              proof?: string;
+            }>;
           }) => {
             setEnterpriseLaunchLead(lead);
-            const proposed = generateDeliverables(
-              lead.real_vulnerabilities ?? lead.technicalDebt ?? [],
-              lead.websiteUri ?? undefined
-            );
+            setEnterpriseVerticalFilter('All');
+            const proposed = (lead.proposedDeliverables && lead.proposedDeliverables.length > 0)
+              ? lead.proposedDeliverables
+              : generateDeliverables(
+                lead.real_vulnerabilities ?? lead.technicalDebt ?? [],
+                lead.websiteUri ?? undefined
+              );
             setEnterpriseSelectedDeliverables(proposed);
           }}
         />
@@ -4028,21 +4056,55 @@ export default function ScoutDashboard() {
 
     {/* Enterprise Launch Sprint Modal */}
     {enterpriseLaunchLead && (
-      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[70]" onClick={() => { setEnterpriseLaunchLead(null); setEnterpriseSelectedDeliverables([]); }}>
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[70]" onClick={() => { setEnterpriseLaunchLead(null); setEnterpriseSelectedDeliverables([]); setEnterpriseVerticalFilter('All'); }}>
         <div className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4 border border-gray-200 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">Launch Compliance Sprint</h2>
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">Launch {enterpriseLaunchLead.recommendedVertical ?? 'Enterprise'} Sprint</h2>
           <p className="text-sm text-gray-600 mb-4">{enterpriseLaunchLead.name}</p>
+          {enterpriseLaunchLead.sprintRationale && (
+            <div className="mb-4 p-3 rounded-md border border-blue-200 bg-blue-50">
+              <p className="text-xs font-medium text-blue-700 uppercase tracking-wide mb-1">Launch Rationale</p>
+              <p className="text-sm text-blue-900">{enterpriseLaunchLead.sprintRationale}</p>
+            </div>
+          )}
           <div className="space-y-4 mb-6">
             {/* Proposed Deliverables - from audit */}
             {(() => {
-              const proposed = generateDeliverables(
-                enterpriseLaunchLead.real_vulnerabilities ?? enterpriseLaunchLead.technicalDebt ?? [],
-                enterpriseLaunchLead.websiteUri ?? undefined
-              );
+              const matrixItems = Array.isArray(enterpriseLaunchLead.matrixItems) ? enterpriseLaunchLead.matrixItems : [];
+              const verticals = ['All', ...Array.from(new Set(matrixItems.map((m) => m.verticalName).filter(Boolean)))];
+              const matrixFiltered = enterpriseVerticalFilter === 'All'
+                ? matrixItems
+                : matrixItems.filter((m) => m.verticalName === enterpriseVerticalFilter);
+              const matrixDeliverables = Array.from(new Set(matrixFiltered.map((m) => m.deliverable).filter(Boolean)));
+              const proposed = matrixDeliverables.length > 0
+                ? matrixDeliverables
+                : ((enterpriseLaunchLead.proposedDeliverables && enterpriseLaunchLead.proposedDeliverables.length > 0)
+                  ? enterpriseLaunchLead.proposedDeliverables
+                  : generateDeliverables(
+                    enterpriseLaunchLead.real_vulnerabilities ?? enterpriseLaunchLead.technicalDebt ?? [],
+                    enterpriseLaunchLead.websiteUri ?? undefined
+                  ));
               if (proposed.length > 0) {
                 return (
                   <div>
                     <label className="block text-xs font-medium text-gray-600 mb-2">Proposed Deliverables</label>
+                    {verticals.length > 1 && (
+                      <div className="flex flex-wrap gap-2 mb-3">
+                        {verticals.map((v) => (
+                          <button
+                            key={v}
+                            type="button"
+                            onClick={() => setEnterpriseVerticalFilter(v)}
+                            className={`px-2.5 py-1 rounded-full text-xs font-medium border ${
+                              enterpriseVerticalFilter === v
+                                ? 'bg-cyan-600 text-white border-cyan-600'
+                                : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                            }`}
+                          >
+                            {v}
+                          </button>
+                        ))}
+                      </div>
+                    )}
                     <div className="space-y-2 border border-gray-200 rounded-md p-3 bg-gray-50">
                       {proposed.map((d) => (
                         <label key={d} className="flex items-center gap-2 cursor-pointer">
@@ -4093,7 +4155,7 @@ export default function ScoutDashboard() {
             </div>
           </div>
           <div className="flex gap-3">
-            <button onClick={() => { setEnterpriseLaunchLead(null); setEnterpriseSelectedDeliverables([]); }} className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">Cancel</button>
+            <button onClick={() => { setEnterpriseLaunchLead(null); setEnterpriseSelectedDeliverables([]); setEnterpriseVerticalFilter('All'); }} className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">Cancel</button>
             <button onClick={handleEnterpriseLaunchSprint} disabled={enterpriseLaunching} className="flex-1 px-4 py-2 bg-cyan-600 text-white rounded-lg hover:bg-cyan-700 disabled:opacity-70">
               {enterpriseLaunching ? 'Launching…' : 'Launch Sprint'}
             </button>

@@ -291,7 +291,9 @@ app.get('/api/leads', asyncHandler(async (req, res) => {
     let rows;
     if (!viewAll) {
       let query = supabase.from('leads').select('*').order('id', { ascending: false });
-      query = query.or('hfi_score.gte.75,is_priority.eq.true');
+      // Include all active sprints so Fellow view always shows launched work.
+      // Some environments use legacy sprintactive casing, so include both.
+      query = query.or('hfi_score.gte.75,is_priority.eq.true,sprintActive.eq.true,sprintactive.eq.true');
       const { data, error: qerr } = await query;
       if (qerr) {
         if (qerr.code === '42703' && qerr.message?.includes('promoted')) {
