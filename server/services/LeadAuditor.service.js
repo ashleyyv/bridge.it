@@ -29,29 +29,87 @@ function urlToHostname(url) {
   }
 }
 
+/** Lower Manhattan - Multi-Industry NYC Engine location lock (meters) */
+const LOWER_MANHATTAN = {
+  lat: 40.7128,
+  lng: -74.006,
+  radius: 2000,
+};
+
+/** Industry mapping: types (Places API includedType - one per request) and keyword for textQuery */
+const INDUSTRY_MAP = {
+  Legal: { types: ['lawyer'], keyword: 'Law Firm' },
+  Medical: { types: ['doctor', 'hospital'], keyword: 'Medical Clinic' },
+  'E-commerce': { types: ['store'], keyword: 'E-commerce Headquarters' },
+};
+
+/** Derive friction_type from Google Places placeType for Supabase schema alignment.
+ * Primary: lawyer (Places API type). Fallback: law_firm for legacy/compat. */
+export function frictionTypeFromPlaceType(placeType, industry) {
+  if (!placeType) return 'Compliance & Security';
+  const map = {
+    lawyer: 'Legal - Law Firm',
+    law_firm: 'Legal - Law Firm',
+    doctor: 'Medical - Doctor',
+    hospital: 'Medical - Hospital',
+    store: 'E-commerce - Store',
+  };
+  return map[placeType] ?? `Compliance & Security (${industry})`;
+}
+
 /**
  * Find professional leads using Google Places (New) API.
- * @param {string} query - Search query (e.g. "Law Firms in NYC")
+ * Multi-Industry NYC Engine: Lower Manhattan, dynamic industry keywords.
+ * @param {string} [query] - Deprecated; keyword comes from industry map
+ * @param {string} [industry] - Legal | Medical | E-commerce
  * @returns {Promise<{ places: object[], error?: string }>}
  */
-export async function findProfessionalLeads(query = 'Law Firms in NYC') {
+export async function findProfessionalLeads(query, industry = 'Legal') {
   try {
     const key = process.env.GOOGLE_PLACES_API_KEY;
     if (!key) {
       return { places: [], error: 'GOOGLE_PLACES_API_KEY not set' };
     }
-    const { data } = await axios.post(
-      `${GOOGLE_PLACES_BASE}/places:searchText`,
-      { textQuery: query },
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Goog-Api-Key': key,
-          'X-Goog-FieldMask': 'places.id,places.displayName,places.formattedAddress,places.websiteUri,places.userRatingCount',
-        },
+    const mapping = INDUSTRY_MAP[industry] ?? INDUSTRY_MAP.Legal;
+    const keyword = mapping.keyword;
+    const types = mapping.types ?? ['lawyer'];
+    const textQuery = `${keyword} in Lower Manhattan`;
+
+    const locationBias = {
+      circle: {
+        center: { latitude: LOWER_MANHATTAN.lat, longitude: LOWER_MANHATTAN.lng },
+        radius: LOWER_MANHATTAN.radius,
+      },
+    };
+
+    const allPlaces = [];
+    for (const type of types) {
+      const body = {
+        textQuery,
+        includedType: type,
+        locationBias,
+        strictTypeFiltering: true,
+        pageSize: 20,
+      };
+      const { data } = await axios.post(
+        `${GOOGLE_PLACES_BASE}/places:searchText`,
+        body,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Goog-Api-Key': key,
+            'X-Goog-FieldMask': 'places.id,places.displayName,places.formattedAddress,places.websiteUri,places.userRatingCount',
+          },
+        }
+      );
+      const places = data?.places ?? [];
+      for (const p of places) {
+        if (!allPlaces.some((x) => x.id === p.id)) {
+          allPlaces.push({ ...p, placeType: type });
+        }
       }
-    );
-    return { places: data?.places ?? [] };
+    }
+    return { places: allPlaces };
   } catch (err) {
     return { places: [], error: err?.message ?? 'findProfessionalLeads failed' };
   }

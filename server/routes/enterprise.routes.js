@@ -24,14 +24,16 @@ router.get('/audit-knowledge-base', async (req, res) => {
 
 /**
  * GET /api/enterprise/pursuit-internal-definitions
- * Returns vulnerability slug -> technical_proof, admin_triage_note, fellow_assignment_task.
+ * Query params: industry (default: Legal)
+ * Returns vulnerability slug -> technical_proof, admin_triage_note, fellow_assignment_task, vertical_name.
  */
 router.get('/pursuit-internal-definitions', async (req, res) => {
   try {
+    const industry = String(req.query?.industry ?? 'Legal').trim() || 'Legal';
     if (!supabase) return res.json({ entries: [] });
     const { data, error } = await supabase
       .from('pursuit_internal_definitions')
-      .select('vulnerability_slug, internal_title, technical_proof, technical_why, alumni_deliverable, fellow_what, fellow_assignment_task');
+      .select('vulnerability_slug, vertical_name, technical_why, alumni_deliverable');
     if (error) {
       console.error('pursuit-internal-definitions fetch error:', error);
       return res.json({ entries: [] });
@@ -44,15 +46,136 @@ router.get('/pursuit-internal-definitions', async (req, res) => {
 });
 
 /**
+ * GET /api/enterprise/leads
+ * Fetch enterprise leads from Supabase leads table (Lead Library).
+ * Query params: industry_type (optional) - filter by Legal | Medical | E-commerce
+ * Returns leads in EnterpriseScout-compatible shape.
+ */
+router.get('/leads', async (req, res) => {
+  try {
+    if (!supabase) return res.json({ leads: [] });
+    const query = supabase
+      .from('leads')
+      .select('*')
+      .or('industry_type.eq.Legal,industry_type.eq.Medical,industry_type.eq.E-commerce')
+      .eq('location->>borough', 'Manhattan')
+      .order('id', { ascending: false });
+    const { data: rows, error } = await query;
+    if (error) {
+      console.error('Enterprise leads fetch error:', error);
+      return res.json({ leads: [] });
+    }
+    const leads = (rows ?? []).map((row) => {
+      const loc = row.location && typeof row.location === 'object' ? row.location : {};
+      const addr = [loc.neighborhood, loc.borough, loc.zip].filter(Boolean).join(', ');
+      return {
+        id: row.id,
+        name: row.business_name ?? row.name ?? 'Enterprise Lead',
+        formattedAddress: addr || null,
+        websiteUri: row.website_url ?? null,
+        reviewCount: row.review_count ?? 0,
+        securityGrade: null,
+        securityScore: 0,
+        enterpriseHFI: row.hfi_score ?? 0,
+        technicalDebt: row.real_vulnerabilities ?? [],
+        tech_audit_status: row.tech_audit_status ?? null,
+        real_vulnerabilities: row.real_vulnerabilities ?? [],
+        security_debt_score: row.security_debt_score ?? null,
+        industry_type: row.industry_type ?? null,
+      };
+    });
+    return res.json({ leads });
+  } catch (err) {
+    console.error('Enterprise leads route error:', err);
+    return res.status(500).json({ error: err?.message ?? 'Failed to load leads', leads: [] });
+  }
+});
+
+const ALLOWED_INDUSTRIES = ['Legal', 'Medical', 'E-commerce'];
+const ALLOWED_PLACE_TYPES = ['lawyer', 'law_firm', 'doctor', 'hospital', 'store'];
+
+/**
+ * POST /api/enterprise/scout
+ * Scout new leads via Google Places, SAVE to Supabase, return saved leads.
+ * Body: { industry: 'Legal' | 'Medical' | 'E-commerce' }
+ */
+router.post('/scout', async (req, res) => {
+  try {
+    let industry = String(req.body?.industry ?? 'Legal').trim() || 'Legal';
+    if (industry === 'lawyer' || industry === 'law_firm') industry = 'Legal';
+    if (!ALLOWED_INDUSTRIES.includes(industry)) {
+      return res.status(400).json({ error: `Invalid industry. Allowed: ${ALLOWED_INDUSTRIES.join(', ')}`, leads: [] });
+    }
+    if (!supabase) {
+      return res.status(500).json({ error: 'Database not configured', leads: [] });
+    }
+    const { places, error: leadsError } = await LeadAuditor.findProfessionalLeads(null, industry);
+    if (leadsError) {
+      return res.status(500).json({ error: leadsError, leads: [] });
+    }
+    const rawCount = places?.length ?? 0;
+    const deduplicatedCount = new Set(places?.map((p) => p.id) ?? []).size;
+    console.log(`[Scout] industry=${industry} rawPlaces=${rawCount} mergedAndDeduplicated=${deduplicatedCount}`);
+
+    const saved = [];
+    for (const place of places ?? []) {
+      const name = place.displayName?.text ?? place.displayName ?? place.id ?? 'Unknown';
+      const websiteUri = place.websiteUri ?? null;
+      const frictionType = LeadAuditor.frictionTypeFromPlaceType?.(place.placeType, industry) ?? 'Compliance & Security';
+      const payload = {
+        business_name: name,
+        website_url: websiteUri,
+        location: { neighborhood: 'Lower Manhattan', borough: 'Manhattan', zip: '' },
+        hfi_score: 0,
+        friction_type: frictionType,
+        status: 'qualified',
+        suggested_deliverables: ['Compliance & Security Review'],
+        tech_audit_status: null,
+        real_vulnerabilities: [],
+        security_debt_score: null,
+        industry_type: industry,
+      };
+      const { data: created, error: insertErr } = await supabase.from('leads').insert(payload).select().single();
+      if (insertErr) {
+        console.error('Enterprise scout insert error:', insertErr);
+        continue;
+      }
+      const loc = created.location && typeof created.location === 'object' ? created.location : {};
+      const addr = [loc.neighborhood, loc.borough, loc.zip].filter(Boolean).join(', ');
+      saved.push({
+        id: created.id,
+        name: created.business_name ?? name,
+        formattedAddress: addr || null,
+        websiteUri: created.website_url ?? null,
+        reviewCount: 0,
+        securityGrade: null,
+        securityScore: 0,
+        enterpriseHFI: created.hfi_score ?? 0,
+        technicalDebt: [],
+        tech_audit_status: null,
+        real_vulnerabilities: [],
+        security_debt_score: null,
+        industry_type: created.industry_type ?? industry,
+      });
+    }
+    return res.json({ leads: saved });
+  } catch (err) {
+    console.error('Enterprise scout route error:', err);
+    return res.status(500).json({ error: err?.message ?? 'Scout failed', leads: [] });
+  }
+});
+
+/**
  * GET /api/enterprise/audit
- * Query params: query (e.g. "Law Firms in NYC")
+ * Query params: query (e.g. "Law Firms in NYC"), industry (default: Legal)
  * Returns: leads with security grade and HFI for each
  */
 router.get('/audit', async (req, res) => {
   try {
-    const query = req.query.query || 'Law Firms in NYC';
+    const query = String(req.query?.query ?? 'Law Firms in NYC').trim() || 'Law Firms in NYC';
+    const industry = String(req.query?.industry ?? 'Legal').trim() || 'Legal';
 
-    const { places, error: leadsError } = await LeadAuditor.findProfessionalLeads(query);
+    const { places, error: leadsError } = await LeadAuditor.findProfessionalLeads(query, industry);
     if (leadsError) {
       return res.status(500).json({ error: leadsError, leads: [] });
     }
@@ -103,7 +226,7 @@ router.get('/audit', async (req, res) => {
 
 /**
  * POST /api/enterprise/audit-lead
- * Body: { domain } - hostname (e.g. weitzlux.com)
+ * Body: { domain, leadId? } - hostname (e.g. weitzlux.com); leadId to persist audit to leads table
  * On-demand BuiltWith audit. Returns cached data if already completed (0 credits).
  * Saves 'no_debt_found' on API failure so we don't re-scan dead links.
  */
@@ -196,6 +319,15 @@ router.post('/audit-lead', async (req, res) => {
       console.error('Enterprise audit cache upsert error:', upsertError);
     }
 
+    const leadId = req.body?.leadId;
+    if (leadId && typeof leadId === 'string' && supabase) {
+      await supabase.from('leads').update({
+        tech_audit_status: status,
+        real_vulnerabilities: realVulns,
+        security_debt_score: score,
+      }).eq('id', leadId.trim());
+    }
+
     return res.json({
       tech_audit_status: status,
       real_vulnerabilities: realVulns,
@@ -233,12 +365,14 @@ router.post('/launch-sprint', async (req, res) => {
       : generated.length > 0
         ? generated
         : lead.real_vulnerabilities ?? lead.technicalDebt ?? ['Compliance & Security Review'];
+    const frictionType = lead.friction_type ?? 'Compliance & Security';
     const payload = {
       business_name: lead.name ?? 'Enterprise Lead',
       website_url: lead.websiteUri ?? null,
-      location: { neighborhood: '', borough: '', zip: '' },
+      location: lead.location ?? { neighborhood: '', borough: '', zip: '' },
       hfi_score: lead.enterpriseHFI ?? 0,
-      friction_type: 'Compliance & Security',
+      friction_type: frictionType,
+      industry_type: lead.industry_type ?? null,
       status: 'qualified',
       suggested_deliverables: suggestedDeliverables,
       tech_audit_status: lead.tech_audit_status ?? null,
@@ -249,7 +383,6 @@ router.post('/launch-sprint', async (req, res) => {
       sprintDuration: duration,
       sprintStartedAt: new Date().toISOString(),
       audit_status: 'completed',
-      yelp_id: `ent_${lead.id}`,
     };
     const { data: created, error } = await supabase.from('leads').insert(payload).select().single();
     if (error) {

@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react';
 import { generateDeliverables } from '@/lib/deliverables';
-import { vulnerabilityToSlug, getHttpSlugIfInsecure, SLUG_DISPLAY_TITLES, SLUG_FALLBACKS } from '@/lib/auditSlugs';
+import { vulnerabilityToSlug, getHttpSlugIfInsecure, getVerticalStyle, SLUG_DISPLAY_TITLES, SLUG_FALLBACKS } from '@/lib/auditSlugs';
 /** @typedef {{
  *   id: string;
  *   name: string;
@@ -18,7 +18,7 @@ import { vulnerabilityToSlug, getHttpSlugIfInsecure, SLUG_DISPLAY_TITLES, SLUG_F
  *   security_debt_score?: number | null;
  * }} EnterpriseLead */
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
 /**
  * EnterpriseScout - Risk Profile cards for Enterprise leads (Law Firms, etc.)
@@ -34,6 +34,8 @@ export default function EnterpriseScout({ onLaunchComplianceSprint }) {
   const [pursuitDefinitions, setPursuitDefinitions] = useState({ entries: [] });
   const [copyFeedback, setCopyFeedback] = useState(false);
   const [briefingLoading, setBriefingLoading] = useState(false);
+  const [industry, setIndustry] = useState('Legal');
+  const [scouting, setScouting] = useState(false);
 
   const runDeepAudit = async (lead) => {
     const uri = lead?.websiteUri;
@@ -46,7 +48,7 @@ export default function EnterpriseScout({ onLaunchComplianceSprint }) {
       const res = await fetch(`${API_BASE}/api/enterprise/audit-lead`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ domain }),
+        body: JSON.stringify({ domain, leadId: lead?.id }),
         mode: 'cors',
         credentials: 'include',
       });
@@ -76,18 +78,23 @@ export default function EnterpriseScout({ onLaunchComplianceSprint }) {
   useEffect(() => {
     const fetchPursuitDefinitions = async () => {
       try {
-        const res = await fetch(`${API_BASE}/api/enterprise/pursuit-internal-definitions`, {
+        const ind = industry?.trim() || 'Legal';
+        const res = await fetch(`${API_BASE}/api/enterprise/pursuit-internal-definitions?industry=${encodeURIComponent(ind)}`, {
           mode: 'cors',
           credentials: 'include',
         });
+        if (!res.ok) {
+          setPursuitDefinitions({ entries: [] });
+          return;
+        }
         const data = await res.json();
-        setPursuitDefinitions({ entries: data?.entries ?? [] });
+        setPursuitDefinitions({ entries: Array.isArray(data?.entries) ? data.entries : [] });
       } catch {
         setPursuitDefinitions({ entries: [] });
       }
     };
     fetchPursuitDefinitions();
-  }, []);
+  }, [industry]);
 
   // Refetch pursuit definitions when modal opens to ensure fresh data for the lead
   useEffect(() => {
@@ -98,47 +105,84 @@ export default function EnterpriseScout({ onLaunchComplianceSprint }) {
     const fetchForModal = async () => {
       setBriefingLoading(true);
       try {
-        const res = await fetch(`${API_BASE}/api/enterprise/pursuit-internal-definitions`, {
+        const ind = industry?.trim() || 'Legal';
+        const res = await fetch(`${API_BASE}/api/enterprise/pursuit-internal-definitions?industry=${encodeURIComponent(ind)}`, {
           mode: 'cors',
           credentials: 'include',
         });
+        if (!res.ok) {
+          setPursuitDefinitions((prev) => ({ entries: prev?.entries ?? [] }));
+          return;
+        }
         const data = await res.json();
-        setPursuitDefinitions({ entries: data?.entries ?? [] });
+        setPursuitDefinitions((prev) => ({ entries: Array.isArray(data?.entries) ? data.entries : (prev?.entries ?? []) }));
       } catch {
-        setPursuitDefinitions((prev) => prev);
+        setPursuitDefinitions((prev) => prev ?? { entries: [] });
       } finally {
         setBriefingLoading(false);
       }
     };
     fetchForModal();
-  }, [dossierLead]);
+  }, [dossierLead, industry]);
+
+  const fetchLibraryLeads = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const res = await fetch(`${API_BASE}/api/enterprise/leads`, {
+        mode: 'cors',
+        credentials: 'include',
+      });
+      const data = await res?.json?.();
+      if (!res?.ok) {
+        setError(data?.error ?? 'Failed to fetch lead library');
+        setLeads([]);
+        return;
+      }
+      setLeads(data?.leads ?? []);
+    } catch (err) {
+      setError(err?.message ?? 'Failed to load lead library');
+      setLeads([]);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    const fetchLeads = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002';
-        const res = await fetch(`${API_BASE}/api/enterprise/audit?query=Law%20Firms%20in%20NYC`, {
-          mode: 'cors',
-          credentials: 'include',
-        });
-        const data = await res.json();
-        if (!res.ok) {
-          setError(data?.error || 'Failed to fetch enterprise leads');
-          setLeads([]);
-          return;
-        }
-        setLeads(data?.leads ?? []);
-      } catch (err) {
-        setError(err?.message || 'Failed to load enterprise audit');
-        setLeads([]);
-      } finally {
-        setLoading(false);
+    fetchLibraryLeads();
+  }, [fetchLibraryLeads]);
+
+  const handleScoutNewLeads = useCallback(async () => {
+    setScouting(true);
+    setError(null);
+    try {
+      const res = await fetch(`${API_BASE}/api/enterprise/scout`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ industry: industry ?? 'Legal' }),
+        mode: 'cors',
+        credentials: 'include',
+      });
+      const data = await res?.json?.();
+      if (!res?.ok) {
+        setError(data?.error ?? 'Scout failed');
+        return;
       }
-    };
-    fetchLeads();
-  }, []);
+      const newLeads = data?.leads ?? [];
+      if (newLeads.length > 0) {
+        setLeads((prev) => {
+          const newIds = new Set(newLeads.map((l) => l.id));
+          const existingOnly = (prev ?? []).filter((l) => !newIds.has(l.id));
+          return [...newLeads, ...existingOnly];
+        });
+      }
+      await fetchLibraryLeads();
+    } catch (err) {
+      setError(err?.message ?? 'Scout failed');
+    } finally {
+      setScouting(false);
+    }
+  }, [industry, fetchLibraryLeads]);
 
   const getRiskLevel = (score) => {
     if (score > 7) return { label: 'CRITICAL', className: 'bg-red-600 text-white' };
@@ -149,46 +193,64 @@ export default function EnterpriseScout({ onLaunchComplianceSprint }) {
 
   const getPursuitBySlug = useCallback(() => {
     const bySlug = {};
-    for (const e of pursuitDefinitions.entries) {
-      if (e.vulnerability_slug) bySlug[e.vulnerability_slug] = e;
+    const entries = pursuitDefinitions?.entries ?? [];
+    for (const e of entries) {
+      if (e?.vulnerability_slug) bySlug[e.vulnerability_slug] = e;
     }
     return bySlug;
-  }, [pursuitDefinitions.entries]);
+  }, [pursuitDefinitions?.entries]);
+
+  /** Primary vertical for a lead (first vuln's vertical or Compliance). */
+  const getLeadPrimaryVertical = useCallback((lead) => {
+    const vulns = lead?.real_vulnerabilities ?? lead?.technicalDebt ?? [];
+    const bySlug = getPursuitBySlug();
+    for (const v of vulns) {
+      if (/verified stable|no debt found|established|pass$/i.test(String(v))) continue;
+      const slug = vulnerabilityToSlug?.(v, lead?.websiteUri);
+      if (slug) {
+        const vert = bySlug[slug]?.vertical_name ?? getVerticalStyle?.(slug);
+        if (vert) return vert;
+      }
+    }
+    const httpSlug = getHttpSlugIfInsecure?.(lead?.websiteUri);
+    if (httpSlug) return bySlug[httpSlug]?.vertical_name ?? getVerticalStyle?.(httpSlug);
+    return 'Compliance';
+  }, [getPursuitBySlug]);
 
   const buildSprintBriefMarkdown = useCallback((lead) => {
-    const vulns = lead.real_vulnerabilities ?? lead.technicalDebt ?? [];
-    const bySlug = getPursuitBySlug();
-    const fb = (slug) => SLUG_FALLBACKS[slug];
-    const PENDING = (slug) => `Briefing Pending for ${slug}`;
+    const vulns = lead?.real_vulnerabilities ?? lead?.technicalDebt ?? [];
+    const bySlug = getPursuitBySlug?.() ?? {};
+    const fb = (slug) => SLUG_FALLBACKS?.[slug];
+    const PENDING = (slug) => `Briefing Pending for ${slug ?? 'unknown'}`;
 
     const items = [];
     const seenSlugs = new Set();
     for (const v of vulns) {
       if (/verified stable|no debt found|established|pass$/i.test(String(v))) continue;
-      const slug = vulnerabilityToSlug(v, lead.websiteUri);
+      const slug = vulnerabilityToSlug?.(v, lead?.websiteUri);
       if (slug && !seenSlugs.has(slug)) {
         seenSlugs.add(slug);
-        const e = bySlug[slug];
-        const title = e?.internal_title ?? e?.display_title ?? SLUG_DISPLAY_TITLES[slug] ?? slug;
+        const e = bySlug?.[slug];
+        const headerText = e?.vertical_name ?? getVerticalStyle?.(slug) ?? 'TECHNICAL MISSION';
         items.push({
-          title,
-          triage: e?.technical_why ?? e?.admin_triage_note ?? fb(slug)?.technical_why ?? PENDING(slug),
-          deliverable: e?.alumni_deliverable ?? e?.fellow_what ?? e?.fellow_assignment_task ?? fb(slug)?.alumni_deliverable ?? PENDING(slug),
+          title: headerText,
+          triage: e?.technical_why ?? fb?.(slug)?.technical_why ?? PENDING?.(slug),
+          deliverable: e?.alumni_deliverable ?? fb?.(slug)?.alumni_deliverable ?? PENDING?.(slug),
         });
       }
     }
-    const httpSlug = getHttpSlugIfInsecure(lead.websiteUri);
+    const httpSlug = getHttpSlugIfInsecure?.(lead?.websiteUri);
     if (httpSlug && !seenSlugs.has(httpSlug)) {
-      const e = bySlug[httpSlug];
-      const title = e?.internal_title ?? e?.display_title ?? SLUG_DISPLAY_TITLES[httpSlug] ?? httpSlug;
+      const e = bySlug?.[httpSlug];
+      const headerText = e?.vertical_name ?? getVerticalStyle?.(httpSlug) ?? 'TECHNICAL MISSION';
       items.push({
-        title,
-        triage: e?.technical_why ?? e?.admin_triage_note ?? fb(httpSlug)?.technical_why ?? PENDING(httpSlug),
-        deliverable: e?.alumni_deliverable ?? e?.fellow_what ?? e?.fellow_assignment_task ?? fb(httpSlug)?.alumni_deliverable ?? PENDING(httpSlug),
+        title: headerText,
+        triage: e?.technical_why ?? fb?.(httpSlug)?.technical_why ?? PENDING?.(httpSlug),
+        deliverable: e?.alumni_deliverable ?? fb?.(httpSlug)?.alumni_deliverable ?? PENDING?.(httpSlug),
       });
     }
 
-    let md = `### SPRINT ASSIGNMENT: ${lead.name}\n\n`;
+    let md = `### SPRINT ASSIGNMENT: ${lead?.name ?? 'Enterprise Lead'}\n\n`;
     for (const { triage, deliverable } of items) {
       md += `**Triage Note:** ${triage}\n`;
       md += `**Fellow Deliverable:** ${deliverable}\n\n`;
@@ -215,10 +277,49 @@ export default function EnterpriseScout({ onLaunchComplianceSprint }) {
     );
   }
 
+  const filteredLeads = leads.filter((l) => {
+    let lt = l?.industry_type;
+    if (!lt && l?.friction_type) {
+      if (l.friction_type.startsWith('Legal')) lt = 'Legal';
+      else if (l.friction_type.startsWith('Medical')) lt = 'Medical';
+      else if (l.friction_type.startsWith('E-commerce')) lt = 'E-commerce';
+    }
+    return (lt ?? 'Legal') === (industry ?? 'Legal');
+  });
+
   return (
     <div className="space-y-4">
+      {/* Industry toggle + Scout button */}
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="flex items-center gap-2">
+          <span className="text-slate-400 text-sm">Industry:</span>
+          <select
+            value={industry ?? 'Legal'}
+            onChange={(e) => setIndustry?.(e?.target?.value ?? 'Legal')}
+            className="bg-slate-800 border border-slate-600 text-slate-200 rounded px-3 py-1.5 text-sm"
+          >
+            <option value="Legal">Legal</option>
+            <option value="Medical">Medical</option>
+            <option value="E-commerce">E-commerce</option>
+          </select>
+        </div>
+        <button
+          onClick={handleScoutNewLeads}
+          disabled={scouting}
+          className="px-4 py-2 bg-amber-600 hover:bg-amber-500 disabled:bg-amber-800 disabled:cursor-wait text-white font-medium rounded-lg transition-colors flex items-center gap-2"
+        >
+          {scouting ? (
+            <>
+              <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              Scouting…
+            </>
+          ) : (
+            'Scout New Leads'
+          )}
+        </button>
+      </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {leads.map((lead) => {
+        {filteredLeads.map((lead) => {
           const isPreAudit = lead.security_debt_score == null;
           const displayScore = lead.security_debt_score ?? 0;
           const risk = getRiskLevel(displayScore);
@@ -311,11 +412,11 @@ export default function EnterpriseScout({ onLaunchComplianceSprint }) {
 
               {/* Proposed Deliverables - from audit (shown on card and in Launch modal) */}
               {(() => {
-                const deliverables = generateDeliverables(
-                  lead.real_vulnerabilities ?? lead.technicalDebt ?? [],
-                  lead.websiteUri ?? undefined
-                );
-                if (deliverables.length === 0) return null;
+                const deliverables = generateDeliverables?.(
+                  lead?.real_vulnerabilities ?? lead?.technicalDebt ?? [],
+                  lead?.websiteUri ?? undefined
+                ) ?? [];
+                if (!deliverables?.length) return null;
                 return (
                   <div className="px-5 py-3 bg-slate-900/60 border-t border-slate-700">
                     <h4 className="text-slate-400 text-xs uppercase tracking-wider mb-2">Proposed Deliverables</h4>
@@ -380,14 +481,14 @@ export default function EnterpriseScout({ onLaunchComplianceSprint }) {
                 <button
                   onClick={() => {
                     if (typeof onLaunchComplianceSprint === 'function') {
-                      onLaunchComplianceSprint(lead);
+                      onLaunchComplianceSprint?.(lead);
                     } else {
-                      console.warn('EnterpriseScout: onLaunchComplianceSprint not provided');
+                      console.warn?.('EnterpriseScout: onLaunchComplianceSprint not provided');
                     }
                   }}
                   className="w-full py-2.5 px-4 bg-cyan-600 hover:bg-cyan-500 text-white font-medium rounded-lg transition-colors"
                 >
-                  Launch Compliance Sprint
+                  Launch {getLeadPrimaryVertical?.(lead) ?? 'Compliance'} Sprint
                 </button>
               </div>
             </div>
@@ -395,9 +496,10 @@ export default function EnterpriseScout({ onLaunchComplianceSprint }) {
         })}
       </div>
 
-      {leads.length === 0 && (
-        <div className="text-center py-12 text-slate-500">
-          No enterprise leads found. Try a different query.
+      {filteredLeads.length === 0 && (
+        <div className="text-center py-12 px-4 bg-slate-900/50 rounded-xl border border-slate-700">
+          <p className="text-slate-500 text-sm">No leads in library.</p>
+          <p className="text-slate-500 text-sm mt-1">Click &apos;Scout&apos; to begin.</p>
         </div>
       )}
 
@@ -414,28 +516,30 @@ export default function EnterpriseScout({ onLaunchComplianceSprint }) {
 
         for (const v of vulns) {
           if (/verified stable|no debt found|established|pass$/i.test(String(v))) continue;
-          const slug = vulnerabilityToSlug(v, dossierLead.websiteUri);
+          const slug = vulnerabilityToSlug?.(v, dossierLead?.websiteUri);
           if (slug && !seenSlugs.has(slug)) {
             seenSlugs.add(slug);
-            const e = bySlug[slug];
-            const title = e?.internal_title ?? e?.display_title ?? SLUG_DISPLAY_TITLES[slug] ?? slug;
+            const e = bySlug?.[slug];
+            const verticalName = e?.vertical_name ?? getVerticalStyle?.(slug) ?? 'TECHNICAL MISSION';
             items.push({
-              title,
-              proof: e?.technical_proof ?? fb(slug)?.technical_proof ?? v,
-              triage: e?.technical_why ?? e?.admin_triage_note ?? fb(slug)?.technical_why ?? PENDING(slug),
-              deliverable: e?.alumni_deliverable ?? e?.fellow_what ?? e?.fellow_assignment_task ?? fb(slug)?.alumni_deliverable ?? PENDING(slug),
+              title: verticalName,
+              verticalName,
+              proof: fb?.(slug)?.technical_proof ?? v,
+              triage: e?.technical_why ?? fb?.(slug)?.technical_why ?? PENDING?.(slug),
+              deliverable: e?.alumni_deliverable ?? fb?.(slug)?.alumni_deliverable ?? PENDING?.(slug),
             });
           }
         }
-        const httpSlug = getHttpSlugIfInsecure(dossierLead.websiteUri);
+        const httpSlug = getHttpSlugIfInsecure?.(dossierLead?.websiteUri);
         if (httpSlug && !seenSlugs.has(httpSlug)) {
-          const e = bySlug[httpSlug];
-          const title = e?.internal_title ?? e?.display_title ?? SLUG_DISPLAY_TITLES[httpSlug] ?? httpSlug;
+          const e = bySlug?.[httpSlug];
+          const verticalName = e?.vertical_name ?? getVerticalStyle?.(httpSlug) ?? 'TECHNICAL MISSION';
           items.push({
-            title,
-            proof: e?.technical_proof ?? fb(httpSlug)?.technical_proof ?? 'Site served over HTTP (insecure)',
-            triage: e?.technical_why ?? e?.admin_triage_note ?? fb(httpSlug)?.technical_why ?? PENDING(httpSlug),
-            deliverable: e?.alumni_deliverable ?? e?.fellow_what ?? e?.fellow_assignment_task ?? fb(httpSlug)?.alumni_deliverable ?? PENDING(httpSlug),
+            title: verticalName,
+            verticalName,
+            proof: fb?.(httpSlug)?.technical_proof ?? 'Site served over HTTP (insecure)',
+            triage: e?.technical_why ?? fb?.(httpSlug)?.technical_why ?? PENDING?.(httpSlug),
+            deliverable: e?.alumni_deliverable ?? fb?.(httpSlug)?.alumni_deliverable ?? PENDING?.(httpSlug),
           });
         }
 
@@ -477,10 +581,11 @@ export default function EnterpriseScout({ onLaunchComplianceSprint }) {
                 ) : items.length === 0 ? (
                   <div className="border border-slate-700 rounded p-4 text-slate-500 text-sm">No technical findings.</div>
                 ) : (
-                  items.map(({ title, proof, triage, deliverable }, i) => (
+                  items.map(({ title, verticalName, proof, triage, deliverable }, i) => (
                     <div key={i} className="border border-slate-600 rounded-lg bg-slate-900/50 overflow-hidden w-full">
                       <div className="px-4 py-2 border-b border-slate-600 bg-slate-800/60">
-                        <span className="text-slate-200 font-semibold text-sm">{title}</span>
+                        <span className="text-cyan-400 text-xs uppercase tracking-wider">{verticalName ?? 'TECHNICAL MISSION'}</span>
+                        <span className="text-slate-200 font-semibold text-sm block mt-0.5">{title}</span>
                       </div>
                       <div className="p-4 space-y-3">
                         {/* WHY (Admin Triage): technical_why — high-contrast */}

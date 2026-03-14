@@ -5,7 +5,7 @@
  * In dev, Next.js rewrites /api/* to the backend, so we use relative URLs
  * to avoid CORS and ensure requests hit the backend via the proxy.
  */
-export const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3002";
+export const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 
 export function apiUrl(path: string): string {
   const p = path.startsWith("/") ? path : `/${path}`;

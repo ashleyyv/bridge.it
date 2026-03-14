@@ -26,6 +26,20 @@ export const SLUG_DISPLAY_TITLES: Record<string, string> = {
   domain_age_risk: "Identity: Domain Age Risk",
 };
 
+/** Map slug to vertical_name for 5-Vertical Research (Matrix UI). */
+export const SLUG_TO_VERTICAL: Record<string, string> = {
+  legacy_jquery: 'SECURITY & COMPLIANCE',
+  grade_f: 'SECURITY & COMPLIANCE',
+  http_insecure: 'INFRASTRUCTURE & DEBT',
+  outdated_cms: 'SECURITY & COMPLIANCE',
+  domain_age_risk: 'IDENTITY & TRUST',
+};
+
+/** Get vertical_name for a slug; fallback to TECHNICAL MISSION. */
+export function getVerticalStyle(slug: string): string {
+  return SLUG_TO_VERTICAL[slug] ?? 'TECHNICAL MISSION';
+}
+
 /** Inline fallbacks when pursuit_internal_definitions is empty or missing slug. */
 export const SLUG_FALLBACKS: Record<string, { technical_proof?: string; technical_why: string; alumni_deliverable: string }> = {
   legacy_jquery: {
